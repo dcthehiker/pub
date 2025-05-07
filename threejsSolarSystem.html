@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js 太阳系模拟</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; /* 防止滚动条出现 */
+            background-color: #000000; /* 深黑色背景 */
+            color: white; 
+            font-family: 'Arial', sans-serif; /* 默认字体 */
+        }
+        canvas { 
+            display: block; /* 移除画布下方的额外空间 */
+        }
+        #infoBox {
+            position: absolute; /* 绝对定位，用于鼠标跟踪 */
+            display: none; /* 初始隐藏 */
+            background-color: rgba(25, 25, 25, 0.85); /* 半透明深色背景 */
+            border: 1px solid #444; /* 边框颜色 */
+            color: #e0e0e0; /* 文本颜色 */
+            padding: 12px;
+            border-radius: 8px; /* 圆角 */
+            font-size: 14px;
+            pointer-events: none; /* 使信息框不干扰鼠标与画布的交互 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6); /* 添加阴影以增强深度感 */
+            transition: opacity 0.2s ease-in-out; /* 平滑的淡入淡出效果 */
+            max-width: 250px; /* 最大宽度 */
+            line-height: 1.6; /* 调整行高以提高可读性 */
+        }
+        #infoBox h3 { 
+            margin-top: 0; 
+            margin-bottom: 10px; 
+            color: #ffffff; /* 标题颜色 */
+            font-size: 18px;
+            border-bottom: 1px solid #555; /* 标题下的分隔线 */
+            padding-bottom: 8px;
+        }
+        #infoBox p { 
+            margin-bottom: 6px; 
+            margin-top: 0; 
+        }
+    </style>
+</head>
+<body>
+    <div id="infoBox"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Three.js 全局变量
+        let scene, camera, renderer, controls;
+        let sun, planets = []; // 用于存储行星对象
+        let raycaster, mouse; // 用于鼠标悬停检测
+        let infoBox; // HTML 信息框元素
+        let intersectedPlanet = null; // 当前悬停的行星
+
+        // 太阳和行星数据
+        // baseRadius: 行星相对于地球的半径 (地球=1)
+        // orbitRadius: 轨道半径 (AU, 天文单位的相对值)
+        // orbitSpeed: 轨道速度因子
+        // rotationSpeed: 自转速度因子
+        // color: 行星颜色
+        // mass: 质量 (相对于地球)
+        // gravity: 表面重力 (相对于地球)
+        const PLANET_DATA = [
+            { name: "水星", baseRadius: 0.383, orbitRadius: 5.8, orbitSpeed: 0.0479, rotationSpeed: 0.0058, color: 0x9c9c9c, mass: "0.055 M⊕", gravity: "0.38 g" },
+            { name: "金星", baseRadius: 0.949, orbitRadius: 10.8, orbitSpeed: 0.0350, rotationSpeed: 0.0024, color: 0xffe4b5, mass: "0.815 M⊕", gravity: "0.904 g" },
+            { name: "地球", baseRadius: 1.000, orbitRadius: 15.0, orbitSpeed: 0.0298, rotationSpeed: 0.0100, color: 0x6b93d6, mass: "1 M⊕", gravity: "1 g" },
+            { name: "火星", baseRadius: 0.532, orbitRadius: 22.8, orbitSpeed: 0.0241, rotationSpeed: 0.0103, color: 0xff7f50, mass: "0.107 M⊕", gravity: "0.379 g" },
+            { name: "木星", baseRadius: 11.21, orbitRadius: 77.8, orbitSpeed: 0.0131, rotationSpeed: 0.0250, color: 0xffd700, mass: "317.8 M⊕", gravity: "2.528 g" },
+            { name: "土星", baseRadius: 9.45, orbitRadius: 143.4, orbitSpeed: 0.0097, rotationSpeed: 0.0238, color: 0xf0e68c, mass: "95.16 M⊕", gravity: "1.065 g", hasRing: true, ringColor: 0x9c8865 },
+            { name: "天王星", baseRadius: 4.007, orbitRadius: 287.1, orbitSpeed: 0.0068, rotationSpeed: 0.0141, color: 0xadd8e6, mass: "14.54 M⊕", gravity: "0.886 g" },
+            { name: "海王星", baseRadius: 3.883, orbitRadius: 449.5, orbitSpeed: 0.0054, rotationSpeed: 0.0150, color: 0x3f54ba, mass: "17.15 M⊕", gravity: "1.137 g" }
+        ];
+
+        // 视觉缩放因子
+        const SUN_BASE_RADIUS = 25;      // 太阳的基础半径，用于计算视觉大小
+        const PLANET_VISUAL_SCALE = 0.6; // 行星视觉大小的缩放因子
+        const ORBIT_VISUAL_SCALE = 3.0;  // 轨道半径的视觉缩放因子
+        const SUN_VISUAL_SCALE = 0.35;   // 太阳视觉大小的缩放因子
+        const SIMULATION_SPEED = 0.05;   // 整体模拟速度
+
+        // 初始化函数
+        function init() {
+            // 场景
+            scene = new THREE.Scene();
+
+            // 相机
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 80, 180); // 调整相机初始位置和角度
+            camera.lookAt(scene.position);
+
+            // 渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true }); // 开启抗锯齿
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio); // 适配高分屏
+            document.body.appendChild(renderer.domElement);
+
+            // 光照
+            const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // 环境光，增加整体亮度
+            scene.add(ambientLight);
+
+            // 太阳作为点光源
+            const sunLight = new THREE.PointLight(0xffffff, 1.8, 2000); // 颜色，强度，距离
+            scene.add(sunLight); // 光源直接添加到场景中心 (太阳位置)
+
+            // 控制器 (允许鼠标拖动、缩放)
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; // 平滑阻尼效果
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false; // 禁止屏幕空间平移
+            controls.minDistance = 20;    // 最小缩放距离
+            controls.maxDistance = 1000;  // 最大缩放距离
+
+            // 创建太阳
+            createSun();
+
+            // 创建行星及其轨道
+            PLANET_DATA.forEach(data => {
+                createPlanet(data);
+            });
+            
+            // 创建星空背景
+            createStarfield();
+
+            // Raycaster 和鼠标向量
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // 获取信息框 DOM 元素
+            infoBox = document.getElementById('infoBox');
+
+            // 事件监听器
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onMouseMove, false);
+
+            // 开始动画循环
+            animate();
+        }
+
+        // 创建太阳
+        function createSun() {
+            const sunRadius = SUN_BASE_RADIUS * SUN_VISUAL_SCALE;
+            const geometry = new THREE.SphereGeometry(sunRadius, 64, 64); // 更高的分段数使太阳更圆滑
+            // 太阳使用 MeshBasicMaterial 因为它自身发光，不受其他光源影响
+            const material = new THREE.MeshBasicMaterial({ color: 0xffddaa }); 
+            sun = new THREE.Mesh(geometry, material);
+            sun.name = "太阳"; // 为太阳设置名称，虽然此示例中不直接用于信息框
+            sun.userData = { name: "太阳", mass: "333,000 M⊕", gravity: "28 g" }; // 添加太阳信息
+            scene.add(sun);
+        }
+
+        // 创建行星
+        function createPlanet(data) {
+            const visualRadius = data.baseRadius * PLANET_VISUAL_SCALE;
+            const scaledOrbitRadius = data.orbitRadius * ORBIT_VISUAL_SCALE;
+
+            // 行星几何体和材质
+            const geometry = new THREE.SphereGeometry(visualRadius, 32, 32);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: data.color,
+                roughness: 0.8, // 使行星表面不那么光滑，更真实
+                metalness: 0.2
+            });
+            const planetMesh = new THREE.Mesh(geometry, material);
+            planetMesh.name = data.name; // 用于 raycaster 识别
+            planetMesh.userData = data; // 将行星数据附加到网格对象
+
+            // 创建一个 Object3D 作为行星的轨道中心（枢轴点）
+            // 行星将作为此对象的子对象，并围绕此对象旋转（公转）
+            const pivot = new THREE.Object3D();
+            scene.add(pivot); // 枢轴点位于太阳中心
+
+            // 将行星添加到枢轴点，并设置其在轨道上的初始位置
+            planetMesh.position.x = scaledOrbitRadius;
+            pivot.add(planetMesh);
+
+            // 创建土星环 (如果适用)
+            if (data.hasRing) {
+                const ringInnerRadius = visualRadius * 1.5;
+                const ringOuterRadius = visualRadius * 2.8;
+                const ringGeometry = new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 64);
+                
+                // 让环的材质看起来更像是由小颗粒组成
+                const ringMaterial = new THREE.MeshBasicMaterial({ 
+                    color: data.ringColor || 0x9c8865, 
+                    side: THREE.DoubleSide, 
+                    transparent: true, 
+                    opacity: 0.6 
+                });
+                const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
+                ringMesh.rotation.x = Math.PI / 2.4; // 调整环的倾斜度
+                ringMesh.rotation.y = Math.PI / 5;  // 给环一个轻微的初始旋转
+                planetMesh.add(ringMesh); // 环是行星的子对象，随行星一起移动和旋转
+            }
+            
+            // 创建轨道线
+            const orbitPoints = [];
+            for (let i = 0; i <= 128; i++) { // 增加点数使轨道线更平滑
+                const angle = (i / 128) * Math.PI * 2;
+                orbitPoints.push(new THREE.Vector3(Math.cos(angle) * scaledOrbitRadius, 0, Math.sin(angle) * scaledOrbitRadius));
+            }
+            const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPoints);
+            const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x444444, transparent: true, opacity: 0.6 }); // 较暗且半透明的轨道线
+            const orbitLine = new THREE.LineLoop(orbitGeometry, orbitMaterial);
+            // orbitLine.rotation.x = Math.PI / 2; // 如果轨道在XY平面，则旋转到XZ平面；这里已在XZ平面创建
+            scene.add(orbitLine);
+
+
+            planets.push({ mesh: planetMesh, pivot: pivot, data: data, orbitLine: orbitLine });
+        }
+        
+        // 创建星空背景
+        function createStarfield() {
+            const starVertices = [];
+            for (let i = 0; i < 15000; i++) { // 增加星星数量
+                const x = THREE.MathUtils.randFloatSpread(1800); // 星星分布范围
+                const y = THREE.MathUtils.randFloatSpread(1800);
+                const z = THREE.MathUtils.randFloatSpread(1800);
+                // 确保星星不会聚集在中心
+                if (Math.sqrt(x*x + y*y + z*z) > 150) { // 避免在太阳系内部区域生成过多星星
+                     starVertices.push(x, y, z);
+                }
+            }
+            const starGeometry = new THREE.BufferGeometry();
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            
+            // 使用 PointsMaterial 并调整大小和透明度
+            const starMaterial = new THREE.PointsMaterial({ 
+                color: 0xffffff, 
+                size: 0.8, // 调整星星大小
+                transparent: true,
+                opacity: THREE.MathUtils.randFloat(0.5, 1.0) // 给星星随机透明度
+            });
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+        }
+
+
+        // 窗口大小调整处理函数
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // 鼠标移动处理函数
+        function onMouseMove(event) {
+            // 将鼠标位置转换为归一化设备坐标 (-1 到 +1)
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+            // 更新信息框位置 (即使没有悬停对象，也先更新，由 checkIntersections 控制显示)
+            infoBox.style.left = (event.clientX + 15) + 'px';
+            infoBox.style.top = (event.clientY + 15) + 'px';
+        }
+        
+        // 检测鼠标悬停
+        function checkIntersections() {
+            raycaster.setFromCamera(mouse, camera);
+            const planetMeshes = planets.map(p => p.mesh);
+            const sunAndPlanets = [sun, ...planetMeshes]; // 将太阳也加入检测列表
+            const intersects = raycaster.intersectObjects(sunAndPlanets);
+
+            if (intersects.length > 0) {
+                const firstIntersected = intersects[0].object;
+                if (intersectedPlanet !== firstIntersected) { // 如果悬停对象改变
+                    intersectedPlanet = firstIntersected;
+                    const data = firstIntersected.userData;
+                    infoBox.innerHTML = `<h3>${data.name}</h3><p>质量：${data.mass}</p><p>重力：${data.gravity}</p>`;
+                    infoBox.style.display = 'block';
+                    infoBox.style.opacity = '1'; // 淡入
+                }
+            } else {
+                if (intersectedPlanet) { // 如果之前有悬停对象，现在没有了
+                    infoBox.style.opacity = '0'; // 淡出
+                    // 等待淡出动画完成后再隐藏，避免突然消失
+                    setTimeout(() => {
+                        if (infoBox.style.opacity === '0') { // 确保在淡出期间没有新的悬停
+                           infoBox.style.display = 'none';
+                        }
+                    }, 200); // 匹配 CSS transition duration
+                }
+                intersectedPlanet = null;
+            }
+        }
+
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now() * 0.0001; // 基于时间的动画，更平滑
+
+            // 更新行星轨道和自转
+            planets.forEach(p => {
+                // 公转 (围绕太阳旋转)
+                p.pivot.rotation.y += p.data.orbitSpeed * SIMULATION_SPEED;
+                // 自转 (行星自身旋转)
+                p.mesh.rotation.y += p.data.rotationSpeed * SIMULATION_SPEED * 10; // 加快自转以便观察
+            });
+
+            // 太阳也可以自转 (可选)
+            if (sun) {
+                sun.rotation.y += 0.0005 * SIMULATION_SPEED;
+            }
+            
+            // 检测鼠标悬停
+            checkIntersections();
+
+            // 更新控制器
+            controls.update();
+
+            // 渲染场景
+            renderer.render(scene, camera);
+        }
+
+        // 确保 DOM 加载完毕后运行初始化函数
+        // 或者将 <script> 标签放在 <body> 底部
+        init();
+
+    </script>
+</body>
+</html>

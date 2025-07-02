@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON 知识图谱可视化工具</title>
+    
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f9;
+            color: #333;
+            display: flex;
+            height: 100vh;
+            overflow: hidden; /* 防止滚动 */
+        }
+        .sidebar {
+            width: 35%;
+            max-width: 500px;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        h2 {
+            margin: 0;
+            color: #2c3e50;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            flex-grow: 1; /* 占据剩余所有空间 */
+            padding: 15px;
+            border: 1px solid #dcdfe6;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', Courier, monospace; /* 使用等宽字体，方便查看JSON */
+            line-height: 1.6;
+            resize: none;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #27ae60;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #229954;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+        #graph-container {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #dcdfe6;
+            border-radius: 8px;
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>知识图谱 JSON 数据</h2>
+        <textarea id="json-input" placeholder="请在此处粘贴从AI获取的JSON数据...">{
+  "nodes": [
+    { "id": 1, "label": "马名" },
+    { "id": 2, "label": "双音节" },
+    { "id": 3, "label": "单音节" },
+    { "id": 4, "label": "人名" },
+    { "id": 5, "label": "流行" },
+    { "id": 6, "label": "关系" },
+    { "id": 7, "label": "研究" },
+    { "id": 8, "label": "项羽" },
+    { "id": 9, "label": "南北朝" }
+  ],
+  "edges": [
+    { "from": 1, "to": 2, "label": "多为" },
+    { "from": 1, "to": 3, "label": "也为" },
+    { "from": 8, "to": 1, "label": "拥有" },
+    { "from": 3, "to": 7, "label": "待" },
+    { "from": 4, "to": 5, "label": "也" },
+    { "from": 5, "to": 6, "label": "或有关联" },
+    { "from": 2, "to": 6, "label": "或有关联" },
+    { "from": 9, "to": 1, "label": "影响" }
+  ]
+}</textarea>
+        <button onclick="renderGraph()">可视化图谱</button>
+    </div>
+
+    <div class="main-content">
+        <div id="graph-container"></div>
+    </div>
+
+    <script type="text/javascript">
+        let network = null;
+
+        /**
+         * 主函数，由按钮点击触发
+         * 读取、解析并验证JSON，然后调用绘图函数
+         */
+        function renderGraph() {
+            const jsonInput = document.getElementById('json-input').value;
+            if (!jsonInput.trim()) {
+                alert("JSON数据不能为空！");
+                return;
+            }
+
+            let graphData;
+            try {
+                // 核心步骤：将输入的文本解析为JavaScript对象
+                graphData = JSON.parse(jsonInput);
+            } catch (error) {
+                alert("JSON格式无效，请检查您的输入。\n错误详情: " + error.message);
+                return;
+            }
+
+            // 验证解析后的数据是否符合图谱格式
+            if (!graphData.nodes || !graphData.edges || !Array.isArray(graphData.nodes) || !Array.isArray(graphData.edges)) {
+                alert("JSON数据格式不正确，必须包含名为 'nodes' 和 'edges' 的数组。");
+                return;
+            }
+            
+            // 调用绘图函数
+            drawGraph(graphData);
+        }
+
+        /**
+         * 使用 vis-network 绘制图谱
+         * @param {object} data - 包含 nodes 和 edges 的数据对象
+         */
+        function drawGraph(data) {
+            const container = document.getElementById('graph-container');
+            
+            // 如果已有图谱，先销毁
+            if (network !== null) {
+                network.destroy();
+                network = null;
+            }
+
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    size: 20,
+                    font: {
+                        size: 16,
+                        color: '#333'
+                    },
+                    borderWidth: 2,
+                    color: {
+                        border: '#2980b9',
+                        background: '#3498db',
+                        highlight: {
+                            border: '#2980b9',
+                            background: '#d2e9fc'
+                        }
+                    }
+                },
+                edges: {
+                    width: 2,
+                    arrows: {
+                      to: { enabled: true, scaleFactor: 0.7 }
+                    },
+                    color: {
+                        color: '#848484',
+                        highlight: '#2980b9'
+                    },
+                    font: {
+                        align: 'top'
+                    }
+                },
+                physics: {
+                    enabled: true,
+                    barnesHut: {
+                        gravitationalConstant: -10000,
+                        springConstant: 0.04,
+                        avoidOverlap: 0.1
+                    },
+                    stabilization: {
+                        iterations: 200
+                    }
+                },
+                interaction: {
+                    tooltipDelay: 200,
+                    hideEdgesOnDrag: true,
+                    navigationButtons: true
+                },
+                layout: {
+                    improvedLayout: true
+                }
+            };
+
+            network = new vis.Network(container, data, options);
+        }
+        
+        // 页面加载后自动渲染一次预置的JSON数据
+        window.onload = renderGraph;
+    </script>
+
+</body>
+</html>

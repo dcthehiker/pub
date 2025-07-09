@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD5/Base64 在线加密工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .container {
+            background: #ffffff;
+            padding: 2rem 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 { color: #0056b3; margin-bottom: 0.5rem; }
+        p { color: #666; margin-bottom: 2rem; }
+        .input-group { display: flex; flex-direction: column; gap: 1rem; }
+        #inputText { width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; box-sizing: border-box; }
+        #encryptButton { padding: 0.8rem; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background-color 0.3s ease; }
+        #encryptButton:hover { background-color: #0056b3; }
+        .result-container { margin-top: 2rem; text-align: left; }
+        h2 { font-size: 1.2rem; color: #333; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+        #resultOutput { background-color: #e9ecef; padding: 1rem; border-radius: 4px; font-family: 'Courier New', Courier, monospace; color: #c7254e; font-size: 1.1rem; word-wrap: break-word; min-height: 2.5rem; display: flex; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>MD5/Base64 加密工具</h1>
+        <p>输入文本，实时获取其 MD5 哈希值的 Base64 编码。</p>
+        <div class="input-group">
+            <input type="text" id="inputText" placeholder="在此输入任意文本...">
+            <button id="encryptButton">计算</button>
+        </div>
+        <div class="result-container">
+            <h2>结果</h2>
+            <pre><code id="resultOutput"></code></pre>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM 元素获取 ---
+        const inputText = document.getElementById('inputText');
+        const encryptButton = document.getElementById('encryptButton');
+        const resultOutput = document.getElementById('resultOutput');
+
+        /**
+         * 2. 使用 CryptoJS 库同步计算 MD5/Base64 哈希值
+         * @param {string} data - 输入字符串
+         * @returns {string} - Base64 编码后的哈希值
+         */
+        function md5Encrypt(data) {
+            // 使用 CryptoJS 计算 MD5 哈希
+            const hash = CryptoJS.MD5(data);
+            // 将哈希结果直接转换为 Base64 字符串
+            const base64String = hash.toString(CryptoJS.enc.Base64);
+            return base64String;
+        }
+
+        /**
+         * 3. 处理计算逻辑的函数 (不再需要 async/await)
+         */
+        function handleCalculation() {
+            const data = inputText.value;
+            if (!data) {
+                resultOutput.textContent = '';
+                return;
+            }
+            // 直接调用同步函数并显示结果
+            const hash = md5Encrypt(data);
+            resultOutput.textContent = hash;
+        }
+
+        // --- 事件监听 (保持不变) ---
+        encryptButton.addEventListener('click', handleCalculation);
+        inputText.addEventListener('input', handleCalculation);
+        inputText.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleCalculation();
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《漫长的余生》人物关系知识图谱</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+        header {
+            width: 100%;
+            text-align: center;
+            padding: 15px 0;
+            background-color: #ffffff;
+            border-bottom: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #1a1a1a;
+        }
+        p.subtitle {
+            margin: 5px 0 0;
+            color: #666;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 80px);
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        #graph-container {
+            flex-grow: 1;
+            position: relative;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 10px;
+            overflow: hidden;
+            cursor: grab;
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+        #info-panel {
+            width: 320px;
+            flex-shrink: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            border-left: 1px solid #ddd;
+            overflow-y: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 10px 10px 10px 0;
+        }
+        #info-panel h2 {
+            margin-top: 0;
+            color: #0056b3;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+        }
+        #info-panel p {
+            line-height: 1.6;
+            color: #555;
+        }
+         #info-panel .placeholder {
+            color: #888;
+            text-align: center;
+            margin-top: 50px;
+            font-style: italic;
+        }
+        .node {
+            cursor: pointer;
+        }
+        .node circle {
+            transition: stroke-width 0.2s ease, stroke 0.2s ease;
+        }
+        .link {
+            stroke-opacity: 0.6;
+            transition: stroke-width 0.2s ease, stroke-opacity 0.2s ease;
+        }
+        .link-label {
+            font-size: 10px;
+            fill: #555;
+            pointer-events: none;
+        }
+        .node text {
+            pointer-events: none;
+            font-size: 12px;
+            text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+        }
+        .controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .controls button {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 28px;
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .controls button:hover {
+            background-color: #f0f0f0;
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>《漫长的余生》人物关系知识图谱</h1>
+    <p class="subtitle">梳理书中人物的身份、介绍与相互关系</p>
+</header>
+
+<div class="container">
+    <div id="graph-container">
+        <svg></svg>
+        <div class="controls">
+            <button id="zoom-in">+</button>
+            <button id="zoom-out">-</button>
+            <button id="reset">⛶</button>
+        </div>
+        <div class="legend">
+            <h4>图例</h4>
+            <!-- Legend items will be added here by D3 -->
+        </div>
+    </div>
+    <div id="info-panel">
+        <div id="info-content">
+            <p class="placeholder">请将鼠标悬停或点击人物节点查看详细信息。</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 数据定义
+    const graphData = {
+        "nodes": [
+            // 主角
+            { "id": "王钟儿/慈庆", "group": "主角", "description": "本书主人公。生于南朝刘宋，三十岁时因战争被掳至北魏平城皇宫为宫女。后出家为尼，法号慈庆。一生历经五朝，是宣武帝、孝明帝的保母，见证了北魏的兴衰。" },
+            
+            // 王钟儿家族
+            { "id": "王虔象", "group": "王钟儿家族", "description": "王钟儿之父，刘宋宕渠太守。" },
+            { "id": "杨兴宗", "group": "王钟儿家族", "description": "王钟儿的丈夫，刘宋豫州主簿行南顿太守。在常珍奇叛乱后的战乱中身亡。" },
+            { "id": "杨坦之", "group": "王钟儿家族", "description": "杨兴宗之父，刘宋长社县令。" },
+    
+            // 关键事件人物
+            { "id": "常珍奇", "group": "关键事件人物", "description": "刘宋悬瓠镇将。他的反复叛乱是导致王钟儿被掳掠到北魏的直接原因。" },
+            
+            // 北魏皇室 (核心)
+            { "id": "冯太后(文明太后)", "group": "北魏皇室", "description": "文成帝皇后，献文帝、孝文帝时期的实际统治者，权势熏天。为巩固冯氏家族地位，残酷利用“子贵母死”制度。" },
+            { "id": "孝文帝(拓跋宏)", "group": "北魏皇室", "description": "北魏皇帝，由冯太后抚养长大，推行汉化改革、迁都洛阳。其后宫的权力斗争深刻影响了王钟儿的命运。" },
+            { "id": "宣武帝(元恪)", "group": "北魏皇室", "description": "孝文帝次子，由王钟儿等人抚育长大。即位后对王钟儿等旧人颇为感念和信任。" },
+            { "id": "孝明帝(元诩)", "group": "北魏皇室", "description": "宣武帝之子，王钟儿（慈庆）晚年抚育的最后一位皇子。慈庆的墓志即由他下令撰写。" },
+            { "id": "胡太后(灵太后)", "group": "北魏皇室", "description": "孝明帝生母，宣武帝充华。宣武帝死后临朝称制，成为北魏后期的核心政治人物。" },
+            
+            // 北魏皇室 (相关人物)
+            { "id": "献文帝(拓跋弘)", "group": "北魏皇室", "description": "孝文帝之父，与冯太后有激烈的权力斗争，后离奇死亡，疑为冯太后所害。" },
+            { "id": "拓跋晃(景穆帝)", "group": "北魏皇室", "description": "文成帝之父，未即位即去世。王钟儿入宫后首先服侍其正妻斛律氏。" },
+            { "id": "斛律氏", "group": "北魏皇室", "description": "景穆帝拓跋晃的正妻，高车斛律部人。王钟儿入宫后服侍的第一个主人。" },
+            { "id": "高照容(文昭皇太后)", "group": "北魏皇室", "description": "孝文帝贵人，宣武帝元恪的生母。与王钟儿主仆情深。在后宫斗争中被大冯派人暗杀。" },
+            { "id": "元恂(废太子)", "group": "北魏皇室", "description": "孝文帝长子，生母林氏被杀。在大冯的阴谋下被废黜并赐死。" },
+            
+            // 冯氏家族
+            { "id": "冯熙", "group": "冯氏家族", "description": "冯太后之兄，女儿们皆嫁入孝文帝后宫，是外戚势力的代表。" },
+            { "id": "大冯(幽皇后)", "group": "冯氏家族", "description": "冯熙之女，孝文帝皇后。为夺后位，设计陷害妹妹小冯、废太子元恂和宣武帝生母高照容。后因秽乱后宫事发被赐死。" },
+            { "id": "小冯(废皇后)", "group": "冯氏家族", "description": "冯熙之女，孝文帝的第一位冯姓皇后，元恂的养母。后被姐姐大冯陷害废黜，出家为尼。" },
+    
+            // 高氏家族
+            { "id": "高肇", "group": "高氏家族", "description": "高照容之兄，宣武帝的舅舅。在宣武帝朝以外戚身份专权，权倾朝野。宣武帝死后被于忠等人设计诛杀。" },
+            { "id": "高英(高皇后)", "group": "高氏家族", "description": "高肇的侄女，宣武帝的第二位皇后。为人悍妒。宣武帝死后被胡太后逼迫出家，后被赐死。" },
+            
+            // 于氏家族
+            { "id": "于皇后(顺皇后)", "group": "于氏家族", "description": "宣武帝的第一位皇后，生下皇子元昌。母子二人先后暴亡，世人皆疑为高肇、高英所害。" },
+            { "id": "于忠", "group": "于氏家族", "description": "北魏后期重要将领，禁军统帅。在宣武帝死后发动政变，诛杀高肇，拥立孝明帝，后扶持胡太后临朝。" },
+
+            // 胡氏家族
+            { "id": "胡国珍", "group": "胡氏家族", "description": "胡太后之父，武始伯。" },
+            { "id": "僧芝", "group": "胡氏家族", "description": "胡太后之姑，得道高尼。利用其在宫中讲经的机会，为侄女胡氏获得宣武帝的注意牵线搭桥。" },
+    
+            // 宫中人物
+            { "id": "杨氏(内司)", "group": "宫中人物", "description": "高级宫女，与王钟儿一同被掳入宫，也曾服侍高照容和宣武帝，后被宣武帝封为高唐县君。" },
+            { "id": "常景", "group": "宫中人物", "description": "北魏中书舍人，著名文臣。奉孝明帝之命为慈庆撰写墓志铭，使得王钟儿的故事得以流传后世。" }
+        ],
+        "links": [
+            // 王钟儿的关系
+            { "source": "王虔象", "target": "王钟儿/慈庆", "relation": "父女" },
+            { "source": "杨兴宗", "target": "王钟儿/慈庆", "relation": "夫妻" },
+            { "source": "杨坦之", "target": "杨兴宗", "relation": "父子" },
+            { "source": "常珍奇", "target": "王钟儿/慈庆", "relation": "导致其被俘" },
+            { "source": "斛律氏", "target": "王钟儿/慈庆", "relation": "主仆" },
+            { "source": "高照容(文昭皇太后)", "target": "王钟儿/慈庆", "relation": "主仆/情同姐妹" },
+            { "source": "宣武帝(元恪)", "target": "王钟儿/慈庆", "relation": "被抚育" },
+            { "source": "孝明帝(元诩)", "target": "王钟儿/慈庆", "relation": "被抚育" },
+            { "source": "杨氏(内司)", "target": "王钟儿/慈庆", "relation": "同僚" },
+            { "source": "常景", "target": "王钟儿/慈庆", "relation": "为其撰写墓志" },
+    
+            // 皇室内部关系
+            { "source": "冯太后(文明太后)", "target": "献文帝(拓跋弘)", "relation": "养母/政敌" },
+            { "source": "冯太后(文明太后)", "target": "孝文帝(拓跋宏)", "relation": "养祖母/抚育者" },
+            { "source": "献文帝(拓跋弘)", "target": "孝文帝(拓跋宏)", "relation": "父子" },
+            { "source": "拓跋晃(景穆帝)", "target": "献文帝(拓跋弘)", "relation": "父子" },
+            { "source": "拓跋晃(景穆帝)", "target": "斛律氏", "relation": "夫妻" },
+            { "source": "孝文帝(拓跋宏)", "target": "大冯(幽皇后)", "relation": "夫妻" },
+            { "source": "孝文帝(拓跋宏)", "target": "小冯(废皇后)", "relation": "夫妻" },
+            { "source": "孝文帝(拓跋宏)", "target": "高照容(文昭皇太后)", "relation": "君妃" },
+            { "source": "孝文帝(拓跋宏)", "target": "元恂(废太子)", "relation": "父子" },
+            { "source": "孝文帝(拓跋宏)", "target": "宣武帝(元恪)", "relation": "父子" },
+            { "source": "高照容(文昭皇太后)", "target": "宣武帝(元恪)", "relation": "母子" },
+            { "source": "小冯(废皇后)", "target": "元恂(废太子)", "relation": "养母子" },
+            { "source": "宣武帝(元恪)", "target": "于皇后(顺皇后)", "relation": "夫妻" },
+            { "source": "宣武帝(元恪)", "target": "高英(高皇后)", "relation": "夫妻" },
+            { "source": "宣武帝(元恪)", "target": "胡太后(灵太后)", "relation": "君妃" },
+            { "source": "宣武帝(元恪)", "target": "孝明帝(元诩)", "relation": "父子" },
+            { "source": "胡太后(灵太后)", "target": "孝明帝(元诩)", "relation": "母子" },
+    
+            // 家族与皇室关系
+            { "source": "冯熙", "target": "冯太后(文明太后)", "relation": "兄妹" },
+            { "source": "冯熙", "target": "大冯(幽皇后)", "relation": "父女" },
+            { "source": "冯熙", "target": "小冯(废皇后)", "relation": "父女" },
+            { "source": "大冯(幽皇后)", "target": "小冯(废皇后)", "relation": "姐妹/政敌" },
+            { "source": "高肇", "target": "高照容(文昭皇太后)", "relation": "兄妹" },
+            { "source": "高肇", "target": "宣武帝(元恪)", "relation": "舅甥" },
+            { "source": "高肇", "target": "高英(高皇后)", "relation": "叔侄" },
+            { "source": "胡国珍", "target": "胡太后(灵太后)", "relation": "父女" },
+            { "source": "僧芝", "target": "胡太后(灵太后)", "relation": "姑侄" },
+    
+            // 权力斗争关系
+            { "source": "大冯(幽皇后)", "target": "高照容(文昭皇太后)", "relation": "谋杀" },
+            { "source": "大冯(幽皇后)", "target": "元恂(废太子)", "relation": "陷害致死" },
+            { "source": "高肇", "target": "于皇后(顺皇后)", "relation": "疑为谋杀" },
+            { "source": "于忠", "target": "高肇", "relation": "政变诛杀" },
+            { "source": "胡太后(灵太后)", "target": "高英(高皇后)", "relation": "赐死" },
+            { "source": "僧芝", "target": "宣武帝(元恪)", "relation": "为其侄女牵线" }
+        ]
+    };
+    
+    // D3 可视化
+    const width = document.getElementById('graph-container').clientWidth;
+    const height = document.getElementById('graph-container').clientHeight;
+    const svg = d3.select("svg");
+    const g = svg.append("g"); // Main container for zoom/pan
+
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+    const groups = [...new Set(graphData.nodes.map(d => d.group))];
+    colorScale.domain(groups);
+    
+    // Add legend
+    const legend = d3.select(".legend");
+    groups.forEach((group, i) => {
+        const legendItem = legend.append("div").attr("class", "legend-item");
+        legendItem.append("div")
+            .attr("class", "legend-color")
+            .style("background-color", colorScale(group));
+        legendItem.append("span").text(group);
+    });
+    
+    svg.append('defs').append('marker')
+        .attr('id', 'arrowhead')
+        .attr('viewBox', '-0 -5 10 10')
+        .attr('refX', 20)
+        .attr('refY', 0)
+        .attr('orient', 'auto')
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .attr('xoverflow', 'visible')
+        .append('svg:path')
+        .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+        .attr('fill', '#999')
+        .style('stroke', 'none');
+    
+    const simulation = d3.forceSimulation(graphData.nodes)
+        .force("link", d3.forceLink(graphData.links).id(d => d.id).distance(150))
+        .force("charge", d3.forceManyBody().strength(-400))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("collide", d3.forceCollide().radius(30)) // Add collision force
+        .on("tick", ticked);
+    
+    const link = g.append("g")
+        .attr("stroke", "#999")
+        .selectAll("line")
+        .data(graphData.links)
+        .join("line")
+        .attr("class", "link")
+        .attr('marker-end', 'url(#arrowhead)');
+    
+    const linkLabel = g.append("g")
+        .selectAll(".link-label")
+        .data(graphData.links)
+        .join("text")
+        .attr("class", "link-label")
+        .text(d => d.relation);
+    
+    const node = g.append("g")
+        .selectAll(".node")
+        .data(graphData.nodes)
+        .join("g")
+        .attr("class", "node")
+        .call(drag(simulation));
+    
+    node.append("circle")
+        .attr("r", d => d.id === "王钟儿/慈庆" ? 15 : 10)
+        .attr("fill", d => colorScale(d.group))
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1.5);
+        
+    node.append("text")
+        .text(d => d.id)
+        .attr('x', 15)
+        .attr('y', 4);
+    
+    const infoPanel = d3.select("#info-content");
+    
+    node.on("mouseover", handleMouseOver);
+    node.on("mouseout", handleMouseOut);
+
+    function handleMouseOver(event, d) {
+        updateInfoPanel(d);
+        
+        // Highlight logic
+        const connectedLinks = graphData.links.filter(l => l.source.id === d.id || l.target.id === d.id);
+        const connectedNodeIds = new Set([d.id]);
+        connectedLinks.forEach(link => {
+            connectedNodeIds.add(link.source.id);
+            connectedNodeIds.add(link.target.id);
+        });
+
+        node.select('circle')
+            .style('stroke', n => n.id === d.id ? 'black' : (connectedNodeIds.has(n.id) ? '#666' : '#fff'))
+            .style('stroke-width', n => connectedNodeIds.has(n.id) ? 2.5 : 1.5);
+        
+        link.style('stroke-opacity', l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1)
+             .style('stroke-width', l => (l.source.id === d.id || l.target.id === d.id) ? 2 : 1);
+        
+        linkLabel.style("opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
+    }
+
+    function handleMouseOut() {
+        // Restore default styles
+        node.select('circle')
+            .style('stroke', '#fff')
+            .style('stroke-width', 1.5);
+        link.style('stroke-opacity', 0.6).style('stroke-width', 1);
+        linkLabel.style('opacity', 1);
+    }
+
+    function updateInfoPanel(d) {
+        infoPanel.html(`
+            <h2>${d.id}</h2>
+            <p><strong>分类:</strong> ${d.group}</p>
+            <p>${d.description}</p>
+        `);
+    }
+    
+    function ticked() {
+        link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+    
+        node
+            .attr("transform", d => `translate(${d.x},${d.y})`);
+    
+        linkLabel
+            .attr("x", d => (d.source.x + d.target.x) / 2)
+            .attr("y", d => (d.source.y + d.target.y) / 2);
+    }
+    
+    // Drag functionality
+    function drag(simulation) {
+      function dragstarted(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      }
+      
+      function dragged(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+      }
+      
+      function dragended(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        // Do not reset fx, fy to make nodes "stick"
+        // d.fx = null;
+        // d.fy = null;
+      }
+      
+      return d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended);
+    }
+
+    // Zoom functionality
+    const zoom = d3.zoom()
+        .scaleExtent([0.1, 4])
+        .on("zoom", (event) => {
+            g.attr("transform", event.transform);
+        });
+
+    svg.call(zoom);
+
+    d3.select("#zoom-in").on("click", () => svg.transition().call(zoom.scaleBy, 1.2));
+    d3.select("#zoom-out").on("click", () => svg.transition().call(zoom.scaleBy, 0.8));
+    d3.select("#reset").on("click", () => svg.transition().call(zoom.transform, d3.zoomIdentity));
+    
+    // Stop collision force after initial layout
+    setTimeout(() => {
+        simulation.force("collide", null);
+    }, 3000); // Stop after 3 seconds
+
+});
+</script>
+
+</body>
+</html>
+

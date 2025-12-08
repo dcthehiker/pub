@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阿尔谢尼耶夫乌苏里探险互动地图 (完美防溢出版)</title>
+<style>
+    body {
+        font-family: "Microsoft YaHei", sans-serif;
+        background-color: #f4f4f4;
+        padding: 20px;
+        padding-top: 60px;
+    }
+    h1, h2 {
+        color: #333;
+        text-align: center;
+    }
+    .map-wrapper {
+        position: relative;
+        max-width: 800px;
+        margin: 20px auto;
+    }
+    .map-container {
+        position: relative;
+        width: 100%;
+        border: 2px solid #ddd;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        background-color: #fff;
+        /* 注意：这里不能用 overflow: hidden，否则提示框移到边界时会被切掉，
+           但为了防止红点拖出界，我们需要在 JS 里限制拖拽范围，
+           CSS 这里改为 visible 或者让 tooltip z-index 很高 */
+        overflow: visible; 
+    }
+    .map-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+    
+    /* 红点样式 */
+    .dot {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background-color: red;
+        border: 2px solid white;
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 10;
+        box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        transition: transform 0.2s, background-color 0.2s;
+    }
+    .editing-active .dot {
+        cursor: move;
+        border-color: yellow;
+    }
+    .dot:hover {
+        transform: scale(1.5);
+        background-color: #ff3333;
+        z-index: 20;
+    }
+
+    /* --- 信息提示框基础样式 --- */
+    .tooltip {
+        visibility: hidden;
+        width: 250px;
+        background-color: rgba(0, 0, 0, 0.85);
+        color: #fff;
+        text-align: left;
+        border-radius: 6px;
+        padding: 10px;
+        position: absolute;
+        
+        /* 默认：出现在上方 */
+        bottom: 150%; 
+        left: 50%;
+        transform: translateX(-50%); /* 默认水平居中 */
+        
+        z-index: 100;
+        font-size: 14px;
+        line-height: 1.5;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+    
+    /* 默认的小三角 (在下方) */
+    .tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%; /* 位于提示框底部 */
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent; /* 箭头向下 */
+    }
+
+    /* --- 新增：当空间不足时，提示框出现在下方的样式 --- */
+    .tooltip.bottom {
+        bottom: auto;       /* 取消底对齐 */
+        top: 150%;          /* 改为顶对齐 (位于点下方) */
+    }
+    /* 下方显示时，小三角要在上方 */
+    .tooltip.bottom::after {
+        top: auto;          /* 取消顶部定位 */
+        bottom: 100%;       /* 位于提示框顶部 */
+        border-color: transparent transparent rgba(0, 0, 0, 0.85) transparent; /* 箭头向上 */
+    }
+
+    /* 非编辑模式下 Hover 显示 */
+    body:not(.editing-active) .dot:hover .tooltip {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .info-title {
+        font-weight: bold;
+        color: #ffd700;
+        margin-bottom: 5px;
+        border-bottom: 1px solid #555;
+        padding-bottom: 3px;
+    }
+    .info-item {
+        margin-bottom: 3px;
+    }
+
+    /* 编辑器 UI */
+    #editor-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #333;
+        color: white;
+        padding: 10px 20px;
+        z-index: 1000;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    button {
+        padding: 8px 15px;
+        cursor: pointer;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    .btn-primary { background-color: #007bff; color: white; }
+    .btn-success { background-color: #28a745; color: white; }
+    .btn-danger { background-color: #dc3545; color: white; }
+    .btn-add { 
+        display: none;
+        margin-bottom: 10px;
+        background-color: #17a2b8; color: white; 
+    }
+    
+    /* 模态框 */
+    #edit-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 400px;
+        max-width: 90%;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-group input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    .field-row { display: flex; gap: 5px; margin-bottom: 5px; }
+    .field-row input:first-child { width: 30%; font-weight: bold; }
+    .modal-footer { margin-top: 20px; text-align: right; display: flex; justify-content: space-between; }
+
+</style>
+</head>
+<body class="">
+
+    <div id="editor-bar">
+        <span>地图编辑器：</span>
+        <button id="toggle-edit-btn" class="btn-primary" onclick="toggleEditMode()">进入编辑模式</button>
+        <button class="btn-success" onclick="downloadHtml()">保存并导出 HTML</button>
+    </div>
+
+    <h1>弗·克·阿尔谢尼耶夫远东科考互动地图</h1>
+
+    <h2>第一次科考行程 (1902年)</h2>
+    <div class="map-wrapper">
+        <button class="btn-add" onclick="addNewDot(this)" style="display: none;">+ 添加新点</button>
+        <div class="map-container" id="map1">
+            <img src="map_1.png" alt="1902 Expedition Map" class="map-image">
+
+            <div class="dot" style="top: 61.6%; left: 46.1%;">
+                <div class="tooltip" style="transform: translateX(-50%);"><div class="info-title">什科托沃 (Shkotovo)</div><div class="info-item"><b>时间：</b>1902年8-9月</div><div class="info-item"><b>事件：</b>科考起点。队伍集结，沿济木河出发。</div><div class="info-item"><b>备注：</b>村落建于1864年，曾被红胡子烧毁。</div></div>
+            </div>
+
+            <div class="dot" style="top: 60.7%; left: 55.4%;">
+                <div class="tooltip" style="transform: translateX(-50%);"><div class="info-title">玻璃沟 &amp; 大尖山</div><div class="info-item"><b>事件：</b>进入北岔河谷。猎手奥连季耶夫猎杀满洲豹。</div><div class="info-item"><b>地理：</b>穿越分水岭，勒富河源头。</div></div>
+            </div>
+
+            <div class="dot" style="top: 42.5%; left: 57.4%;">
+                <div class="tooltip" style="transform: translateX(-50%);"><div class="info-title">土顶子山 (Tudynza)</div><div class="info-item"><b>人物：</b>德尔苏·乌扎拉</div><div class="info-item"><b>事件：</b>猎杀野猪。德尔苏展示踪迹辨识能力。</div><div class="info-item"><b>地理：</b>勒富河在此转向东北。</div></div>
+            </div>
+
+            <div class="dot" style="top: 34.9%; left: 50.1%;">
+                <div class="tooltip" style="transform: translateX(-50%);"><div class="info-title">卡扎克维切沃</div><div class="info-item"><b>事件：</b>夜间抵达时因误会遭到朝鲜村民射击。</div><div class="info-item"><b>人文：</b>观察到独特的朝鲜房屋结构（地热炕）。</div></div>
+            </div>
+
+            <div class="dot" style="top: 8.5%; left: 52.8%;">
+                <div class="tooltip bottom" style="transform: translateX(-50%);"><div class="info-title">兴凯湖 (Lake Khanka)</div><div class="info-item"><b>时间：</b>1902年10月</div><div class="info-item"><b>事件：</b>在湖畔沼泽遭遇暴风雪。德尔苏割草搭窝棚救命。</div><div class="info-item"><b>生态：</b>大规模候鸟迁徙。</div></div>
+            </div>
+            
+            <div class="dot" style="top: 17.9%; left: 56.7%;">
+                <div class="tooltip" style="transform: translateX(-50%);"><div class="info-title">切尔尼戈夫卡</div><div class="info-item"><b>时间：</b>1902年初冬</div><div class="info-item"><b>事件：</b>与德尔苏在铁路边告别。考察队乘火车返回。</div></div>
+            </div>
+        </div>
+    </div>
+
+    <h2>第二次科考行程 (1906-1907年)</h2>
+    <div class="map-wrapper">
+        <button class="btn-add" onclick="addNewDot(this)" style="display: none;">+ 添加新点</button>
+        <div class="map-container" id="map2">
+            <img src="map_2.png" alt="1906 Expedition Map" class="map-image">
+
+            <div class="dot" style="top: 56.5%; left: 19.1%;">
+                <div class="tooltip" style="transform: translateX(calc(-50% + 40.641px));"><div class="info-title">什马科夫卡 - 乌拉河</div><div class="info-item"><b>时间：</b>1906年5月15-19日</div><div class="info-item"><b>事件：</b>起点。暴雨中渡过乌苏里江。</div><div class="info-item"><b>生态：</b>乌苏里江起点，棕黑锦蛇。</div></div>
+            </div>
+
+            <div class="dot" style="top: 50.7%; left: 3.5%;">
+                <div class="tooltip" style="transform: translateX(calc(-50% + 169.724px));"><div class="info-title">科克沙罗夫卡</div><div class="info-item"><b>时间：</b>6月3日</div><div class="info-item"><b>事件：</b>旧教徒村。向导迷路后艰难抵达。</div><div class="info-item"><b>困境：</b>遭遇大量蚊蚋。</div></div>
+            </div>
+
+            <div class="dot" style="top: 77%; left: 47.6%;">
+                <div class="tooltip" style="transform: translateX(-50%);"><div class="info-title">奥耳加湾 (Olga Bay)</div><div class="info-item"><b>时间：</b>6月21日</div><div class="info-item"><b>事件：</b>抵达海滨休整。考察十字架山和中国集镇“石门”。</div></div>
+            </div>
+
+            <div class="dot" style="top: 62.8%; left: 61%;">
+                <div class="tooltip" style="transform: translateX(-50%);"><div class="info-title">大柞树河 (Tadushu)</div><div class="info-item"><b>时间：</b>8月1日</div><div class="info-item"><b>事件：</b>在此处与德尔苏重逢。</div><div class="info-item"><b>故事：</b>夜间老虎跟踪，德尔苏呵斥老虎。</div></div>
+            </div>
+
+            <div class="dot" style="top: 50.6%; left: 80.3%;">
+                <div class="tooltip" style="transform: translateX(-50%);"><div class="info-title">捷尔内伊港 (Terney)</div><div class="info-item"><b>时间：</b>9月9日</div><div class="info-item"><b>事件：</b>考察队分兵。发现“维金格号”沉船遗迹。</div><div class="info-item"><b>人物：</b>在此地结识中国猎人队长张保。</div></div>
+            </div>
+
+            <div class="dot" style="top: 25.4%; left: 70.8%;">
+                <div class="tooltip" style="transform: translateX(-50%);"><div class="info-title">库松河 (Kusun)</div><div class="info-item"><b>时间：</b>10月3日</div><div class="info-item"><b>事件：</b>等待物资船。准备冬季翻山。</div><div class="info-item"><b>人文：</b>考察乌德海人的神树和萨满仪式。</div></div>
+            </div>
+
+            <div class="dot" style="top: 16.5%; left: 49.7%;">
+                <div class="tooltip" style="transform: translateX(-50%);"><div class="info-title">伊曼河 - 瓦贡别</div><div class="info-item"><b>时间：</b>11月2日</div><div class="info-item"><b>事件：</b>严寒中翻越山脉返回内陆。</div><div class="info-item"><b>发现：</b>发现冻死的中国人尸体。</div></div>
+            </div>
+
+            <div class="dot" style="top: 6.5%; left: 46.7%;">
+                <div class="tooltip bottom" style="transform: translateX(-50%);"><div class="info-title">西家屯 (比金河)</div><div class="info-item"><b>时间：</b>12月下旬</div><div class="info-item"><b>事件：</b>目睹中国财东李堂奎对乌德海人的剥削。</div><div class="info-item"><b>人文：</b>调查比金河畔的社会结构。</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>编辑信息</span>
+                <span style="cursor:pointer" onclick="closeModal()">×</span>
+            </div>
+            <div class="form-group">
+                <label>地点/标题</label>
+                <input type="text" id="edit-title" placeholder="例如：什科托沃">
+            </div>
+            <div class="form-group">
+                <label>详细字段 (标签 : 内容)</label>
+                <div id="edit-fields-container"><div class="field-row">
+            <input type="text" placeholder="标签(如:时间)" value="时间">
+            <input type="text" placeholder="内容" value="12月下旬">
+            <button type="button" onclick="this.parentElement.remove()" style="color:red;">×</button>
+        </div><div class="field-row">
+            <input type="text" placeholder="标签(如:时间)" value="事件">
+            <input type="text" placeholder="内容" value="目睹中国财东李堂奎对乌德海人的剥削。">
+            <button type="button" onclick="this.parentElement.remove()" style="color:red;">×</button>
+        </div><div class="field-row">
+            <input type="text" placeholder="标签(如:时间)" value="人文">
+            <input type="text" placeholder="内容" value="调查比金河畔的社会结构。">
+            <button type="button" onclick="this.parentElement.remove()" style="color:red;">×</button>
+        </div></div>
+                <button type="button" onclick="addFieldRow()" style="margin-top:5px; font-size:12px;">+ 增加一行</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-danger" onclick="deleteCurrentDot()">删除此点</button>
+                <div>
+                    <button onclick="closeModal()">取消</button>
+                    <button class="btn-primary" onclick="saveDotData()">保存修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let isEditMode = false;
+    let currentDot = null;
+    let draggedDot = null;
+
+    // 1. 切换编辑模式
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+        const btn = document.getElementById('toggle-edit-btn');
+        const body = document.body;
+        const addBtns = document.querySelectorAll('.btn-add');
+
+        if (isEditMode) {
+            body.classList.add('editing-active');
+            btn.textContent = "退出编辑模式";
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-danger');
+            addBtns.forEach(b => b.style.display = 'block');
+        } else {
+            body.classList.remove('editing-active');
+            btn.textContent = "进入编辑模式";
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-primary');
+            addBtns.forEach(b => b.style.display = 'none');
+        }
+    }
+
+    // 2. 拖拽逻辑
+    document.querySelectorAll('.map-container').forEach(container => {
+        container.addEventListener('mousedown', function(e) {
+            if (!isEditMode) return;
+            if (e.target.classList.contains('dot')) {
+                draggedDot = e.target;
+                e.preventDefault(); 
+            }
+        });
+
+        container.addEventListener('mousemove', function(e) {
+            if (!isEditMode || !draggedDot) return;
+            
+            const rect = container.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+
+            x = Math.max(0, Math.min(x, rect.width));
+            y = Math.max(0, Math.min(y, rect.height));
+
+            const leftPercent = (x / rect.width) * 100;
+            const topPercent = (y / rect.height) * 100;
+
+            draggedDot.style.left = leftPercent.toFixed(1) + '%';
+            draggedDot.style.top = topPercent.toFixed(1) + '%';
+        });
+    });
+
+    document.addEventListener('mouseup', function() {
+        draggedDot = null;
+    });
+
+    // 3. 点击红点编辑逻辑
+    document.addEventListener('click', function(e) {
+        if (!isEditMode) return;
+        if (e.target.classList.contains('dot')) {
+            openModal(e.target);
+        }
+    });
+
+    // 4. 模态框逻辑 - 使用 textContent 修复隐藏元素读取问题
+    const modal = document.getElementById('edit-modal');
+    const titleInput = document.getElementById('edit-title');
+    const fieldsContainer = document.getElementById('edit-fields-container');
+
+    function openModal(dotElement) {
+        currentDot = dotElement;
+        const tooltip = dotElement.querySelector('.tooltip');
+        
+        const titleDiv = tooltip.querySelector('.info-title');
+        titleInput.value = titleDiv ? titleDiv.textContent.trim() : '新地点';
+
+        fieldsContainer.innerHTML = '';
+        const items = tooltip.querySelectorAll('.info-item');
+        
+        if (items.length > 0) {
+            items.forEach(item => {
+                const bTag = item.querySelector('b');
+                let label = '信息';
+                let value = item.textContent.trim();
+
+                if (bTag) {
+                    const bText = bTag.textContent; 
+                    label = bText.replace(/[：:]/g, '').trim(); 
+                    value = value.replace(bText, '').trim(); 
+                }
+                
+                addFieldRow(label, value);
+            });
+        } else {
+            addFieldRow('事件', '');
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function addFieldRow(label = '', value = '') {
+        const div = document.createElement('div');
+        div.className = 'field-row';
+        div.innerHTML = `
+            <input type="text" placeholder="标签(如:时间)" value="${label}">
+            <input type="text" placeholder="内容" value="${value}">
+            <button type="button" onclick="this.parentElement.remove()" style="color:red;">×</button>
+        `;
+        fieldsContainer.appendChild(div);
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        currentDot = null;
+    }
+
+    function saveDotData() {
+        if (!currentDot) return;
+
+        let html = `<div class="info-title">${titleInput.value}</div>`;
+        const rows = fieldsContainer.querySelectorAll('.field-row');
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            const label = inputs[0].value;
+            const content = inputs[1].value;
+            if (label && content) {
+                html += `<div class="info-item"><b>${label}：</b>${content}</div>`;
+            }
+        });
+
+        currentDot.querySelector('.tooltip').innerHTML = html;
+        closeModal();
+    }
+
+    function deleteCurrentDot() {
+        if (currentDot && confirm("确定要删除这个点吗？")) {
+            currentDot.remove();
+            closeModal();
+        }
+    }
+
+    // 5. 添加新点
+    function addNewDot(btn) {
+        const wrapper = btn.nextElementSibling;
+        const newDot = document.createElement('div');
+        newDot.className = 'dot';
+        newDot.style.top = '50%';
+        newDot.style.left = '50%';
+        newDot.innerHTML = `
+            <div class="tooltip">
+                <div class="info-title">新地点</div>
+                <div class="info-item"><b>描述：</b>点击编辑修改内容</div>
+            </div>
+        `;
+        wrapper.appendChild(newDot);
+        openModal(newDot);
+        
+        // 关键：新加入的点也要应用 Hover 定位逻辑
+        initTooltipPositioning();
+    }
+
+    // 6. 保存导出
+    function downloadHtml() {
+        const wasEditing = isEditMode;
+        if (isEditMode) toggleEditMode(); 
+
+        let htmlContent = document.documentElement.outerHTML;
+
+        if (wasEditing) toggleEditMode();
+
+        const blob = new Blob(['<!DOCTYPE html>\n' + htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'map_edited_' + new Date().toISOString().slice(0,10) + '.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // 7. --- 新增：自动调整 Tooltip 位置防止出界 ---
+    function initTooltipPositioning() {
+        const dots = document.querySelectorAll('.dot');
+        dots.forEach(dot => {
+            dot.removeEventListener('mouseenter', handleDotHover); 
+            dot.addEventListener('mouseenter', handleDotHover);
+        });
+    }
+
+    function handleDotHover(e) {
+        if (isEditMode && !e.target.classList.contains('dot')) return; 
+        
+        const dot = e.currentTarget;
+        const tooltip = dot.querySelector('.tooltip');
+        const container = dot.closest('.map-container');
+
+        if (!tooltip || !container) return;
+
+        // A. 重置状态
+        tooltip.classList.remove('bottom');
+        tooltip.style.transform = 'translateX(-50%)'; 
+
+        // B. 获取尺寸数据
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        // C. 垂直方向检测 (Top Check)
+        // 如果提示框顶部比容器顶部还高(数值更小)，说明上面放不下了
+        if (tooltipRect.top < containerRect.top) {
+            tooltip.classList.add('bottom');
+        }
+
+        // D. 水平方向检测
+        // 重新获取一下 rect (因为加了 bottom 后位置变了)
+        const newTooltipRect = tooltip.getBoundingClientRect();
+        
+        let transformX = -50; 
+        let pixelOffset = 0;
+
+        // D1. 检查左边界
+        if (newTooltipRect.left < containerRect.left) {
+            const overflow = containerRect.left - newTooltipRect.left;
+            pixelOffset = overflow + 10; // +10 是为了留点边距
+        } 
+        // D2. 检查右边界
+        else if (newTooltipRect.right > containerRect.right) {
+            const overflow = newTooltipRect.right - containerRect.right;
+            pixelOffset = -overflow - 10; 
+        }
+
+        // 应用水平修正
+        if (pixelOffset !== 0) {
+            tooltip.style.transform = `translateX(calc(-50% + ${pixelOffset}px))`;
+        }
+    }
+
+    // 初始化运行
+    initTooltipPositioning();
+
+</script>
+
+
+</body></html>

@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 阅读年鉴：编织现实</title>
+    <style>
+        :root {
+            --bg-color: #f5f2eb;
+            --text-color: #2c3e50;
+            --accent-purple: #8e44ad; /* Mind/Books */
+            --accent-red: #c0392b;   /* World/Events */
+            --connection-gold: #d4ac0d; /* External Connection */
+            --card-bg: #ffffff;
+            --font-main: "PingFang SC", "Noto Serif SC", "Georgia", serif;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            transition: background-color 0.5s;
+        }
+
+        /* --- Header --- */
+        header {
+            text-align: center;
+            padding: 80px 20px 40px 20px;
+            z-index: 10;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+            font-weight: 300;
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* --- Main Container --- */
+        .dna-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-bottom: 150px;
+            position: relative;
+            min-height: 80vh;
+        }
+
+        /* --- SVG Layers --- */
+        .svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        /* Layer for left-right connections */
+        #svg-external { z-index: 5; }
+        /* Layer for right-right threads */
+        #svg-internal { z-index: 6; }
+
+        /* --- Layout Blocks --- */
+        .month-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 80px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .dna-container::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(0,0,0,0.1);
+            z-index: 0;
+        }
+
+        /* --- Axis --- */
+        .axis-marker {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-color);
+            border: 1px solid #ccc;
+            color: #999;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 0 15px var(--bg-color);
+            z-index: 11;
+        }
+
+        /* --- Sides --- */
+        .side {
+            width: 45%;
+            box-sizing: border-box;
+            padding: 0 20px;
+            transition: opacity 0.3s;
+        }
+
+        .side.left { text-align: right; padding-right: 60px; }
+        .side.right { text-align: left; padding-left: 60px; }
+
+        .column-header {
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            opacity: 0.6;
+            position: sticky;
+            top: 20px;
+        }
+        .left .column-header { color: var(--accent-red); }
+        .right .column-header { color: var(--accent-purple); }
+
+        /* --- Cards --- */
+        .item-card {
+            background: transparent;
+            margin-bottom: 8px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .item-card.event { border-right: 3px solid rgba(192, 57, 43, 0.2); }
+        .item-card.book { border-left: 3px solid rgba(142, 68, 173, 0.2); cursor: help; }
+
+        .item-card:hover {
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 50; /* Bring to front on hover */
+        }
+
+        .book-title { font-size: 0.95rem; font-weight: 600; color: #333; }
+        .book-author { font-size: 0.8rem; color: #888; margin-left: 5px; }
+        .event-text { font-size: 0.9rem; color: #555; }
+        
+        .location-tag { 
+            display: inline-block; font-size: 0.75rem; 
+            color: #999; border: 1px solid #ddd; 
+            padding: 1px 5px; border-radius: 4px; margin-top: 5px; margin-left: 5px;
+        }
+
+        /* --- Thread Indicators (Small dots on books - LEFT SIDE) --- */
+        .thread-dot {
+            position: absolute;
+            left: -8px; /* On the left edge of the card */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: none; /* Hidden by default */
+        }
+        .item-card.has-thread .thread-dot { display: block; }
+
+        /* --- Focus Mode Styles --- */
+        body.focus-mode .item-card { opacity: 0.15; filter: blur(1px); }
+        body.focus-mode .item-card.highlighted { opacity: 1; filter: none; transform: scale(1.02); background: #fff; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        
+        /* Highlight borders */
+        body.focus-mode .item-card.event.highlighted { border-right-color: var(--connection-gold); color: var(--accent-red); font-weight: bold;}
+        
+        /* Book highlight varies by thread color if internal */
+        body.focus-mode .item-card.book.highlighted { font-weight: bold; }
+
+        /* --- SVG Paths --- */
+        /* External (Gold) */
+        path.connection-line {
+            fill: none;
+            stroke: var(--connection-gold);
+            stroke-width: 1.5;
+            opacity: 0.15; /* Faint by default */
+            transition: all 0.4s ease;
+        }
+        path.connection-line.active {
+            stroke-width: 3;
+            opacity: 1;
+            filter: drop-shadow(0 0 3px rgba(212, 172, 13, 0.5));
+        }
+
+        /* Internal (Threads) */
+        path.thread-line {
+            fill: none;
+            stroke-width: 2;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.3s ease, stroke-dashoffset 1s linear;
+            stroke-dasharray: 5, 5; /* Dashed style for threads */
+        }
+        path.thread-line.active {
+            opacity: 0.8;
+            stroke-dasharray: none; /* Solid on hover */
+            stroke-width: 3;
+        }
+
+        /* --- Labels --- */
+        .connection-label {
+            position: absolute;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            color: #fff;
+        }
+        .connection-label.visible { opacity: 1; }
+
+        /* --- Tooltip --- */
+        .info-tooltip {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(44, 62, 80, 0.95);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 8px;
+            max-width: 600px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 100;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+        }
+        .info-tooltip.show { opacity: 1; }
+        .info-tooltip strong { display: block; margin-bottom: 5px; font-size: 1.1em; }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .side { width: 100%; padding: 0 20px; text-align: left; }
+            .side.left { text-align: left; margin-bottom: 20px; border-left: 2px solid var(--accent-red); padding-left: 15px;}
+            .side.right { border-left: 2px solid var(--accent-purple); padding-left: 15px;}
+            .month-block { flex-direction: column; }
+            .axis-marker { left: 20px; top: -25px; transform: none; width: 30px; height: 30px; font-size: 0.9rem;}
+            .dna-container::before { left: 35px; }
+            .svg-layer { display: none; } /* Hide complex lines on mobile */
+            .column-header { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>2025 阅读年鉴</h1>
+    <div class="subtitle">世界在喧嚣中熵增，心灵在书页中寻找秩序。<br>（世界-心灵-脉络 全息可视化）</div>
+</header>
+
+<div class="dna-container" id="container">
+    <svg id="svg-external" class="svg-layer"></svg>
+    <svg id="svg-internal" class="svg-layer"></svg>
+</div>
+
+<div class="info-tooltip" id="tooltip"></div>
+
+<script>
+    // --- EMBEDDED DATA ---
+    const appData = {
+  "year_data": [
+    {
+      "month": "1月",
+      "location": ["宁波"],
+      "books": [
+        {"id": "m1_b0", "title": "诛吕", "author": "郭茵", "category": "历史", "summary": "重述西汉初年诛灭吕氏外戚集团的惊心动魄的政治斗争。"},
+        {"id": "m1_b1", "title": "以色列与启示", "author": "埃里克·沃格林", "category": "哲学/政治", "summary": "《秩序与历史》卷一，探讨以色列文明如何通过启示创造历史秩序。"},
+        {"id": "m1_b2", "title": "77街的神龛", "author": "薛茗", "category": "人类学", "summary": "关于纽约华人移民宗教实践与空间营造的城市人类学观察。"},
+        {"id": "m1_b3", "title": "AI新生", "author": "斯图尔特·罗素", "category": "AI/科技", "summary": "探讨人机关系、控制问题及如何构建对人类有益的人工智能。"},
+        {"id": "m1_b4", "title": "娜塔莎之舞", "author": "奥兰多·费吉斯", "category": "文化史", "summary": "一部宏大的俄罗斯文化史，探讨俄罗斯在欧洲与亚洲之间的身份焦虑。"},
+        {"id": "m1_b5", "title": "念念远山", "author": "罗伯特·麦克法伦", "category": "自然文学", "summary": "行走文学经典，探索“行走”作为一种感知世界和自我重塑的方式。"},
+        {"id": "m1_b6", "title": "我的大脑敞开了", "author": "布鲁斯·谢克特", "category": "传记", "summary": "数学怪才保罗·埃尔德什的传记，讲述其流浪的数学人生。"},
+        {"id": "m1_b7", "title": "死屋", "author": "丹尼尔·比尔", "category": "历史", "summary": "西伯利亚流放史，揭示沙俄流放制度如何成为“没有屋顶的监狱”。"},
+        {"id": "m1_b8", "title": "哲人与权臣", "author": "詹姆斯·罗姆", "category": "历史", "summary": "聚焦尼禄时代的塞内加，探讨权力与哲学、道德与生存的永恒困境。"},
+        {"id": "m1_b9", "title": "罗芒狂欢节", "author": "勒华拉杜里", "category": "微观史", "summary": "通过1580年法国小城的狂欢节暴动，剖析传统社会的阶级冲突。"},
+        {"id": "m1_b10", "title": "法国农村史", "author": "马克·布洛赫", "category": "历史", "summary": "年鉴学派开山之作，通过土地制度研究法国长时段的社会变迁。"},
+        {"id": "m1_b11", "title": "一纸婚约与一个普通法国家族的浮沉", "author": "艾玛·罗斯柴尔德", "category": "微观史", "summary": "通过18世纪昂古莱姆的一份婚约，以此透视全球化早期的经济与社会。"},
+        {"id": "m1_b12", "title": "世纪末的维也纳", "author": "卡尔·休斯克", "category": "文化史", "summary": "分析19世纪末维也纳的文化与政治，现代主义精神的诞生之地。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m1_pub_0", "text": "日喀则6.8级地震"},
+          {"id": "e_m1_pub_1", "text": "医保集采风波"},
+          {"id": "e_m1_pub_2", "text": "美军直升机撞客机"},
+          {"id": "e_m1_pub_3", "text": "DeepSeek横空出世"}
+        ],
+        "private": [
+          {"id": "e_m1_priv_0", "text": "招待Carolyn逛母校"},
+          {"id": "e_m1_priv_1", "text": "母亲甲流肺炎"},
+          {"id": "e_m1_priv_2", "text": "过年，朋友聚会"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m1_pub_3", "toBook": "m1_b3", "tag": "技术奇点", "reason": "DeepSeek的爆发标志着AI新纪元，与《AI新生》中对控制问题的忧虑形成现实互文。" },
+        { "fromEvent": "e_m1_priv_1", "toBook": "m1_b7", "tag": "肉身困境", "reason": "母亲的肺炎让人意识到肉体的脆弱与囚禁感，与《死屋》中流放者的身体苦难产生隐秘共振。" }
+      ]
+    },
+    {
+      "month": "2月",
+      "location": ["攀枝花", "西昌", "湛江", "宁波", "姚安", "炼象关", "安宁"],
+      "books": [
+        {"id": "m2_b0", "title": "对石林圭山大糯黑村彝族撒尼支系的调查与思考", "author": "王玲", "category": "人类学", "summary": "针对特定彝族支系的田野调查报告。"},
+        {"id": "m2_b1", "title": "居乡怀国", "author": "黄宽重", "category": "历史", "summary": "南宋地方士人的社会网络与政治参与研究。"},
+        {"id": "m2_b2", "title": "罗马的命运", "author": "凯尔·哈珀", "category": "环境史", "summary": "从气候变化和传染病（瘟疫）的角度重新审视罗马帝国的衰亡。"},
+        {"id": "m2_b3", "title": "被隐藏的相遇", "author": "陈学礼", "category": "人类学/影像", "summary": "关于怒江河谷的民族志影像与人类学研究。"},
+        {"id": "m2_b4", "title": "在我成为改变世界的科学家之前", "author": "约翰·布罗克曼", "category": "科学随笔", "summary": "顶尖科学家的自述，关于童年、启蒙与科学探索的初心。"},
+        {"id": "m2_b5", "title": "区域史研究（创刊号）", "author": "温春来", "category": "历史", "summary": "聚焦区域社会经济史的前沿学术集刊。"},
+        {"id": "m2_b6", "title": "不与天下州府同", "author": "黄博", "category": "历史", "summary": "宋元之际钓鱼城与重庆地区的政治与军事防御体系研究。"},
+        {"id": "m2_b7", "title": "中亚古代史", "author": "费耐生", "category": "历史", "summary": "系统梳理中亚地区古代文明与民族迁徙的历史。"},
+        {"id": "m2_b8", "title": "以竹为生", "author": "艾约博", "category": "物质文化", "summary": "透过“竹子”这一物质媒介，考察中国的技术、文化与日常生活。"},
+        {"id": "m2_b9", "title": "如朕亲临", "author": "黄博", "category": "历史", "summary": "宋代政治史研究，关注帝王象征与权力运作。"},
+        {"id": "m2_b10", "title": "大理白族“不招不嫁”婚姻的人类学研究", "author": "许沃伦", "category": "人类学", "summary": "对大理白族独特婚姻形态的田野考察。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m2_pub_0", "text": "大S因流感病逝"},
+          {"id": "e_m2_pub_1", "text": "美国机构精简"},
+          {"id": "e_m2_pub_2", "text": "长辈去世"}
+        ],
+        "private": [
+          {"id": "e_m2_priv_0", "text": "避寒之旅(攀枝花/西昌/湛江)"},
+          {"id": "e_m2_priv_1", "text": "刷国保(姚安/炼象关)"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m2_pub_0", "toBook": "m2_b2", "tag": "瘟疫与命运", "reason": "流感夺去生命，正如《罗马的命运》中所述，微小的病原体往往是改变历史（和个人）命运的巨手。" }
+      ]
+    },
+    {
+      "month": "3月",
+      "location": ["普洱", "景迈", "孟连", "景谷", "宁波"],
+      "books": [
+        {"id": "m3_b0", "title": "民国时期云南土司机器边疆治理研究", "author": "王明东等", "category": "历史/政治", "summary": "考察民国时期国家力量如何渗透与整合云南边疆土司制度。"},
+        {"id": "m3_b1", "title": "中国环境史", "author": "马立博", "category": "环境史", "summary": "从长时段考察中国历史上的环境变迁与人地关系。"},
+        {"id": "m3_b2", "title": "无尽之形最美", "author": "肖恩·卡罗尔", "category": "科普/演化", "summary": "演化发育生物学（Evo-Devo）经典，解释动物形态多样性的基因机制。"},
+        {"id": "m3_b3", "title": "清代云南“夷人图说”研究", "author": "李立 等", "category": "图像史", "summary": "分析清代对西南少数民族的图像描绘及其背后的政治/文化视角。"},
+        {"id": "m3_b4", "title": "会讲故事的大脑", "author": "拉马钱德兰", "category": "神经科学", "summary": "神经科学家探讨大脑如何构建自我意识、艺术审美及错觉。"},
+        {"id": "m3_b5", "title": "怒江傈僳族内地会研究", "author": "申晓虎", "category": "宗教史", "summary": "基督教内地会在云南怒江地区的传播与本土化研究。"},
+        {"id": "m3_b6", "title": "长辈的故事", "author": "熊景明", "category": "回忆录", "summary": "记录家族历史与个体记忆，折射大时代的变迁。"},
+        {"id": "m3_b7", "title": "东南亚游记", "author": "毛姆", "category": "游记", "summary": "毛姆笔下的东南亚，充满异域风情与对人性幽微的观察。"},
+        {"id": "m3_b8", "title": "1934-1935中缅边界调查日记", "author": "周光倬等", "category": "历史资料", "summary": "民国时期中缅未定界考察的一手珍贵史料。"},
+        {"id": "m3_b9", "title": "清代中缅关系", "author": "王巨新", "category": "外交史", "summary": "梳理清代中国与缅甸的宗藩关系与地缘政治互动。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m3_pub_0", "text": "许进雄逝世"},
+          {"id": "e_m3_pub_1", "text": "特朗普逼乌克兰"},
+          {"id": "e_m3_pub_2", "text": "马斯克被做空"},
+          {"id": "e_m3_pub_3", "text": "缅甸实皆地震"}
+        ],
+        "private": [
+          {"id": "e_m3_priv_0", "text": "游大普洱"},
+          {"id": "e_m3_priv_1", "text": "开始使用Gemini和DeepSeek"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m3_pub_3", "toBook": "m3_b8", "tag": "大地的震颤", "reason": "现实中缅甸大地震的物理震颤，与书中对中缅边界历史地理的考察，在时空中交错。" }
+      ]
+    },
+    {
+      "month": "4月",
+      "location": ["宁波", "余姚", "寿春"],
+      "books": [
+        {"id": "m4_b0", "title": "琉璃宫史", "author": "佚名", "category": "历史", "summary": "缅甸编年史巨著，神话与历史交织。"},
+        {"id": "m4_b1", "title": "自贡商人", "author": "曾小萍", "category": "经济史", "summary": "研究近代早期中国工业资本主义萌芽——自贡盐业商人群体。"},
+        {"id": "m4_b2", "title": "城邦的世界", "author": "埃里克·沃格林", "category": "哲学", "summary": "《秩序与历史》卷二，剖析希腊城邦的兴起与政治秩序的探寻。"},
+        {"id": "m4_b3", "title": "罗刹夫人", "author": "朱贞木", "category": "武侠小说", "summary": "“北派五大家”之一朱贞木的代表作，早期武侠经典。"},
+        {"id": "m4_b4", "title": "银线", "author": "林满红", "category": "经济史", "summary": "19世纪的世界白银流动如何影响中国的社会变迁与王朝命运。"},
+        {"id": "m4_b5", "title": "村寨里的纸文明", "author": "乔晓光（主编）", "category": "民俗", "summary": "对贵州少数民族地区传统造纸与剪纸文化的考察。"},
+        {"id": "m4_b6", "title": "元代白莲教研究", "author": "杨讷", "category": "宗教史", "summary": "考证白莲教在元代的演变及其与农民起义的关系。"},
+        {"id": "m4_b7", "title": "霞浦摩尼教研究", "author": "杨富学", "category": "宗教史", "summary": "利用福建霞浦发现的新文献研究摩尼教（明教）在中国的流变。"},
+        {"id": "m4_b8", "title": "饮食的怀旧", "author": "马克·斯维斯洛克", "category": "饮食文化", "summary": "通过饮食书写探讨中国人的文化认同与历史记忆。"},
+        {"id": "m4_b9", "title": "两访中国茶乡", "author": "罗伯特·福琼", "category": "游记/历史", "summary": "植物猎人福琼盗取中国茶种到印度的冒险记录。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m4_pub_0", "text": "缅甸灾后乱象"},
+          {"id": "e_m4_pub_1", "text": "特朗普关税闹剧"},
+          {"id": "e_m4_pub_2", "text": "小米电车起火"},
+          {"id": "e_m4_pub_3", "text": "略萨去世"},
+          {"id": "e_m4_pub_4", "text": "教宗方济各去世"}
+        ],
+        "private": [
+          {"id": "e_m4_priv_0", "text": "逛余姚/寿春老城"},
+          {"id": "e_m4_priv_1", "text": "微读记录中断一天"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m4_pub_1", "toBook": "m4_b4", "tag": "经济战争", "reason": "当下的关税闹剧与贸易壁垒，是历史上“白银流动”影响国运的现代回响。" },
+        { "fromEvent": "e_m4_pub_4", "toBook": "m4_b6", "tag": "信仰的终结", "reason": "宗教领袖的离世，对应着对宗教异端（白莲教）兴衰的历史审视。" }
+      ]
+    },
+    {
+      "month": "5月",
+      "location": ["北京", "宁波"],
+      "books": [
+        {"id": "m5_b0", "title": "编木拱桥", "author": "刘妍", "category": "建筑史", "summary": "技术史佳作，研究中国古代独特的木拱桥营造技艺（贯木拱）。"},
+        {"id": "m5_b1", "title": "世界征服者", "author": "杨讷", "category": "历史", "summary": "成吉思汗与蒙古帝国的兴起。"},
+        {"id": "m5_b2", "title": "柏拉图与亚里士多德", "author": "埃里克·沃格林", "category": "哲学", "summary": "《秩序与历史》卷三，深入希腊哲学的巅峰。"},
+        {"id": "m5_b3", "title": "清代内河水运史研究", "author": "松浦章", "category": "经济史", "summary": "日本学者研究清代中国内河航运网络与物流体系。"},
+        {"id": "m5_b4", "title": "天下时代", "author": "埃里克·沃格林", "category": "哲学", "summary": "《秩序与历史》卷四，探讨普世帝国兴起后的精神秩序。"},
+        {"id": "m5_b5", "title": "宋元以来武陵地区的土客关系", "author": "曹大明", "category": "社会史", "summary": "湖南武陵地区移民与土著的互动与融合。"},
+        {"id": "m5_b6", "title": "求索秩序", "author": "埃里克·沃格林", "category": "哲学", "summary": "《秩序与历史》卷五，沃格林晚年对意识结构的最终思考。"},
+        {"id": "m5_b7", "title": "丘处机“一言止杀”考", "author": "杨讷", "category": "历史", "summary": "考证全真教丘处机劝谏成吉思汗的历史真相。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m5_pub_0", "text": "印巴冲突离奇展开"},
+          {"id": "e_m5_pub_1", "text": "中美关税缓冲"},
+          {"id": "e_m5_pub_2", "text": "裘锡圭先生逝世"},
+          {"id": "e_m5_pub_3", "text": "哈佛毕业典礼风波"}
+        ],
+        "private": [
+          {"id": "e_m5_priv_0", "text": "中日友好医院风波"},
+          {"id": "e_m5_priv_1", "text": "信仰危机"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m5_pub_0", "toBook": "m5_b7", "tag": "止杀与战争", "reason": "现实中荒诞的冲突爆发，让人更渴望历史上“一言止杀”的智慧与和平的可能。" }
+      ]
+    },
+    {
+      "month": "6月",
+      "location": ["宁波"],
+      "books": [
+        {"id": "m6_b0", "title": "20世纪初的浙江", "author": "萧邦奇", "category": "历史", "summary": "研究辛亥革命前后浙江社会的精英结构与政治转型。"},
+        {"id": "m6_b1", "title": "重读经典的伟大冒险", "author": "大卫·丹比", "category": "文学评论", "summary": "中年影评人重返大学校园研读西方文学经典的智性之旅。"},
+        {"id": "m6_b2", "title": "原子与灰烬", "author": "沙希利·浦洛基", "category": "科技史", "summary": "全球六大核灾难的历史记录，反思技术与政治的危险关系。"},
+        {"id": "m6_b3", "title": "宇宙波澜", "author": "弗里曼·戴森", "category": "科学传记", "summary": "物理学家戴森的自传，充满对科学、人类与未来的深邃思考。"},
+        {"id": "m6_b4", "title": "想象异域", "author": "葛兆光", "category": "思想史", "summary": "探讨中国历史上对外部世界的认知与想象，以及“中国”意识的形成。"},
+        {"id": "m6_b5", "title": "战争中没有女性", "author": "阿列克谢耶维奇", "category": "口述历史", "summary": "二战苏联女兵的口述实录，揭示战争残酷的女性视角。"},
+        {"id": "m6_b6", "title": "圣母百花大教堂的传奇", "author": "罗斯·金", "category": "建筑史", "summary": "讲述布鲁内莱斯基如何建造佛罗伦萨大穹顶的天才故事。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m6_pub_0", "text": "特朗普vs马斯克"},
+          {"id": "e_m6_pub_1", "text": "印度787空难"},
+          {"id": "e_m6_pub_2", "text": "三亚不明生物咬伤致死"},
+          {"id": "e_m6_pub_3", "text": "湘雅罗帅宇事件"},
+          {"id": "e_m6_pub_4", "text": "蔡澜离世"}
+        ],
+        "private": [
+          {"id": "e_m6_priv_0", "text": "注销公司"},
+          {"id": "e_m6_priv_1", "text": "学习蛇虫咬伤知识"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m6_pub_1", "toBook": "m6_b2", "tag": "技术灾难", "reason": "飞机坠毁的惨剧与核灾难的历史记录，共同指向了技术系统中人类的脆弱性。" }
+      ]
+    },
+    {
+      "month": "7月",
+      "location": ["宁波"],
+      "books": [
+        {"id": "m7_b0", "title": "杜甫的五城", "author": "赖瑞和", "category": "游记/历史", "summary": "一位唐史学者在中国大地寻找唐代遗迹的文化苦旅。"},
+        {"id": "m7_b1", "title": "要命还是要灵魂", "author": "安妮·法迪曼", "category": "人类学", "summary": "苗族移民家庭与美国现代医疗体系的文化冲突悲剧。"},
+        {"id": "m7_b2", "title": "学做工", "author": "保罗·威利斯", "category": "社会学", "summary": "工人阶级子弟为何继承父业？教育社会学的经典之作。"},
+        {"id": "m7_b3", "title": "与微生物共生的奇妙之旅", "author": "马克·安德烈·瑟罗斯", "category": "科普", "summary": "重新认识微生物在生命演化和人类健康中的核心地位。"},
+        {"id": "m7_b4", "title": "携带黄金鱼子酱的居鲁士", "author": "乔弗里·帕克等", "category": "历史", "summary": "全球史视角下的波斯帝国及其遗产。"},
+        {"id": "m7_b5", "title": "1453：君士坦丁堡之战", "author": "罗杰·克劳利", "category": "历史", "summary": "地中海史诗三部曲之一，详述拜占庭帝国的陷落。"},
+        {"id": "m7_b6", "title": "女王与苏丹", "author": "杰里·布罗顿", "category": "历史", "summary": "伊丽莎白一世时期的英国与伊斯兰世界的政治外交往来。"},
+        {"id": "m7_b7", "title": "轴心时代的波斯与中国", "author": "林梅村", "category": "考古/历史", "summary": "考古学视角下东西方两大文明在轴心时代的交流。"},
+        {"id": "m7_b8", "title": "鞑靼人沙漠", "author": "迪诺·布扎蒂", "category": "小说", "summary": "存在主义文学经典，讲述在边境堡垒中虚掷一生的等待。"},
+        {"id": "m7_b9", "title": "征服与革命中的阿拉伯人", "author": "尤金·罗根", "category": "历史", "summary": "从奥斯曼帝国至今的阿拉伯世界现代史。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m7_pub_0", "text": "东方理工首次招生"},
+          {"id": "e_m7_pub_1", "text": "娃哈哈遗产战"},
+          {"id": "e_m7_pub_2", "text": "天水血铅"},
+          {"id": "e_m7_pub_3", "text": "少林寺释永信被查"},
+          {"id": "e_m7_pub_4", "text": "马斯克建党"}
+        ],
+        "private": [
+          {"id": "e_m7_priv_0", "text": "同学孩子升学"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m7_priv_0", "toBook": "m7_b2", "tag": "阶层再生产", "reason": "身边孩子的升学焦虑，完美印证了《学做工》中关于社会阶层固化与教育机制的社会学分析。" }
+      ]
+    },
+    {
+      "month": "8月",
+      "location": ["宁波", "天津", "吉林", "唐山", "昆明"],
+      "books": [
+        {"id": "m8_b0", "title": "勿吉-靺鞨民族史论", "author": "梁玉多", "category": "民族史", "summary": "东北古代民族勿吉与靺鞨的历史源流研究。"},
+        {"id": "m8_b1", "title": "中国上古历史及其欧洲书写", "author": "钟鸣旦", "category": "汉学史", "summary": "探讨17-18世纪欧洲人如何理解和重构中国上古史。"},
+        {"id": "m8_b2", "title": "伟大的旅行：采风篇", "author": "关野吉晴", "category": "探险/人类学", "summary": "日本探险家重走人类迁徙之路的记录。"},
+        {"id": "m8_b3", "title": "夫余史", "author": "刘信君等", "category": "历史", "summary": "东北亚古代政权夫余国的历史研究。"},
+        {"id": "m8_b4", "title": "唐、吐蕃、大食政治关系史", "author": "王小甫", "category": "外交史", "summary": "唐代西域地缘政治格局的经典研究。"},
+        {"id": "m8_b5", "title": "渤海靺鞨民族源流研究", "author": "郭素美等", "category": "民族史", "summary": "深入探讨渤海国的民族构成与起源。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m8_pub_0", "text": "许倬云逝世"},
+          {"id": "e_m8_pub_1", "text": "看理想节目下架"},
+          {"id": "e_m8_pub_2", "text": "各地山洪"}
+        ],
+        "private": [
+          {"id": "e_m8_priv_0", "text": "吉林消暑，经唐山返家"},
+          {"id": "e_m8_priv_1", "text": "往昆明消暑"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m8_pub_0", "toBook": "m8_b1", "tag": "历史的书写", "reason": "一位致力于解释中国历史的大家（许倬云）离世，与此同时阅读关于“西方如何书写中国历史”的书，构成了一种学术上的送别。" },
+        { "fromEvent": "e_m8_priv_0", "toBook": "m8_b0", "tag": "在地阅读", "reason": "身处东北吉林，阅读脚下土地（靺鞨）的历史，空间与文本合一。" }
+      ]
+    },
+    {
+      "month": "9月",
+      "location": ["怀化", "宁波"],
+      "books": [
+        {"id": "m9_b0", "title": "永州旧事", "author": "李茵", "category": "地方史", "summary": "湖南永州的地方掌故与历史记忆。"},
+        {"id": "m9_b1", "title": "欧亚译丛", "author": "余太山等", "category": "历史", "summary": "关于欧亚大陆古代历史与语言的学术译介系列。"},
+        {"id": "m9_b2", "title": "赌注", "author": "大卫·格雷恩", "category": "非虚构", "summary": "即《The Wager》，讲述18世纪英国军舰海难、叛变与生存的惊悚真相。"},
+        {"id": "m9_b3", "title": "伟大的旅行：行路篇", "author": "关野吉晴", "category": "探险", "summary": "“伟大的旅行”系列，聚焦于路途中的艰难跋涉。"},
+        {"id": "m9_b4", "title": "适者降临", "author": "安德烈亚斯·瓦格纳", "category": "科普", "summary": "探讨自然界如何通过进化算法解决生存难题。"},
+        {"id": "m9_b5", "title": "长江三峡及重庆游记", "author": "立德乐", "category": "游记", "summary": "近代西方人对长江上游航运与重庆城市的早期观察。"},
+        {"id": "m9_b6", "title": "欧洲与没有历史的人", "author": "埃里克·沃尔夫", "category": "人类学", "summary": "马克思主义人类学名著，重写被全球资本主义扩张忽略的边缘人群历史。"},
+        {"id": "m9_b7", "title": "龙王之怒", "author": "陈学仁", "category": "环境史", "summary": "1931年长江水灾的历史研究。"},
+        {"id": "m9_b8", "title": "从敦煌到撒马尔罕", "author": "芮乐伟", "category": "历史", "summary": "丝绸之路上的粟特商人及其贸易网络。"},
+        {"id": "m9_b9", "title": "散为百东坡", "author": "艾朗诺", "category": "文学传记", "summary": "苏轼的人生切片，展现其多才多艺与复杂性格。"},
+        {"id": "m9_b10", "title": "美的焦虑", "author": "艾朗诺", "category": "文学批评", "summary": "北宋士大夫的审美意识与文化焦虑。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m9_pub_0", "text": "江南高温"},
+          {"id": "e_m9_pub_1", "text": "月全食"},
+          {"id": "e_m9_pub_2", "text": "蔡国强炸山"},
+          {"id": "e_m9_pub_3", "text": "西贝vs罗永浩"}
+        ],
+        "private": [
+          {"id": "e_m9_priv_0", "text": "访粟裕纪念馆"},
+          {"id": "e_m9_priv_1", "text": "Carolyn来访"},
+          {"id": "e_m9_priv_2", "text": "多邻国学意大利语"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m9_pub_0", "toBook": "m9_b7", "tag": "极端气候", "reason": "窗外江南的异常高温，与书中1931年的长江大水灾，都是自然力量对人类秩序的嘲弄（龙王之怒）。" },
+        { "fromEvent": "e_m9_pub_2", "toBook": "m9_b10", "tag": "审美的狂欢", "reason": "蔡国强充满爆发力的现代艺术行为，对比宋代士大夫内敛的“美的焦虑”，展现了艺术表达的两个极端。" }
+      ]
+    },
+    {
+      "month": "10月",
+      "location": ["宁波", "临海"],
+      "books": [
+        {"id": "m10_b0", "title": "元明江南政治生态与社会发展", "author": "李治安", "category": "历史", "summary": "研究元明转型期江南地区的社会结构与政治变迁。"},
+        {"id": "m10_b1", "title": "拉铁摩尔中国史", "author": "欧文·拉铁摩尔", "category": "历史", "summary": "边疆视角下的中国历史解释框架。"},
+        {"id": "m10_b2", "title": "希腊神话和传说", "author": "古斯塔夫·施瓦布", "category": "神话", "summary": "经典的希腊神话故事集。"},
+        {"id": "m10_b3", "title": "世界之门：感官的故事", "author": "阿什利·沃德", "category": "科普", "summary": "探索动物与人类如何通过感官知觉来理解世界。"},
+        {"id": "m10_b4", "title": "文人画的真性", "author": "朱良志", "category": "艺术哲学", "summary": "深入剖析中国文人画的美学精神与哲学内涵。"},
+        {"id": "m10_b5", "title": "溯源莱茵河", "author": "本·科茨", "category": "游记/历史", "summary": "沿着莱茵河的文化与历史之旅。"},
+        {"id": "m10_b6", "title": "真实世界的脉络", "author": "戴维·多伊奇", "category": "科学哲学", "summary": "物理学家整合量子力学、进化论等构建的宏大世界观。"},
+        {"id": "m10_b7", "title": "图说犍陀罗文明", "author": "孙英刚 何平", "category": "艺术史", "summary": "图文并茂地介绍佛教艺术中心犍陀罗的历史与文化。"},
+        {"id": "m10_b8", "title": "福尔赛世家", "author": "高尔斯华绥", "category": "小说", "summary": "诺奖作品，描绘英国资产阶级家族的兴衰史。"},
+        {"id": "m10_b9", "title": "无穷的开始", "author": "戴维·多伊奇", "category": "科学哲学", "summary": "探讨知识的无限增长与人类解释世界的潜力。"},
+        {"id": "m10_b10", "title": "劳费尔东方珍宝探秘", "author": "伯托尔德·劳费尔", "category": "考古/收藏", "summary": "美国人类学家在中国收集文物的记录。"},
+        {"id": "m10_b11", "title": "惟王受年", "author": "兰德", "category": "考古/甲骨文", "summary": "利用甲骨文材料重构商代晚期的祭祀与王权。"},
+        {"id": "m10_b12", "title": "纵乐的困惑", "author": "卜正民", "category": "历史", "summary": "明代的商业与文化，描绘一个充满欲望与焦虑的时代。"},
+        {"id": "m10_b13", "title": "从塞北到西域", "author": "欧文·拉铁摩尔", "category": "游记/考察", "summary": "拉铁摩尔在内亚边疆的考察手记。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m10_pub_0", "text": "杨振宁逝世"},
+          {"id": "e_m10_pub_1", "text": "香港明星陨落"},
+          {"id": "e_m10_pub_2", "text": "快进式入秋"},
+          {"id": "e_m10_pub_3", "text": "百色洪水"},
+          {"id": "e_m10_pub_4", "text": "燕子冻死"}
+        ],
+        "private": [
+          {"id": "e_m10_priv_0", "text": "北京旧友来访"},
+          {"id": "e_m10_priv_1", "text": "临海一日游"},
+          {"id": "e_m10_priv_2", "text": "寻找倪家堰"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m10_pub_0", "toBook": "m10_b6", "tag": "物理学的尽头", "reason": "物理学巨擘陨落，而阅读正是关于量子力学构建的“真实世界脉络”，这是对科学精神的致敬。" }
+      ]
+    },
+    {
+      "month": "11月",
+      "location": ["宁波"],
+      "books": [
+        {"id": "m11_b0", "title": "宋代浙江沿海滩涂开发与区域社会治理研究", "author": "张宏利", "category": "历史", "summary": "宋代浙江围海造田与地方社会治理。"},
+        {"id": "m11_b1", "title": "唐代长安与西域文明", "author": "向达", "category": "历史", "summary": "早期中西交通史名著，考证长安的胡化风气。"},
+        {"id": "m11_b2", "title": "意大利文艺复兴", "author": "彼得·伯克", "category": "文化史", "summary": "社会史视角下的文艺复兴，关注艺术与社会环境的关系。"},
+        {"id": "m11_b3", "title": "历史学与社会理论", "author": "彼得·伯克", "category": "史学理论", "summary": "探讨历史学如何借鉴社会学、人类学等理论工具。"},
+        {"id": "m11_b4", "title": "神经的逻辑", "author": "埃利泽·斯滕伯格", "category": "神经科学", "summary": "揭示怪诞行为背后的神经科学原理（如盲视、做梦）。"},
+        {"id": "m11_b5", "title": "明代江南土地制度研究", "author": "森正夫", "category": "经济史", "summary": "日本学者关于明代江南地权与赋役制度的经典研究。"},
+        {"id": "m11_b6", "title": "1898年的夏日", "author": "保罗·戈德曼", "category": "历史", "summary": "光绪二十四年（1898）的政治风云与社会切片。"},
+        {"id": "m11_b7", "title": "莱茵河", "author": "吕西安·费弗尔", "category": "历史", "summary": "年鉴学派大历史，将莱茵河视为历史的“主角”。"},
+        {"id": "m11_b8", "title": "人有人的用处", "author": "N.维纳", "category": "控制论", "summary": "控制论之父维纳探讨技术时代的人类价值与社会沟通。"},
+        {"id": "m11_b9", "title": "南华录", "author": "赵柏田", "category": "文化史", "summary": "晚明南方士人的生活世界与精神图景。"},
+        {"id": "m11_b10", "title": "宋代的身份与审判", "author": "柳立言", "category": "法律史", "summary": "通过判词案例研究宋代法律实践中的身份等级。"},
+        {"id": "m11_b11", "title": "杭州宋代食料史", "author": "俞为洁", "category": "饮食史", "summary": "考证南宋临安城的食材来源与饮食消费。"},
+        {"id": "m11_b12", "title": "龙与洋鬼子", "author": "安特生", "category": "考古/回忆录", "summary": "瑞典考古学家安特生在中国的考古发现与见闻。"},
+        {"id": "m11_b13", "title": "下天山", "author": "拉铁摩尔", "category": "游记", "summary": "拉铁摩尔穿越天山的探险记录。"},
+        {"id": "m11_b14", "title": "血拼的海路", "author": "林仁川", "category": "历史", "summary": "明代私人海上贸易与海盗问题研究。"},
+        {"id": "m11_b15", "title": "横滨中华街", "author": "韩清安", "category": "华侨史", "summary": "日本横滨华人社区的形成与变迁。"},
+        {"id": "m11_b16", "title": "宋与高丽往来人员研究", "author": "王霞", "category": "外交史", "summary": "宋丽关系中的使节、商人和僧侣互动。"},
+        {"id": "m11_b17", "title": "晚清中国城市的水与电", "author": "李来福", "category": "城市史", "summary": "近代公用事业（自来水与电力）在中国的引入与发展。"},
+        {"id": "m11_b18", "title": "潮来潮去", "author": "方德万", "category": "历史", "summary": "中国海关与近代中外关系，聚焦海关总税务司。"},
+        {"id": "m11_b19", "title": "翻译的危险", "author": "沈艾娣", "category": "历史", "summary": "清代翻译官在中英冲突中的尴尬角色与命运。"},
+        {"id": "m11_b20", "title": "天国之秋", "author": "裴士锋", "category": "历史", "summary": "国际视角下的太平天国战争及其对晚清命运的影响。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m11_pub_0", "text": "菲律宾台风"},
+          {"id": "e_m11_pub_1", "text": "香港大埔大火"},
+          {"id": "e_m11_pub_2", "text": "詹姆斯·沃森逝世"},
+          {"id": "e_m11_pub_3", "text": "高市早苗上台"}
+        ],
+        "private": [
+          {"id": "e_m11_priv_0", "text": "找法官沟通"},
+          {"id": "e_m11_priv_1", "text": "读书离不开AI"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m11_pub_2", "toBook": "m11_b8", "tag": "生命与机器", "reason": "发现DNA（生命的编码）的沃森去世，而你正在读控制论（机器的编码），思考“人”在技术系统中的位置。" }
+      ]
+    },
+    {
+      "month": "12月",
+      "location": ["宁波"],
+      "books": [
+        {"id": "m12_b0", "title": "小冰期与大明王朝的衰落", "author": "卜正民", "category": "环境史", "summary": "气候变化如何成为推倒明朝的最后一根稻草。"},
+        {"id": "m12_b1", "title": "无国之谍", "author": "马蒂·弗里德曼", "category": "非虚构/谍战", "summary": "以色列建国前夕阿拉伯人伪装部队（“黎凡特人”）的故事。"},
+        {"id": "m12_b2", "title": "现代性的后果", "author": "安东尼·吉登斯", "category": "社会学", "summary": "吉登斯关于现代性、风险社会与自我认同的理论。"},
+        {"id": "m12_b3", "title": "蹇蹇录", "author": "陆奥宗光", "category": "回忆录", "summary": "甲午战争时期日本外相陆奥宗光的外交回忆录。"},
+        {"id": "m12_b4", "title": "金帐汗国兴衰史", "author": "鲍里斯·格列科夫", "category": "历史", "summary": "苏联学者关于金帐汗国（术赤兀鲁思）的权威研究。"},
+        {"id": "m12_b5", "title": "昂贵的和平", "author": "吉辰", "category": "历史", "summary": "晚清外交史，聚焦战争赔款与财政压力。"},
+        {"id": "m12_b6", "title": "亚洲的决裂", "author": "汤姆斯·F·密勒", "category": "地缘政治", "summary": "探讨1909年前后的亚洲地缘政治变局。"},
+        {"id": "m12_b7", "title": "康有为变法奏议研究", "author": "孔祥吉", "category": "历史", "summary": "深入考证戊戌变法期间康有为的奏折及其政治意图。"},
+        {"id": "m12_b8", "title": "大门口的陌生人", "author": "魏斐德", "category": "历史", "summary": "研究1839-1861年间华南地区的社会动乱与外国侵略。"},
+        {"id": "m12_b9", "title": "南北之争与晚清政局", "author": "林文仁", "category": "历史", "summary": "晚清政治中的南北地域集团之争。"},
+        {"id": "m12_b10", "title": "衰世与西法", "author": "杨国强", "category": "历史", "summary": "晚清士大夫面对西方冲击时的思想困境与变迁。"},
+        {"id": "m12_b11", "title": "苦命天子", "author": "茅海建", "category": "历史", "summary": "咸丰皇帝的生平与晚清危局，修正传统认知。"},
+        {"id": "m12_b12", "title": "近代的尺度", "author": "茅海建", "category": "历史", "summary": "两次鸦片战争期间的军事与外交细节考证。"},
+        {"id": "m12_b13", "title": "甲午战争前后之晚清政局", "author": "石泉", "category": "历史", "summary": "甲午战败对晚清高层政治格局的剧烈冲击。"},
+        {"id": "m12_b14", "title": "我在中国的二十五年", "author": "约翰·鲍威尔", "category": "回忆录", "summary": "民国时期美国记者在中国的见闻，含著名的临城劫车案。"},
+        {"id": "m12_b15", "title": "遇见黄东", "author": "程美宝", "category": "微观史", "summary": "通过18世纪一个中国仆人黄东在英国的经历，探讨早期中西接触。"},
+        {"id": "m12_b16", "title": "杜凤治日记研究", "author": "邱捷", "category": "历史", "summary": "利用晚清州县官日记还原基层官场的真实生态。"},
+        {"id": "m12_b17", "title": "从理学到朴学", "author": "艾尔曼", "category": "思想史", "summary": "清代学术思想转型的经典研究，考察考据学的兴起。"}
+      ],
+      "events": {
+        "public": [
+          {"id": "e_m12_pub_0", "text": "俄乌议和"},
+          {"id": "e_m12_pub_1", "text": "爱泼斯坦名单"},
+          {"id": "e_m12_pub_2", "text": "何晴去世"},
+          {"id": "e_m12_pub_3", "text": "南博纷争"}
+        ],
+        "private": [
+          {"id": "e_m12_priv_0", "text": "天台菜园"},
+          {"id": "e_m12_priv_1", "text": "做桌游(The Wager)"},
+          {"id": "e_m12_priv_2", "text": "AI改编电影脚本"},
+          {"id": "e_m12_priv_3", "text": "站在新纪元门口"}
+        ]
+      },
+      "external_connections": [
+        { "fromEvent": "e_m12_pub_0", "toBook": "m12_b5", "tag": "和平的代价", "reason": "现实中荒诞的“和平奖”与艰难的俄乌议和，与书中晚清为“和平”支付的昂贵赔款，构成了对“和平”二字的讽刺性互文。" },
+        { "fromEvent": "e_m12_priv_3", "toBook": "m12_b0", "tag": "时代的转折", "reason": "个人感觉“站在新纪元门口”，正如小冰期是明朝灭亡的自然推手，环境与技术的巨变往往标志着时代的静默转折。" }
+      ]
+    }
+  ],
+  "internal_threads": [
+    {
+      "id": "thread_voegelin",
+      "label": "沃格林秩序哲学",
+      "color": "#e74c3c",
+      "description": "贯穿全年的政治哲学主轴，从以色列启示到希腊城邦，再到普世帝国与意识结构，探究人类历史的秩序本源。",
+      "book_ids": ["m1_b1", "m4_b2", "m5_b2", "m5_b4", "m5_b6"]
+    },
+    {
+      "id": "thread_late_qing",
+      "label": "晚清变局与近代化",
+      "color": "#8e44ad",
+      "description": "年底密集的阅读集群。从外交、城市建设、政治斗争等多个侧面，重构晚清“数千年未有之大变局”的复杂图景。",
+      "book_ids": ["m11_b6", "m11_b17", "m11_b18", "m11_b19", "m11_b20", "m12_b3", "m12_b5", "m12_b6", "m12_b7", "m12_b8", "m12_b9", "m12_b10", "m12_b11", "m12_b12", "m12_b13", "m12_b16"]
+    },
+    {
+      "id": "thread_eco_history",
+      "label": "环境史与人类命运",
+      "color": "#27ae60",
+      "description": "气候变化、瘟疫、水灾等非人因素如何成为推倒帝国的巨手，重塑人类历史的进程。",
+      "book_ids": ["m2_b2", "m3_b1", "m9_b7", "m12_b0"]
+    },
+    {
+      "id": "thread_science_mind",
+      "label": "科学、技术与认知",
+      "color": "#2980b9",
+      "description": "从AI的崛起、大脑的机制到物理学的尽头，探索人类认知的边界与技术时代的未来。",
+      "book_ids": ["m1_b3", "m1_b6", "m3_b4", "m6_b2", "m6_b3", "m10_b6", "m10_b9", "m11_b4", "m11_b8"]
+    },
+    {
+      "id": "thread_frontier",
+      "label": "边疆与民族",
+      "color": "#d35400",
+      "description": "从东北靺鞨到西南土司，再到内亚丝路。在边缘地带重新发现中国历史的动力与多元性。",
+      "book_ids": ["m2_b0", "m2_b10", "m3_b0", "m3_b3", "m8_b0", "m8_b3", "m8_b5", "m10_b1", "m10_b13", "m11_b13"]
+    },
+    {
+      "id": "thread_microhistory",
+      "label": "微观史与人类学视角",
+      "color": "#16a085",
+      "description": "关注大历史缝隙中的小人物。从纽约华人神龛到清代州县官日记，用显微镜观察历史的纹理。",
+      "book_ids": ["m1_b9", "m1_b11", "m2_b0", "m2_b3", "m7_b1", "m7_b2", "m12_b15", "m12_b16"]
+    }
+  ]
+};
+
+    // --- Global State ---
+    let internalThreadsMap = {}; // Map<BookID, ThreadObj>
+
+    // --- Main Rendering Logic ---
+    window.onload = function() {
+        loadData(appData);
+    };
+
+    function loadData(data) {
+        const container = document.getElementById('container');
+        
+        // Build Internal Thread Lookup Map
+        internalThreadsMap = {};
+        if (data.internal_threads) {
+            data.internal_threads.forEach(thread => {
+                thread.book_ids.forEach(bid => {
+                    internalThreadsMap[bid] = thread;
+                });
+            });
+        }
+
+        // Render Months
+        if (data.year_data) {
+            data.year_data.forEach((monthData, mIdx) => {
+                renderMonthBlock(monthData, mIdx, container);
+            });
+        }
+
+        // Draw Connections
+        // We need a slight delay to allow DOM layout to settle
+        setTimeout(() => {
+            drawExternalConnections();
+            drawInternalThreads();
+        }, 100);
+    }
+
+    function renderMonthBlock(monthData, mIdx, container) {
+        const block = document.createElement('div');
+        block.className = 'month-block';
+        block.id = `month-${mIdx}`;
+
+        // --- Left Side (Events) ---
+        const leftSide = document.createElement('div');
+        leftSide.className = 'side left';
+        if(mIdx === 0) leftSide.innerHTML = '<div class="column-header">The World (Events)</div>';
+
+        // Public Events
+        if (monthData.events && monthData.events.public) {
+            monthData.events.public.forEach((evt, idx) => {
+                const div = createEventCard(evt.text, evt.id || `e_${mIdx}_pub_${idx}`, false);
+                leftSide.appendChild(div);
+            });
+        }
+        // Private Events
+        if (monthData.events && monthData.events.private) {
+            monthData.events.private.forEach((evt, idx) => {
+                const div = createEventCard(evt.text, evt.id || `e_${mIdx}_priv_${idx}`, true);
+                leftSide.appendChild(div);
+            });
+        }
+        // Locations
+        if(monthData.location && monthData.location.length) {
+            const locDiv = document.createElement('div');
+            monthData.location.forEach(l => {
+                const span = document.createElement('span');
+                span.className = 'location-tag';
+                span.innerText = l;
+                locDiv.appendChild(span);
+            });
+            leftSide.appendChild(locDiv);
+        }
+
+        // --- Axis ---
+        const axis = document.createElement('div');
+        axis.className = 'axis-marker';
+        axis.innerText = monthData.month.replace('月','');
+
+        // --- Right Side (Books) ---
+        const rightSide = document.createElement('div');
+        rightSide.className = 'side right';
+        if(mIdx === 0) rightSide.innerHTML = '<div class="column-header">The Mind (Books)</div>';
+
+        monthData.books.forEach((book, idx) => {
+            const bid = book.id || `b_${mIdx}_${idx}`;
+            const div = document.createElement('div');
+            div.className = 'item-card book';
+            div.id = bid;
+            div.innerHTML = `<span class="book-title">《${book.title}》</span><span class="book-author">${book.author}</span>`;
+            
+            // Check for Internal Thread
+            if (internalThreadsMap[bid]) {
+                div.classList.add('has-thread');
+                const dot = document.createElement('div');
+                dot.className = 'thread-dot';
+                dot.style.backgroundColor = internalThreadsMap[bid].color;
+                div.appendChild(dot);
+                
+                // Add Thread Hover Logic
+                div.addEventListener('mouseenter', () => activateThread(internalThreadsMap[bid], div));
+                div.addEventListener('mouseleave', () => deactivateThread());
+            } else {
+                // Normal Summary Hover
+                div.addEventListener('mouseenter', () => showTooltip(`<strong>${book.title}</strong>${book.summary}`));
+                div.addEventListener('mouseleave', hideTooltip);
+            }
+
+            rightSide.appendChild(div);
+        });
+
+        block.appendChild(leftSide);
+        block.appendChild(axis);
+        block.appendChild(rightSide);
+        container.appendChild(block);
+    }
+
+    function createEventCard(text, id, isPrivate) {
+        const div = document.createElement('div');
+        div.className = 'item-card event';
+        div.id = id;
+        div.innerHTML = `<div class="event-text">${text}</div>`;
+        if (isPrivate) {
+            div.style.fontStyle = 'italic';
+            div.style.opacity = '0.9';
+        }
+        return div;
+    }
+
+    // --- Drawing Logic ---
+
+    function drawExternalConnections() {
+        const svg = document.getElementById('svg-external');
+        svg.innerHTML = ''; // Clear
+        const containerRect = document.getElementById('container').getBoundingClientRect();
+
+        if (!appData.year_data) return;
+
+        appData.year_data.forEach(month => {
+            if (!month.external_connections) return;
+
+            month.external_connections.forEach(conn => {
+                const fromEl = document.getElementById(conn.fromEvent);
+                const toEl = document.getElementById(conn.toBook);
+
+                if (!fromEl || !toEl) return;
+
+                const fromRect = fromEl.getBoundingClientRect();
+                const toRect = toEl.getBoundingClientRect();
+
+                // Coordinates relative to container
+                const x1 = fromRect.right - containerRect.left;
+                const y1 = fromRect.top + fromRect.height / 2 - containerRect.top;
+                const x2 = toRect.left - containerRect.left;
+                const y2 = toRect.top + toRect.height / 2 - containerRect.top;
+
+                // Bezier Curve
+                const controlX1 = x1 + (x2 - x1) * 0.4;
+                const controlX2 = x2 - (x2 - x1) * 0.4;
+                const d = `M ${x1} ${y1} C ${controlX1} ${y1}, ${controlX2} ${y2}, ${x2} ${y2}`;
+
+                const path = createSVGPath(d, 'connection-line');
+                svg.appendChild(path);
+
+                // Label Badge
+                const label = createLabel(conn.tag, x1 + (x2 - x1) / 2, y1 + (y2 - y1) / 2, 'var(--connection-gold)');
+                document.getElementById('container').appendChild(label);
+
+                // Interactions
+                const highlight = () => {
+                    document.body.classList.add('focus-mode');
+                    fromEl.classList.add('highlighted');
+                    toEl.classList.add('highlighted');
+                    toEl.style.borderLeftColor = 'var(--connection-gold)'; // Force gold for external
+                    path.classList.add('active');
+                    label.classList.add('visible');
+                    showTooltip(`<strong>${conn.tag}</strong>${conn.reason}`);
+                };
+
+                const unhighlight = () => {
+                    document.body.classList.remove('focus-mode');
+                    fromEl.classList.remove('highlighted');
+                    toEl.classList.remove('highlighted');
+                    toEl.style.borderLeftColor = ''; // Reset
+                    path.classList.remove('active');
+                    label.classList.remove('visible');
+                    hideTooltip();
+                };
+
+                // Bind to elements
+                fromEl.addEventListener('mouseenter', highlight);
+                fromEl.addEventListener('mouseleave', unhighlight);
+                // Note: We don't bind to 'toEl' (Book) here because books have their own hover logic (summary/threads)
+                // But we can bind to the Label/Path
+                label.addEventListener('mouseenter', highlight);
+                label.addEventListener('mouseleave', unhighlight);
+            });
+        });
+    }
+
+    function drawInternalThreads() {
+        const svg = document.getElementById('svg-internal');
+        svg.innerHTML = ''; // Clear
+        const containerRect = document.getElementById('container').getBoundingClientRect();
+
+        if (!appData.internal_threads) return;
+
+        appData.internal_threads.forEach(thread => {
+            const els = thread.book_ids.map(id => document.getElementById(id)).filter(el => el);
+            if (els.length < 2) return;
+
+            // Sort elements by Y position
+            els.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+
+            // Generate Path connecting LEFT sides (near axis)
+            let pathD = "";
+            
+            // Start at first book
+            const firstRect = els[0].getBoundingClientRect();
+            // Use LEFT edge instead of RIGHT
+            let startX = firstRect.left - containerRect.left - 10; 
+            let startY = firstRect.top + firstRect.height/2 - containerRect.top;
+            
+            pathD += `M ${startX} ${startY}`;
+
+            for (let i = 1; i < els.length; i++) {
+                const currRect = els[i].getBoundingClientRect();
+                const nextX = currRect.left - containerRect.left - 10;
+                const nextY = currRect.top + currRect.height/2 - containerRect.top;
+
+                // Curve logic: Draw a curve out to the LEFT and back in
+                const distY = nextY - startY;
+                const curveOffset = Math.min(60, Math.max(20, distY * 0.1)); // Dynamic offset based on distance
+
+                // Cubic Bezier: Control points pushed out to the LEFT (negative offset relative to X)
+                pathD += ` C ${startX - curveOffset} ${startY + distY*0.2}, ${nextX - curveOffset} ${nextY - distY*0.2}, ${nextX} ${nextY}`;
+                
+                startX = nextX;
+                startY = nextY;
+            }
+
+            const path = createSVGPath(pathD, 'thread-line');
+            path.style.stroke = thread.color;
+            path.id = `thread-path-${thread.id}`;
+            svg.appendChild(path);
+        });
+    }
+
+    // --- Thread Interaction ---
+
+    function activateThread(thread, sourceEl) {
+        document.body.classList.add('focus-mode');
+        
+        // Highlight all books in thread
+        thread.book_ids.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                el.classList.add('highlighted');
+                el.style.borderLeftColor = thread.color;
+                el.style.color = thread.color;
+            }
+        });
+
+        // Show Path
+        const path = document.getElementById(`thread-path-${thread.id}`);
+        if(path) {
+            path.classList.add('active');
+            path.style.opacity = 1;
+        }
+
+        // Tooltip
+        showTooltip(`<strong style="color:${thread.color}">${thread.label}</strong>${thread.description}`);
+    }
+
+    function deactivateThread() {
+        document.body.classList.remove('focus-mode');
+        document.querySelectorAll('.item-card.book').forEach(el => {
+            el.classList.remove('highlighted');
+            el.style.borderLeftColor = ''; // Reset to CSS default
+            el.style.color = '';
+        });
+        
+        document.querySelectorAll('path.thread-line').forEach(p => {
+            p.classList.remove('active');
+            p.style.opacity = 0;
+        });
+
+        hideTooltip();
+    }
+
+    // --- Helpers ---
+
+    function createSVGPath(d, className) {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", d);
+        path.setAttribute("class", className);
+        return path;
+    }
+
+    function createLabel(text, x, y, bgColor) {
+        const div = document.createElement('div');
+        div.className = 'connection-label';
+        div.innerText = text;
+        div.style.left = x + 'px';
+        div.style.top = y + 'px';
+        div.style.backgroundColor = bgColor;
+        return div;
+    }
+
+    const tooltip = document.getElementById('tooltip');
+    function showTooltip(html) {
+        tooltip.innerHTML = html;
+        tooltip.classList.add('show');
+    }
+    function hideTooltip() {
+        tooltip.classList.remove('show');
+    }
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+        // Debounce simple
+        if(appData) {
+            drawExternalConnections();
+            drawInternalThreads();
+        }
+    });
+
+</script>
+
+</body>
+</html>

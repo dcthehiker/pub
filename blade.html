@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>毛姆《刀锋》叙事结构可视化</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --plot-line: #34495e;
+            --tell-line: #e74c3c;
+            --highlight: #f1c40f;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        header {
+            padding: 20px 30px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 100;
+            pointer-events: none; /* 让头部的点击穿透，方便点击背景 */
+        }
+
+        header h1 { margin: 0 0 10px 0; font-size: 24px; pointer-events: auto; }
+        header p { margin: 0; color: var(--text-muted); font-size: 14px; pointer-events: auto; }
+        .hint { color: #e74c3c; font-weight: bold; }
+
+        #canvas-wrapper {
+            width: 100vw;
+            height: calc(100vh - 80px);
+            overflow-x: auto;
+            overflow-y: hidden;
+            position: relative;
+            cursor: default;
+        }
+
+        #canvas-container {
+            width: 2800px; 
+            height: 100%;
+            position: relative;
+        }
+
+        .track {
+            position: absolute;
+            width: 100%;
+            padding: 0 50px;
+            box-sizing: border-box;
+        }
+
+        /* 1. 剧情卡片 */
+        #cards-track { 
+            top: 120px; 
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+        
+        .card {
+            width: 180px;
+            background: var(--card-bg);
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
+            position: relative;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        .card:hover, .card.active {
+            border-color: var(--plot-line);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+        .card.active {
+            border-color: var(--tell-line);
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.2);
+        }
+        .card-id { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; font-weight: bold;}
+        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; line-height: 1.4;}
+
+        /* 2. 时间线 */
+        #timeline-track { 
+            top: 400px; 
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+        .timeline-line-bg {
+            position: absolute;
+            top: 50%;
+            left: 50px;
+            right: 50px;
+            height: 2px;
+            background: #ccc;
+            z-index: 1;
+        }
+        .time-node {
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border: 3px solid var(--text-main);
+            border-radius: 50%;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .time-label {
+            position: absolute;
+            top: 25px;
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+            color: var(--text-main);
+        }
+
+        /* 3. 角色 */
+        #persons-track { 
+            top: 550px; 
+            position: relative; 
+            height: 100px;
+        }
+        
+        .person {
+            width: 70px;
+            height: 70px;
+            background: #fff;
+            border: 3px solid #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 10;
+            position: absolute; /* 改为绝对定位，方便动画 */
+            transform: translateX(-50%); /* 居中锚点 */
+            /* 重点：加入动画缓动效果 */
+            transition: left 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                        opacity 0.6s, 
+                        border-color 0.3s, 
+                        box-shadow 0.3s, 
+                        transform 0.3s;
+        }
+        .person:hover, .person.highlighted {
+            border-color: var(--tell-line);
+            color: var(--tell-line);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
+            transform: translateX(-50%) scale(1.1);
+        }
+
+        /* SVG 连线层 */
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        path {
+            fill: none;
+            transition: stroke-width 0.3s, stroke-opacity 0.3s;
+        }
+        .plot-path { stroke: var(--plot-line); stroke-width: 2; opacity: 0.3; }
+        .tell-path { stroke: var(--tell-line); stroke-width: 2; stroke-dasharray: 6 6; opacity: 0.2; }
+        
+        .plot-path.active-highlight { opacity: 1; stroke-width: 3; }
+        .tell-path.active-highlight { opacity: 1; stroke-width: 3; }
+
+        /* 信息详情面板 */
+        #detail-panel {
+            position: fixed;
+            right: -400px;
+            top: 80px;
+            width: 350px;
+            height: calc(100vh - 100px);
+            background: #fff;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            box-sizing: border-box;
+            transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 200;
+            overflow-y: auto;
+        }
+        #detail-panel.open { right: 0; }
+        .close-btn { cursor: pointer; color: var(--text-muted); float: right; font-size: 20px; }
+        .close-btn:hover { color: var(--text-main); }
+        #dp-title { font-size: 20px; margin-top: 0; }
+        .dp-section { margin-top: 20px; }
+        .dp-label { font-weight: bold; color: var(--text-muted); font-size: 12px; margin-bottom: 5px; text-transform: uppercase; }
+        .dp-content { font-size: 14px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>《刀锋》叙事结构与视角图解</h1>
+        <p>1. 点击剧情卡，人物会自动向卡片下方聚拢。 <span class="hint">2. 点击空白处重置布局。</span></p>
+    </header>
+
+    <div id="canvas-wrapper">
+        <div id="canvas-container">
+            <svg id="lines-svg"></svg>
+            
+            <div id="cards-track" class="track"></div>
+            <div id="timeline-track" class="track">
+                <div class="timeline-line-bg"></div>
+            </div>
+            <div id="persons-track" class="track"></div>
+        </div>
+    </div>
+
+    <div id="detail-panel">
+        <span class="close-btn" onclick="resetView()">×</span>
+        <h2 id="dp-title">卡片标题</h2>
+        <div class="dp-section">
+            <div class="dp-label">时间线</div>
+            <div id="dp-time" class="dp-content"></div>
+        </div>
+        <div class="dp-section">
+            <div class="dp-label">情节内容</div>
+            <div id="dp-plot" class="dp-content"></div>
+        </div>
+        <div class="dp-section">
+            <div class="dp-label">展现方式 (How this tells)</div>
+            <div id="dp-method" class="dp-content" style="color: #e74c3c; font-weight: 500;"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 数据定义 (增加了格雷、索菲，以及 involved 参与者数组) ---
+        const personsData = [
+            { id: 'p_author', name: '毛姆' },
+            { id: 'p_larry', name: '莱雷' },
+            { id: 'p_isabel', name: '伊莎贝尔' },
+            { id: 'p_elliott', name: '埃略特' },
+            { id: 'p_suzanne', name: '苏珊' },
+            { id: 'p_gray', name: '格雷' },
+            { id: 'p_sophie', name: '索菲' }
+        ];
+
+        const cardsData = [
+            { id: 'c1', title: '芝加哥初识', time: '1919年', 
+              tellers: ['p_author'], involved: ['p_author', 'p_larry', 'p_isabel', 'p_elliott', 'p_gray'], 
+              plotNext: ['c3'], plot: '一战结束后，“我”在芝加哥结识了埃略特一家及莱雷。莱雷拒绝优渥工作，只想“闲荡”和读书。', method: '作者直接描写。亲身参与宴会与顺叙。' },
+            { id: 'c2', title: '战友之死', time: '一战期间', 
+              tellers: ['p_suzanne', 'p_author'], involved: ['p_larry', 'p_suzanne', 'p_author'], 
+              plotNext: ['c4'], plot: '莱雷的好友柏奇为救他牺牲。挚友之死让他震撼，开始追问生命的意义。', method: '多重转述的倒叙（莱雷->苏珊->作者）。' },
+            { id: 'c3', title: '马文野餐与解约', time: '1921年左右', 
+              tellers: ['p_isabel'], involved: ['p_larry', 'p_isabel'], 
+              plotNext: ['c4'], plot: '伊莎贝尔逼莱雷就范未果，两年后在巴黎因价值观不合彻底解除婚约。', method: '人物对作者的回忆转述（多年后在伦敦酒馆）。' },
+            { id: 'c4', title: '底层劳作与流浪', time: '1920年代', 
+              tellers: ['p_larry'], involved: ['p_larry', 'p_author'], 
+              plotNext: ['c10'], plot: '莱雷去煤矿做工，随后流浪德国，接触神秘主义。', method: '人物对作者的回忆转述（时间错位，十年后亲自讲述）。' },
+            { id: 'c5', title: '大萧条与破产', time: '1929年', 
+              tellers: ['p_elliott'], involved: ['p_gray', 'p_elliott', 'p_author'], 
+              plotNext: ['c6'], plot: '格雷因股灾破产精神崩溃；埃略特却因提前买黄金大赚。', method: '间接转述与书信（埃略特口述与信件）。' },
+            { id: 'c6', title: '巴黎重逢与治病', time: '十年后', 
+              tellers: ['p_author'], involved: ['p_author', 'p_larry', 'p_gray', 'p_isabel'], 
+              plotNext: ['c8'], plot: '“我”偶遇刚从印度回来的莱雷，他用瑜伽催眠术治好了格雷的偏头痛。', method: '作者直接描写。“我”在场亲眼目睹全过程。' },
+            { id: 'c7', title: '苏珊往事', time: '过去时', 
+              tellers: ['p_suzanne'], involved: ['p_suzanne', 'p_larry', 'p_author'], 
+              plotNext: [], plot: '莱雷曾救济过贫病交加的苏珊，纯洁地满足她后飘然离去。', method: '人物对作者的回忆转述。' },
+            { id: 'c8', title: '索菲沦落', time: '十年后', 
+              tellers: ['p_author', 'p_isabel'], involved: ['p_author', 'p_isabel', 'p_sophie', 'p_larry'], 
+              plotNext: ['c11'], plot: '偶遇因丧夫丧子沦落的索菲。莱雷出于悲悯试图拯救她并要娶她。', method: '混合视角（作者亲身经历 + 伊莎贝尔转述）。' },
+            { id: 'c9', title: '埃略特临终', time: '晚年', 
+              tellers: ['p_author'], involved: ['p_elliott', 'p_author'], 
+              plotNext: ['c12'], plot: '势利的埃略特身患绝症，极度渴望化妆舞会请帖。“我”帮他偷来，他死前释怀。', method: '作者直接描写与深度参与。' },
+            { id: 'c10', title: '印度的求道之旅', time: '流浪末期', 
+              tellers: ['p_larry'], involved: ['p_larry', 'p_author'], 
+              plotNext: ['c6'], plot: '莱雷在印度体验到与“宇宙之灵”合一，决定放弃财产隐入市井。', method: '人物对作者的深度对话/长篇转述（核心哲学思辨）。' },
+            { id: 'c11', title: '索菲的惨死', time: '结尾前', 
+              tellers: ['p_author', 'p_isabel'], involved: ['p_sophie', 'p_author', 'p_isabel'], 
+              plotNext: ['c12'], plot: '索菲失踪并被杀。伊莎贝尔承认是她故意放伏特加引诱索菲复吸毁掉婚事。', method: '亲身经历结合人物供认。' },
+            { id: 'c12', title: '各得其所', time: '尾声', 
+              tellers: ['p_author'], involved: ['p_elliott', 'p_gray', 'p_isabel', 'p_suzanne', 'p_sophie', 'p_larry', 'p_author'], 
+              plotNext: [], plot: '埃略特风光大葬，格雷重振雄风，伊莎贝尔回上流社会，莱雷得终极自由。', method: '作者的上帝视角总结（打破叙事边界）。' }
+        ];
+
+        // --- 全局状态 ---
+        let activeCardId = null;
+        const CANVAS_WIDTH = 2800;
+        const wrapper = document.getElementById('canvas-wrapper');
+        const container = document.getElementById('canvas-container');
+
+        // --- 2. 渲染 DOM 元素 ---
+        const cardsTrack = document.getElementById('cards-track');
+        const timelineTrack = document.getElementById('timeline-track');
+        const personsTrack = document.getElementById('persons-track');
+        const svg = document.getElementById('lines-svg');
+
+        cardsData.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            cardEl.id = card.id;
+            cardEl.innerHTML = `<div class="card-id">卡片 ${card.id.replace('c', '')}</div><div class="card-title">${card.title}</div>`;
+            cardEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                focusCard(card);
+            });
+            
+            // 悬停仅在没有选中卡片时生效
+            cardEl.addEventListener('mouseenter', () => { if(!activeCardId) hoverHighlight(card.id, 'card'); });
+            cardEl.addEventListener('mouseleave', () => { if(!activeCardId) drawLines(); });
+            cardsTrack.appendChild(cardEl);
+
+            const timeNode = document.createElement('div');
+            timeNode.className = 'time-node';
+            timeNode.innerHTML = `<div class="time-label">${card.time}</div>`;
+            timelineTrack.appendChild(timeNode);
+        });
+
+        // 初始化角色位置并渲染
+        const personSpacing = CANVAS_WIDTH / (personsData.length + 1);
+        personsData.forEach((person, index) => {
+            const pEl = document.createElement('div');
+            pEl.className = 'person';
+            pEl.id = person.id;
+            pEl.innerText = person.name;
+            
+            // 记录原始基准位置
+            const baseLeft = personSpacing * (index + 1);
+            pEl.dataset.baseLeft = baseLeft;
+            pEl.style.left = `${baseLeft}px`;
+
+            pEl.addEventListener('mouseenter', () => { if(!activeCardId) hoverHighlight(person.id, 'person'); });
+            pEl.addEventListener('mouseleave', () => { if(!activeCardId) drawLines(); });
+            personsTrack.appendChild(pEl);
+        });
+
+        // 背景点击事件：重置视图
+        wrapper.addEventListener('click', (e) => {
+            if (e.target.id === 'canvas-wrapper' || e.target.id === 'canvas-container' || e.target.tagName === 'svg') {
+                resetView();
+            }
+        });
+
+        // --- 3. 动态聚焦与居中交互 (重点更新) ---
+        function focusCard(cardData) {
+            activeCardId = cardData.id;
+            
+            // 1. 展开侧边栏
+            document.getElementById('dp-title').innerText = cardData.title;
+            document.getElementById('dp-time').innerText = cardData.time;
+            document.getElementById('dp-plot').innerText = cardData.plot;
+            document.getElementById('dp-method').innerText = cardData.method;
+            document.getElementById('detail-panel').classList.add('open');
+
+            // 2. 将选中的卡片滚动到视口中央
+            const cardEl = document.getElementById(cardData.id);
+            const wrapperRect = wrapper.getBoundingClientRect();
+            // 计算滚动目标位置 (当前卡片的offsetLeft - 屏幕一半 + 卡片一半)
+            const scrollTarget = cardEl.offsetLeft - wrapperRect.width / 2 + cardEl.offsetWidth / 2;
+            wrapper.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+
+            // 3. 将涉及的角色聚集到卡片正下方
+            const targetCenterX = cardEl.offsetLeft + cardEl.offsetWidth / 2;
+            const involvedPersons = cardData.involved || [];
+            const gap = 85; // 聚集时人物头像的间距
+            
+            // 计算这群人整体的起始点，使其居中对称
+            const startX = targetCenterX - ((involvedPersons.length - 1) * gap) / 2;
+
+            let involvedIndex = 0;
+            personsData.forEach(person => {
+                const pEl = document.getElementById(person.id);
+                if (involvedPersons.includes(person.id)) {
+                    // 移动到聚集点，并高亮
+                    pEl.style.left = `${startX + (involvedIndex * gap)}px`;
+                    pEl.style.opacity = '1';
+                    pEl.classList.add('highlighted');
+                    involvedIndex++;
+                } else {
+                    // 无关人物退回原位并变暗
+                    pEl.style.left = `${pEl.dataset.baseLeft}px`;
+                    pEl.style.opacity = '0.2';
+                    pEl.classList.remove('highlighted');
+                }
+            });
+
+            // 4. 更新卡片样式
+            document.querySelectorAll('.card').forEach(c => {
+                c.classList.remove('active');
+                c.style.opacity = c.id === activeCardId ? '1' : '0.4';
+            });
+            cardEl.classList.add('active');
+
+            // 5. 让连线跟随人物移动动画实时重绘
+            animateLinesDuringTransition();
+        }
+
+        function resetView() {
+            activeCardId = null;
+            document.getElementById('detail-panel').classList.remove('open');
+
+            // 恢复所有角色位置和样式
+            personsData.forEach(person => {
+                const pEl = document.getElementById(person.id);
+                pEl.style.left = `${pEl.dataset.baseLeft}px`;
+                pEl.style.opacity = '1';
+                pEl.classList.remove('highlighted');
+            });
+
+            // 恢复所有卡片样式
+            document.querySelectorAll('.card').forEach(c => {
+                c.classList.remove('active');
+                c.style.opacity = '1';
+            });
+
+            animateLinesDuringTransition();
+        }
+
+        // --- 4. 绘制与连线逻辑 ---
+        let paths = [];
+        function drawLines(hoveredId = null) {
+            svg.innerHTML = `
+                <defs>
+                    <marker id="arrow-plot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#34495e" /></marker>
+                    <marker id="arrow-tell" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#e74c3c" /></marker>
+                </defs>
+            `;
+            paths.length = 0;
+
+            const containerRect = container.getBoundingClientRect();
+            function getCoords(id, position) {
+                const el = document.getElementById(id);
+                if (!el) return {x:0, y:0};
+                const rect = el.getBoundingClientRect();
+                const x = rect.left - containerRect.left + rect.width / 2;
+                let y = rect.top - containerRect.top;
+                if (position === 'bottom') y += rect.height;
+                return { x, y };
+            }
+
+            cardsData.forEach(card => {
+                // 绘制剧情推进线
+                if(card.plotNext) {
+                    card.plotNext.forEach(nextId => {
+                        const start = getCoords(card.id, 'top');
+                        const end = getCoords(nextId, 'top');
+                        const ctrlY = start.y - Math.min(Math.abs(end.x - start.x) * 0.3, 200) - 30; 
+                        
+                        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                        path.setAttribute('d', `M ${start.x} ${start.y} Q ${(start.x + end.x)/2} ${ctrlY} ${end.x} ${end.y - 5}`);
+                        path.setAttribute('class', 'plot-path');
+                        path.setAttribute('marker-end', 'url(#arrow-plot)');
+                        
+                        // 逻辑：如果选中了卡片，只显示选中卡片的线；否则看 hover 状态
+                        let isActive = false;
+                        if (activeCardId) {
+                            isActive = (card.id === activeCardId || nextId === activeCardId);
+                        } else if (hoveredId) {
+                            isActive = (card.id === hoveredId || nextId === hoveredId);
+                        } else {
+                            isActive = true; // 默认全部弱显示
+                        }
+                        
+                        if (isActive && (activeCardId || hoveredId)) path.classList.add('active-highlight');
+                        if ((activeCardId || hoveredId) && !isActive) path.style.opacity = '0.05';
+
+                        svg.appendChild(path);
+                    });
+                }
+
+                // 绘制讲述者红线
+                if(card.tellers) {
+                    card.tellers.forEach(tellerId => {
+                        const start = getCoords(tellerId, 'top');
+                        const end = getCoords(card.id, 'bottom');
+                        
+                        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                        path.setAttribute('d', `M ${start.x} ${start.y} C ${start.x} ${start.y - 80}, ${end.x} ${end.y + 80}, ${end.x} ${end.y + 5}`);
+                        path.setAttribute('class', 'tell-path');
+                        path.setAttribute('marker-end', 'url(#arrow-tell)');
+                        
+                        let isActive = false;
+                        if (activeCardId) {
+                            isActive = (card.id === activeCardId || tellerId === activeCardId);
+                        } else if (hoveredId) {
+                            isActive = (card.id === hoveredId || tellerId === hoveredId);
+                        } else {
+                            isActive = true;
+                        }
+
+                        if (isActive && (activeCardId || hoveredId)) path.classList.add('active-highlight');
+                        if ((activeCardId || hoveredId) && !isActive) path.style.opacity = '0.05';
+
+                        svg.appendChild(path);
+                    });
+                }
+            });
+        }
+
+        function hoverHighlight(id, type) {
+            document.querySelectorAll('.card, .person').forEach(el => el.style.opacity = '0.4');
+            document.getElementById(id).style.opacity = '1';
+            drawLines(id);
+        }
+
+        // 核心动画循环：在CSS位移过渡的 600ms 内，逐帧重绘SVG连线以粘合头像
+        let animFrameId;
+        function animateLinesDuringTransition() {
+            const duration = 600;
+            const startTime = performance.now();
+            
+            function step(currentTime) {
+                drawLines(activeCardId);
+                if (currentTime - startTime < duration) {
+                    animFrameId = requestAnimationFrame(step);
+                } else {
+                    drawLines(activeCardId); // 保证最后一帧对齐
+                }
+            }
+            cancelAnimationFrame(animFrameId);
+            animFrameId = requestAnimationFrame(step);
+        }
+
+        // 初始化
+        setTimeout(() => drawLines(), 100);
+        window.addEventListener('resize', () => { if(!activeCardId) drawLines(); else drawLines(activeCardId); });
+
+    </script>
+</body>
+</html>

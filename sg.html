@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>三国演变动态地图</title>
+    <style>
+        :root {
+            --primary-color: #8b2121;
+            --bg-color: #f9f6f0;
+            --text-color: #333;
+            --card-bg: #fff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 顶部标题区 */
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        /* 互动主容器 */
+        .container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* 上半部分：地图展示区 */
+        .map-section {
+            flex: 5;
+            background-color: #e3d9c6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-section img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: opacity 0.5s ease;
+        }
+
+        .year-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(139, 33, 33, 0.9);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 下半部分：文本与控制区 */
+        .info-section {
+            flex: 4;
+            background: var(--card-bg);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+            margin-top: -15px; /* 产生重叠层次感 */
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .content-area h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.3rem;
+        }
+
+        .content-area p {
+            line-height: 1.6;
+            color: #555;
+            text-align: justify;
+        }
+
+        /* 底部导航与时间轴 */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* 简易时间轴进度条 */
+        .timeline {
+            display: flex;
+            gap: 5px;
+            flex: 1;
+            margin: 0 15px;
+            justify-content: center;
+        }
+
+        .timeline-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ddd;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .timeline-dot.active {
+            background-color: var(--primary-color);
+            transform: scale(1.5);
+        }
+
+        /* 响应式调整（针对较宽屏幕） */
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
+            .map-section {
+                flex: 7;
+            }
+            .info-section {
+                flex: 3;
+                margin-top: 0;
+                border-radius: 0;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>三国演变原来如此简单</header>
+
+    <div class="container">
+        <div class="map-section">
+            <div class="year-badge" id="year-display">196年</div>
+            <img id="map-image" src="./pics/sg196.webp" alt="三国地图">
+        </div>
+
+        <div class="info-section">
+            <div class="content-area">
+                <h2 id="title-display">群雄割据与曹操崛起</h2>
+                <p id="text-display">加载中...</p>
+            </div>
+            
+            <div class="controls">
+                <button id="btn-prev">上一阶段</button>
+                <div class="timeline" id="timeline-container">
+                    </div>
+                <button id="btn-next">下一阶段</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 提取自 PDF 的历史时间线数据
+        const historyData = [
+            {
+                year: "196年",
+                title: "群雄割据与挟天子以令诸侯",
+                image: "./pics/sg196.webp", // 对应建安元年形势图
+                text: "184年，东汉爆发了黄巾起义，中央武力镇压，地方军阀乘机崛起，割据一方。196年，汉献帝从长安逃离到洛阳，曹操抓到这个机会，迎献帝并迁都于许昌，“挟天子以令诸侯”。此时袁氏家族势力最强，占领黄河以北和淮南、江南大片土地。"
+            },
+            {
+                year: "201年",
+                title: "官渡之战奠定北方格局",
+                image: "./pics/sg201.webp", // 对应建安六年形势图
+                text: "199年，曹操又在官渡之战击败了袁绍，奠定了统一北方的基调。在南方，袁术在淮南称帝失败，实力衰落，最终土地被曹操兼并。200年孙策去世，孙权继承其势力，并在江南不断扩张，基本统一了扬州地区。"
+            },
+            {
+                year: "207年",
+                title: "曹操基本统一北方",
+                image: "./pics/sg207.webp", // 对应建安十二年形势图
+                text: "到公元207年，曹操已经彻底消灭了袁绍的残余势力，基本实现了北方的统一。此时，刘备被迫依靠于荆州刘表，在荆州发展自己的势力，寻求立足之地，并在诸葛亮的辅助下，确立了以荆州和益州为根基的发展政策。"
+            },
+            {
+                year: "209年",
+                title: "赤壁之战后的荆州分割",
+                image: "./pics/sg209.webp", // 对应建安十四年形势图
+                text: "208年，赤壁之战中刘备和孙权联合击败了曹操，使曹操统一中国的愿望落空。战后，曹操占领荆州北部，刘备获取了荆南四郡获得立足之地，孙权势力膨胀占据了南郡。"
+            },
+            {
+                year: "211年",
+                title: "曹操西征与刘备入川",
+                image: "./pics/sg211.webp", // 对应建安十六年形势图
+                text: "211年，曹操想经过关中灭张鲁，引发“关中之战”，战后曹操势力开始控制关中。同年，刘璋要求刘备入川，但很快二刘反目。在南方，刘备从孙权手中借来了荆州。"
+            },
+            {
+                year: "215年",
+                title: "刘备夺益州与湘水划界",
+                image: "./pics/sg215.webp", // 对应建安二十年形势图
+                text: "214年刘备正式兼并刘璋势力，占据整个益州；215年，曹操又兼并了张鲁的汉中地区。刘备得到益州后，孙权索要荆州导致双方矛盾尖锐，最终双方以湘江为界重新分割了荆州。"
+            },
+            {
+                year: "222年",
+                title: "三国鼎立局面形成",
+                image: "./pics/sg222.webp", // 对应三国时期(222年)形势图
+                text: "刘备发动汉中之战夺取关中，关羽北伐引发震动，但孙权趁机偷袭击杀关羽，刘备损失荆州。221年刘备发动夷陵之战失败，不久去世。此时，三国的局势基本稳定下来。"
+            },
+            {
+                year: "240年",
+                title: "三国各自向外发展",
+                image: "./pics/sg240.webp", // 对应三国时期(240年)形势图
+                text: "诸葛亮掌权后平定南中，并几次出兵北伐，夺取了武威、阴平等地区。魏国在238年灭辽东公孙氏势力并击败高句丽。孙权消灭交州士燮家族势力，并在230年派水师登陆台湾岛。"
+            },
+            {
+                year: "251年",
+                title: "三国走向衰落",
+                image: "./pics/sg251.webp", // 对应三国时期(251年)形势图
+                text: "250年前后，魏蜀吴三国都走向了衰落。249年司马懿发动高平陵之乱掌握朝政，魏国名存实亡。蜀汉姜维不断北伐消耗国力，东吴自253年孙峻专权后陷入长期内乱。"
+            },
+            {
+                year: "264年",
+                title: "司马氏灭蜀汉",
+                image: "./pics/sg264.webp", // 对应三国时期(264年)形势图
+                text: "263年，司马氏灭蜀汉，开始走向统一。同一年，交趾郡吏吕兴因抵制吴国苛役起兵叛乱，投靠司马氏。"
+            },
+            {
+                year: "271年",
+                title: "西晋建立与东吴反攻",
+                image: "./pics/sg271.webp", // 对应三国时期(271年)形势图
+                text: "265年，司马氏正式称帝，西晋正式建立。271年，吴国孙皓遣军十万反攻，攻陷交趾，最终收复交趾、九真、日南三郡，促成吴国分置交、广二州的行政格局定型。"
+            },
+            {
+                year: "280年",
+                title: "西晋统一全国",
+                image: "./pics/sg280.webp", // 对应西晋统一时期版图
+                text: "司马炎称帝后革新政治，史称“太康之治”。280年，西晋灭东吴，完成了对全国的统一。从184年黄巾起义到280年西晋统一，将近100年的乱世终于暂时结束。"
+            }
+        ];
+
+        let currentIndex = 0;
+
+        // DOM 元素获取
+        const elements = {
+            mapImage: document.getElementById('map-image'),
+            yearBadge: document.getElementById('year-display'),
+            titleDisplay: document.getElementById('title-display'),
+            textDisplay: document.getElementById('text-display'),
+            btnPrev: document.getElementById('btn-prev'),
+            btnNext: document.getElementById('btn-next'),
+            timelineContainer: document.getElementById('timeline-container')
+        };
+
+        // 初始化时间轴圆点
+        function initTimeline() {
+            historyData.forEach((item, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'timeline-dot';
+                dot.onclick = () => updateUI(index); // 点击圆点跳转
+                elements.timelineContainer.appendChild(dot);
+            });
+        }
+
+        // 更新 UI 界面
+        function updateUI(index) {
+            if (index < 0 || index >= historyData.length) return;
+            currentIndex = index;
+            const data = historyData[currentIndex];
+
+            // 平滑切换图片透明度
+            elements.mapImage.style.opacity = 0;
+            setTimeout(() => {
+                elements.mapImage.src = data.image;
+                elements.mapImage.style.opacity = 1;
+            }, 300);
+
+            // 更新文本内容
+            elements.yearBadge.innerText = data.year;
+            elements.titleDisplay.innerText = data.title;
+            elements.textDisplay.innerText = data.text;
+
+            // 更新按钮状态
+            elements.btnPrev.disabled = currentIndex === 0;
+            elements.btnNext.disabled = currentIndex === historyData.length - 1;
+
+            // 更新时间轴高亮
+            const dots = document.querySelectorAll('.timeline-dot');
+            dots.forEach((dot, i) => {
+                if (i === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            // 每次切换后让文字区域回到顶部
+            document.querySelector('.content-area').scrollTop = 0;
+        }
+
+        // 绑定按钮事件
+        elements.btnPrev.addEventListener('click', () => updateUI(currentIndex - 1));
+        elements.btnNext.addEventListener('click', () => updateUI(currentIndex + 1));
+
+        // ====== 新增：手机端左右滑动切换逻辑 ======
+        
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        // 获取需要绑定滑动事件的区域，这里绑定在地图展示区（也可以改为 document.querySelector('.container') 绑定全屏）
+        const swipeArea = document.querySelector('.map-section'); 
+        
+        // 监听手指按下
+        swipeArea.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true }); // passive: true 提升移动端滚动性能
+        
+        // 监听手指抬起
+        swipeArea.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+        
+        // 判断滑动方向并执行切换
+        function handleSwipe() {
+            // 设置一个滑动阈值，低于这个像素距离的滑动判定为误触
+            const swipeThreshold = 50; 
+            const diffX = touchStartX - touchEndX;
+        
+            if (diffX > swipeThreshold) {
+                // 向左滑动 (起点 > 终点)：触发下一页
+                if (currentIndex < historyData.length - 1) {
+                    updateUI(currentIndex + 1);
+                }
+            } else if (diffX < -swipeThreshold) {
+                // 向右滑动 (终点 > 起点)：触发上一页
+                if (currentIndex > 0) {
+                    updateUI(currentIndex - 1);
+                }
+            }
+        }
+        // 页面加载完成初始化
+        window.onload = () => {
+            initTimeline();
+            updateUI(0);
+        };
+
+    </script>
+</body>
+</html>

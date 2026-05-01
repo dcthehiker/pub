@@ -3,20 +3,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const subFilters = document.getElementById('sub-filters');
     const filterBtns = document.querySelectorAll('.filter-btn');
 
-    let currentFilterType = 'chapter'; // 'chapter' or 'theme'
+    let currentFilterType = 'chapter'; // 'chapter', 'theme', or 'random'
     let currentFilterValue = '全部';
 
     // 初始化：渲染全部分类按钮和卡片
     updateSubFilters();
     renderCards();
 
-    // 顶级筛选切换 (章节 vs 主题)
+    // 顶级筛选切换 (章节 vs 主题 vs 自由观点)
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilterType = btn.dataset.type;
-            currentFilterValue = '全部';
+            
+            if (currentFilterType === 'random') {
+                currentFilterValue = '随机';
+                subFilters.style.display = 'none'; // 随机模式不需要子筛选
+            } else {
+                currentFilterValue = '全部';
+                subFilters.style.display = 'flex';
+            }
+            
             updateSubFilters();
             renderCards();
         });
@@ -25,12 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 更新子筛选按钮
     function updateSubFilters() {
         subFilters.innerHTML = '';
+        if (currentFilterType === 'random') return;
+
         const options = new Set(['全部']);
         
         cardsData.forEach(card => {
             if (currentFilterType === 'chapter') {
                 options.add(card.chapter);
-            } else {
+            } else if (currentFilterType === 'theme') {
                 card.themes.forEach(t => options.add(t));
             }
         });
@@ -53,14 +63,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCards() {
         container.innerHTML = '';
         
-        const filteredData = cardsData.filter(card => {
-            if (currentFilterValue === '全部') return true;
-            if (currentFilterType === 'chapter') {
-                return card.chapter === currentFilterValue;
-            } else {
-                return card.themes.includes(currentFilterValue);
-            }
-        });
+        let filteredData = [];
+
+        if (currentFilterType === 'random') {
+            // 随机洗牌逻辑
+            filteredData = [...cardsData]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 6);
+        } else {
+            filteredData = cardsData.filter(card => {
+                if (currentFilterValue === '全部') return true;
+                if (currentFilterType === 'chapter') {
+                    return card.chapter === currentFilterValue;
+                } else {
+                    return card.themes.includes(currentFilterValue);
+                }
+            });
+        }
 
         filteredData.forEach((card, index) => {
             const cardWrapper = document.createElement('div');

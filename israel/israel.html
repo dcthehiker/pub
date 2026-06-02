@@ -275,7 +275,7 @@
         // 加载组合数据
         async function loadCombinationsData() {
             try {
-                const response = await fetch('./israel/full_analysis.json');
+                const response = await fetch('./full_analysis.json');
                 combinationsData = await response.json();
                 console.log('✅ 数据加载成功:', combinationsData.combinations.length, '个组合');
             } catch (error) {

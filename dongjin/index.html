@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>东晋门阀政治 - 知识图谱漫游</title>
+  <meta name="description" content="《东晋门阀政治》读书笔记之知识图谱移动端展示网页。支持关系链无限漫游探索。">
+  
+  <!-- LXGW WenKai Screen Webfont -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.7.0/style.css" />
+  
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- App Shell -->
+  <div id="app-container">
+    
+    <!-- Top Navigation Header -->
+    <header class="app-header" id="app-header">
+      <div class="header-left">
+        <button id="menu-btn" class="icon-btn" aria-label="打开索引" title="主体索引">
+          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <span class="app-logo-text">东晋门阀政治</span>
+      </div>
+      <div class="header-right">
+        <span class="header-mode-indicator">漫游模式</span>
+      </div>
+    </header>
+
+    <!-- Main Scroll Viewport (Snaps 50vh per card) -->
+    <main id="viewport-scroll-container" class="scroll-container snap-scroll">
+      <!-- Cards will be dynamically inserted here -->
+    </main>
+
+    <!-- Fixed Central Divider Overlay (HUD Element) -->
+    <div id="central-divider-overlay">
+      <button id="divider-trigger-btn">
+        <span class="divider-btn-text">稽联</span>
+        <span class="divider-btn-icon"></span>
+      </button>
+
+      <!-- Center pop-up card for Relationship details -->
+      <div id="relation-detail-popup">
+        <div class="popup-relation-type" id="popup-rel-type">关系类型</div>
+        <p class="popup-relation-desc" id="popup-rel-desc">关系描述...</p>
+        <button class="popup-close-btn" id="popup-close-btn">收起</button>
+      </div>
+    </div>
+
+    <!-- Floating Navigation / Tips Indicator -->
+    <div class="scroll-indicator" id="scroll-indicator">
+      <span class="indicator-text">滑入下一主体</span>
+      <div class="indicator-arrow"></div>
+    </div>
+  </div>
+
+  <!-- Entity Detail Drawer (Bottom Sheet) -->
+  <div class="drawer-overlay" id="detail-overlay"></div>
+  <div class="bottom-sheet" id="detail-sheet">
+    <div class="sheet-drag-handle"></div>
+    <button class="sheet-close-btn" id="detail-close-btn" aria-label="关闭">&times;</button>
+    <div class="sheet-content">
+      <div class="entity-detail-header">
+        <span class="entity-badge" id="detail-badge">类型</span>
+        <h2 class="entity-detail-title" id="detail-title">主体名称</h2>
+      </div>
+      <div class="entity-detail-body">
+        <div class="entity-description-section">
+          <h3>概念阐释</h3>
+          <div id="detail-desc-list">
+            <!-- Dynamically populated chapter descriptions -->
+          </div>
+        </div>
+        
+        <!-- Related Entities list for quick jumping -->
+        <div class="entity-connections-section">
+          <h3>图谱关联</h3>
+          <div class="connections-grid" id="detail-connections">
+            <!-- Dynamically populated connection chips -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subject Index Drawer (Right Drawer) -->
+  <div class="drawer-overlay" id="index-overlay"></div>
+  <aside class="right-drawer" id="index-drawer">
+    <div class="drawer-header">
+      <h2>图谱主体索引</h2>
+      <button class="drawer-close-btn" id="index-close-btn" aria-label="关闭">&times;</button>
+    </div>
+    
+    <!-- Search Box -->
+    <div class="search-box-wrapper">
+      <input type="text" id="search-input" placeholder="搜索主体或事件..." aria-label="搜索主体">
+      <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+
+    <!-- Category Filter Tabs -->
+    <div class="category-filters">
+      <button class="filter-chip active" data-category="all">全部</button>
+      <button class="filter-chip" data-category="核心人物">人物</button>
+      <button class="filter-chip" data-category="士族与集团">集团</button>
+      <button class="filter-chip" data-category="地理位置">地理</button>
+      <button class="filter-chip" data-category="政治局势与制度">制度</button>
+      <button class="filter-chip" data-category="重要历史事件">事件</button>
+    </div>
+
+    <div class="drawer-scroll-content">
+      <ul class="entity-index-list" id="index-list">
+        <!-- Dynamically populated list -->
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Welcome / Tutorial Overlay -->
+  <div class="welcome-overlay" id="welcome-overlay">
+    <div class="welcome-card">
+      <h1 class="welcome-title">东晋门阀政治</h1>
+      <p class="welcome-subtitle">知识图谱漫游空间</p>
+      
+      <div class="welcome-guide">
+        <div class="guide-item">
+          <div class="guide-icon">↕️</div>
+          <div class="guide-text"><strong>半屏滑动</strong>：向下滑动半个屏幕，上一主体的下个关联将滑入视野，免去重复。</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-icon">👈</div>
+          <div class="guide-text"><strong>横向分支</strong>：当底部的概念有多个分支时，可点击左右箭头切换探索的支线。</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-icon">🔴</div>
+          <div class="guide-text"><strong>点击名称</strong>：点击任意名字，可以在下方滑出其详尽的章节历史背景。</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-icon">🔗</div>
+          <div class="guide-text"><strong>点击关系</strong>：点击屏幕正中的“关系”圆钮，即可查看两个概念之间的史实关联。</div>
+        </div>
+      </div>
+      
+      <button class="welcome-btn" id="start-btn">开始探索</button>
+    </div>
+  </div>
+
+  <!-- Core JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>

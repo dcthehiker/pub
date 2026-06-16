@@ -1,0 +1,875 @@
+/* ==========================================================================
+   Design Tokens & CSS Variables (Scholarly Light Theme)
+   ========================================================================== */
+:root {
+  --bg-page: #F5F3ED;          /* 略微偏深的温润纸张底色，增加卡片对比 */
+  --card-bg: #FAF9F5;          /* 霞鹜文楷推荐纸张色 */
+  --highlight-bg-color: #E4ECF5;/* 淡蓝色高亮底色 */
+  --brand-color: #1B365D;      /* 儒雅古典深蓝色 */
+  --text-main: #3D3D3A;        /* 柔和深碳色，利于长时间阅读 */
+  --text-heading: #141413;     /* 亮黑色 */
+  
+  --border-color: rgba(27, 54, 93, 0.1);
+  --border-active: rgba(27, 54, 93, 0.25);
+  
+  /* Scholarly Accents for Entity Types */
+  --color-type-person: #A06A3B;   /* 琥珀褐 (人物) */
+  --color-type-group: #1B365D;    /* 雅深蓝 (集团) */
+  --color-type-location: #3A6351; /* 黛绿 (地理) */
+  --color-type-system: #6D4C41;   /* 赭石 (制度) */
+  --color-type-event: #B53333;    /* 朱砂红 (事件) */
+
+  /* UI Dimensions */
+  --header-height: 56px;
+  --main-font: "LXGW WenKai Screen", "Noto Serif SC", serif;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ==========================================================================
+   Reset & Base Styles
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--main-font);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   App Shell Layout
+   ========================================================================== */
+#app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.app-header {
+  height: var(--header-height);
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 10;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(27, 54, 93, 0.04);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-logo-text {
+  font-family: var(--main-font);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 1px;
+  color: var(--brand-color);
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--brand-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.icon-btn:active {
+  background: var(--highlight-bg-color);
+}
+
+.header-mode-indicator {
+  font-size: 0.78rem;
+  color: var(--brand-color);
+  background: var(--highlight-bg-color);
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Viewport Scroll Container (50% Snap Scroll)
+   ========================================================================== */
+.scroll-container {
+  flex: 1;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background-color: var(--bg-page);
+}
+
+.snap-scroll {
+  scroll-snap-type: y mandatory;
+}
+
+/* ==========================================================================
+   Entity Card Layout (50% of Viewport Scroll Height)
+   ========================================================================== */
+.relation-card {
+  scroll-snap-align: start;
+  flex: 0 0 50%;
+  height: 50%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 20px;
+  text-align: center;
+  position: relative;
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+/* Top card indicator for snap centering styling */
+.relation-card.is-top {
+  background-color: var(--card-bg);
+}
+
+/* Bottom card is active choice panel */
+.relation-card.is-bottom {
+  background-color: #FAF9F5;
+}
+
+/* Entity Typography */
+.entity-type {
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  border: 1px solid currentColor;
+}
+
+.entity-name {
+  font-family: var(--main-font);
+  font-weight: 500;
+  font-size: 1.6rem;
+  color: var(--text-heading);
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s, transform 0.2s;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.entity-name:active {
+  background-color: var(--highlight-bg-color);
+  transform: scale(0.97);
+}
+
+/* Underline link effect */
+.entity-name::after {
+  content: "";
+  display: block;
+  width: 30%;
+  height: 1.5px;
+  background-color: var(--brand-color);
+  margin: 2px auto 0 auto;
+  opacity: 0.25;
+  transition: width 0.2s;
+}
+
+/* ==========================================================================
+   Fixed Central Divider Overlay (The Relationship HUD Line)
+   ========================================================================== */
+#central-divider-overlay {
+  position: absolute;
+  top: calc(var(--header-height) + (100vh - var(--header-height)) / 2);
+  top: calc(var(--header-height) + (100dvh - var(--header-height)) / 2);
+  left: 0;
+  width: 100%;
+  height: 0;
+  z-index: 100;
+  pointer-events: none; /* Let scrolls go through the line */
+}
+
+/* Interactive relationship trigger button */
+#divider-trigger-btn {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--card-bg);
+  border: 1.5px solid var(--brand-color);
+  color: var(--brand-color);
+  font-family: var(--main-font);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 3px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  pointer-events: auto; /* Enable clicking */
+  box-shadow: 0 2px 8px rgba(27, 54, 93, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+#divider-trigger-btn.is-scrolling {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+  pointer-events: none;
+}
+
+#divider-trigger-btn:active {
+  background: var(--brand-color);
+  color: var(--card-bg);
+  box-shadow: 0 1px 4px rgba(27, 54, 93, 0.15);
+}
+
+/* Small visual link indicator */
+.divider-btn-icon::after {
+  content: " ⇄";
+  font-size: 0.72rem;
+  vertical-align: middle;
+}
+
+/* ==========================================================================
+   Relationship Popup Card (Centered HUD Popup)
+   ========================================================================== */
+#relation-detail-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  width: 88vw;
+  max-width: 400px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--brand-color);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(27, 54, 93, 0.15);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#relation-detail-popup.active {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;
+}
+
+.popup-relation-type {
+  font-family: var(--main-font);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-type-event);
+  text-align: center;
+  border-bottom: 1px dashed rgba(27, 54, 93, 0.1);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.popup-relation-desc {
+  font-family: var(--main-font);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  margin-bottom: 18px;
+  text-align: justify;
+}
+
+.popup-close-btn {
+  background: transparent;
+  border: 1.2px solid var(--brand-color);
+  color: var(--brand-color);
+  padding: 4px 16px;
+  border-radius: 4px;
+  font-family: var(--main-font);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;
+  transition: all 0.2s;
+}
+
+.popup-close-btn:active {
+  background: var(--brand-color);
+  color: var(--card-bg);
+}
+
+/* ==========================================================================
+   Roaming Branch Selector (Paging Pager in Bottom Card)
+   ========================================================================== */
+.roam-navigator {
+  display: none; /* Hidden by default */
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+/* Display only on bottom active card */
+.relation-card.is-bottom .roam-navigator {
+  display: flex;
+}
+
+.roam-arrow-btn {
+  background: var(--highlight-bg-color);
+  border: 0.5px solid rgba(27, 54, 93, 0.15);
+  color: var(--brand-color);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.roam-arrow-btn:active {
+  background-color: var(--card-bg);
+}
+
+.roam-arrow-btn.disabled {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.roam-path-indicator {
+  font-size: 0.72rem;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Scroll Indicator
+   ========================================================================== */
+.scroll-indicator {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 4;
+  transition: opacity 0.3s;
+}
+
+.scroll-indicator.fade-out {
+  opacity: 0;
+}
+
+.indicator-text {
+  font-size: 0.68rem;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+}
+
+.indicator-arrow {
+  width: 5px;
+  height: 5px;
+  border-right: 1.2px solid var(--text-main);
+  border-bottom: 1.2px solid var(--text-main);
+  transform: rotate(45deg);
+  animation: arrowBounce 1.5s infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% { transform: translateY(0) rotate(45deg); }
+  50% { transform: translateY(3px) rotate(45deg); }
+}
+
+/* ==========================================================================
+   Bottom Sheet (Entity Detail Panel)
+   ========================================================================== */
+.drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(20, 20, 19, 0.4); /* Translucent dark charcoal */
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.drawer-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  max-height: 80vh;
+  background: var(--card-bg);
+  border-top: 1.5px solid var(--brand-color);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  z-index: 1001;
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.3s;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -8px 24px rgba(27, 54, 93, 0.1);
+  padding-bottom: var(--safe-area-bottom);
+}
+
+.bottom-sheet.active {
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.sheet-drag-handle {
+  width: 36px;
+  height: 3px;
+  background: var(--brand-color);
+  opacity: 0.15;
+  border-radius: 2px;
+  margin: 10px auto 4px auto;
+}
+
+.sheet-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: var(--highlight-bg-color);
+  border: none;
+  color: var(--brand-color);
+  font-size: 1.3rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.sheet-close-btn:active {
+  background-color: var(--card-bg);
+}
+
+.sheet-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 20px 20px 20px;
+}
+
+.entity-detail-header {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.entity-badge {
+  font-size: 0.68rem;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.entity-detail-title {
+  font-family: var(--main-font);
+  font-weight: 500;
+  font-size: 1.4rem;
+  color: var(--brand-color);
+}
+
+.entity-detail-body h3 {
+  font-family: var(--main-font);
+  font-size: 0.8rem;
+  color: var(--brand-color);
+  margin-bottom: 8px;
+  border-left: 2px solid var(--brand-color);
+  padding-left: 8px;
+}
+
+.entity-description-section {
+  margin-bottom: 20px;
+}
+
+.desc-item {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed rgba(27, 54, 93, 0.06);
+}
+
+.desc-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.desc-chap-title {
+  font-size: 0.72rem;
+  font-weight: bold;
+  color: var(--brand-color);
+  opacity: 0.8;
+  margin-bottom: 3px;
+}
+
+.desc-text {
+  font-size: 0.82rem;
+  color: var(--text-main);
+  line-height: 1.55;
+}
+
+.entity-connections-section {
+  margin-top: 16px;
+}
+
+.connections-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.conn-chip {
+  background: var(--card-bg);
+  border: 0.5px solid var(--border-color);
+  color: var(--text-main);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-family: var(--main-font);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.conn-chip:active {
+  border-color: var(--brand-color);
+  background-color: var(--highlight-bg-color);
+  color: var(--brand-color);
+}
+
+.conn-type {
+  font-size: 0.62rem;
+  color: var(--color-type-event);
+  background: var(--highlight-bg-color);
+  padding: 0px 3px;
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   Right Drawer (Index List Drawer)
+   ========================================================================== */
+.right-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 85vw;
+  max-width: 340px;
+  height: 100vh;
+  background: var(--card-bg);
+  border-left: 1.5px solid var(--brand-color);
+  z-index: 1002;
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.3s;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 24px rgba(27, 54, 93, 0.1);
+}
+
+.right-drawer.active {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+
+.drawer-header {
+  height: var(--header-height);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.drawer-header h2 {
+  font-family: var(--main-font);
+  font-size: 1.05rem;
+  color: var(--brand-color);
+  font-weight: 500;
+}
+
+.drawer-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--brand-color);
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+
+.search-box-wrapper {
+  padding: 10px 16px;
+  position: relative;
+  border-bottom: 1px solid var(--border-color);
+}
+
+#search-input {
+  width: 100%;
+  background: var(--bg-page);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 6px 12px 6px 30px;
+  color: var(--text-main);
+  font-size: 0.8rem;
+  outline: none;
+  font-family: var(--main-font);
+  transition: border-color 0.2s;
+}
+
+#search-input:focus {
+  border-color: var(--brand-color);
+}
+
+.search-icon {
+  position: absolute;
+  left: 24px;
+  top: 52%;
+  transform: translateY(-50%);
+  color: var(--brand-color);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.category-filters {
+  padding: 6px 16px;
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.filter-chip {
+  background: var(--bg-page);
+  border: 0.5px solid var(--border-color);
+  color: var(--text-main);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  font-family: var(--main-font);
+  cursor: pointer;
+}
+
+.filter-chip.active {
+  background: var(--brand-color);
+  border-color: var(--brand-color);
+  color: var(--card-bg);
+  font-weight: 500;
+}
+
+.drawer-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.entity-index-list {
+  list-style: none;
+}
+
+.index-item {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(27, 54, 93, 0.04);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.2s;
+}
+
+.index-item:active {
+  background-color: var(--highlight-bg-color);
+}
+
+.index-item-name {
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: var(--text-heading);
+}
+
+.index-item-type {
+  font-size: 0.62rem;
+  padding: 1px 4px;
+  border-radius: 2px;
+  opacity: 0.9;
+  border: 0.5px solid;
+}
+
+/* ==========================================================================
+   Welcome / Tutorial Overlay
+   ========================================================================== */
+.welcome-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-page);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.welcome-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.welcome-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--brand-color);
+  border-radius: 8px;
+  padding: 28px 20px;
+  text-align: center;
+  box-shadow: 0 8px 28px rgba(27, 54, 93, 0.08);
+}
+
+.welcome-title {
+  font-family: var(--main-font);
+  font-weight: 700;
+  font-size: 1.7rem;
+  color: var(--brand-color);
+  margin-bottom: 4px;
+}
+
+.welcome-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-main);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.welcome-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.guide-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.guide-icon {
+  font-size: 1rem;
+  margin-top: 1px;
+}
+
+.guide-text {
+  font-size: 0.78rem;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.guide-text strong {
+  color: var(--brand-color);
+}
+
+.welcome-btn {
+  background: var(--brand-color);
+  color: var(--card-bg);
+  border: none;
+  font-family: var(--main-font);
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 8px 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(27, 54, 93, 0.15);
+  transition: all 0.2s;
+}
+
+.welcome-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(27, 54, 93, 0.15);
+}
+
+/* ==========================================================================
+   Sophisticated Category colors for Scholarly Light Theme
+   ========================================================================== */
+.type-person { color: var(--color-type-person); }
+.type-group { color: var(--color-type-group); }
+.type-location { color: var(--color-type-location); }
+.type-system { color: var(--color-type-system); }
+.type-event { color: var(--color-type-event); }
+
+/* Color overrides for backgrounds & borders */
+.bg-type-person {
+  border-color: rgba(160, 106, 59, 0.3);
+  background-color: rgba(160, 106, 59, 0.05);
+}
+.bg-type-group {
+  border-color: rgba(27, 54, 93, 0.3);
+  background-color: rgba(27, 54, 93, 0.05);
+}
+.bg-type-location {
+  border-color: rgba(58, 99, 81, 0.3);
+  background-color: rgba(58, 99, 81, 0.05);
+}
+.bg-type-system {
+  border-color: rgba(109, 76, 65, 0.3);
+  background-color: rgba(109, 76, 65, 0.05);
+}
+.bg-type-event {
+  border-color: rgba(181, 51, 51, 0.3);
+  background-color: rgba(181, 51, 51, 0.05);
+}

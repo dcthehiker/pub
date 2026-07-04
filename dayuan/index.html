@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>元帝国大汗族谱 - 可拖拽排版编辑器（带保存）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 全局背景复刻原图菱形暗纹 */
+        body {
+            background-color: #f3f3f0;
+            background-image: 
+                linear-gradient(45deg, #e6e6e0 1px, transparent 1px),
+                linear-gradient(-45deg, #e6e6e0 1px, transparent 1px);
+            background-size: 24px 24px;
+            padding: 32px;
+            font-family: "SimSun", "Microsoft YaHei", serif;
+        }
+        .tip-text {
+            color:#444;
+            margin-bottom:10px;
+        }
+        .control-bar {
+            display: flex;
+            gap:12px;
+            margin-bottom:10px;
+            align-items: center;
+        }
+        .reset-btn {
+            padding:4px 12px;
+            background:#666;
+            color:#fff;
+            border:none;
+            border-radius:4px;
+            cursor:pointer;
+        }
+        .reset-btn:hover {
+            background:#444;
+        }
+        /* 族谱容器 */
+        .tree-container {
+            position: relative;
+            width: 1680px;
+            height: 920px;
+            border: 1px solid #e0e0da;
+            background: #f3f3f0;
+        }
+        /* 连接线SVG层 */
+        .connect-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* 通用节点方块 */
+        .tree-node {
+            position: absolute;
+            padding: 8px 14px;
+            border-radius: 4px;
+            z-index: 2;
+            min-width: 130px;
+            text-align: center;
+            cursor: grab;
+            user-select: none;
+            transition: box-shadow 0.15s;
+        }
+        .tree-node:active {
+            cursor: grabbing;
+            box-shadow: 0 4px 12px #0003;
+            z-index: 99 !important;
+        }
+        /* 大汗绿色节点 */
+        .node-khan {
+            background-color: #489257;
+            color: #ffffff;
+        }
+        /* 皇后粉色节点 */
+        .node-queen {
+            background-color: #f8c8e0;
+            color: #000000;
+        }
+        /* 宗室棕色节点 */
+        .node-prince {
+            background-color: #dcb886;
+            color: #000000;
+        }
+        /* 编号圆形标记 */
+        .node-badge {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            background: #226633;
+            color: white;
+            font-size: 12px;
+            display: grid;
+            place-items: center;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="text-3xl font-bold mb-2">元帝国大汗族谱</h1>
+    <div class="control-bar">
+        <div class="mb-4 flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-black inline-block"></span>
+            <span>●=大汗继承顺序</span>
+        </div>
+        <button class="reset-btn" id="resetBtn">一键重置初始布局</button>
+    </div>
+    <div class="tip-text">操作提示：按住任意人物色块拖动，连线自动跟随；拖动完成自动保存位置，下次打开自动恢复排版</div>
+
+    <div class="tree-container" id="treeWrap">
+        <!-- 动态连接线SVG -->
+        <svg class="connect-svg" id="lineSvg" viewBox="0 0 1680 920"></svg>
+
+        <!-- 顶层：忽必烈 ① -->
+        <div class="tree-node node-khan" data-id="kublai" data-init-left="360" data-init-top="90">
+            <span class="node-badge">⑤ </span>
+            忽必烈（元世祖）<br>
+            （公元1260-1294年）
+        </div>
+        <!-- 察必皇后 -->
+        <div class="tree-node node-queen" data-id="chabi" data-init-left="580" data-init-top="90">
+            察必皇后
+        </div>
+
+        <!-- 忽必烈子女 棕色宗室层 -->
+        <div class="tree-node node-prince" data-id="dorji" data-init-left="100" data-init-top="230">朵儿只</div>
+        <div class="tree-node node-prince" data-id="jingim" data-init-left="200" data-init-top="230">真金</div>
+        <div class="tree-node node-prince" data-id="mangala" data-init-left="800" data-init-top="230">忙哥剌</div>
+        <div class="tree-node node-prince" data-id="namugan" data-init-left="920" data-init-top="230">那木罕</div>
+        <!-- 真金配偶 阔阔真 -->
+        <div class="tree-node node-queen" data-id="kokochin" data-init-left="310" data-init-top="230">阔阔真</div>
+
+        <!-- 真金下一代子女 -->
+        <div class="tree-node node-prince" data-id="gamala" data-init-left="90" data-init-top="360">甘麻剌</div>
+        <div class="tree-node node-prince" data-id="darmabala" data-init-left="240" data-init-top="360">答剌麻八剌</div>
+        <div class="tree-node node-khan" data-id="temur" data-init-left="560" data-init-top="360">
+            <span class="node-badge">⑥</span>
+            铁穆耳（元成宗）<br>
+            （公元1294-1307年）
+        </div>
+        <div class="tree-node node-prince" data-id="anan" data-init-left="800" data-init-top="360">阿难</div>
+        <!-- 答剌麻八剌配偶 答己 -->
+        <div class="tree-node node-queen" data-id="dagi" data-init-left="370" data-init-top="360">答己</div>
+        <!-- 铁穆耳配偶 卜鲁罕皇后 -->
+        <div class="tree-node node-queen" data-id="bulukhan" data-init-left="730" data-init-top="360">卜鲁罕皇后</div>
+
+        <!-- 甘麻剌一脉 -->
+        <div class="tree-node node-khan" data-id="yesuntemur" data-init-left="60" data-init-top="480">
+            <span class="node-badge">⑩</span>
+            也孙铁木儿（泰定帝）<br>
+            （公元1323-1328年）
+        </div>
+        <div class="tree-node node-khan" data-id="asujibha" data-init-left="60" data-init-top="620">
+            <span class="node-badge">⑪</span>
+            阿速吉八（天顺帝）<br>
+            （公元1328年）
+        </div>
+
+        <!-- 答剌麻八剌长子 武宗海山⑦ -->
+        <div class="tree-node node-khan" data-id="haishan" data-init-left="280" data-init-top="480">
+            <span class="node-badge">⑦</span>
+            海山（元武宗）<br>
+            （公元1307-1311年）
+        </div>
+        <!-- 武宗二子：明宗⑬、文宗⑫ -->
+        <div class="tree-node node-khan" data-id="hoshila" data-init-left="240" data-init-top="630">
+            <span class="node-badge">⑬</span>
+            和世㻋（元明宗）<br>
+            （公元1329年）
+        </div>
+        <div class="tree-node node-khan" data-id="tughtemur" data-init-left="400" data-init-top="630">
+            <span class="node-badge">⑫ ⑭ </span>
+            图帖睦尔（元文宗）<br>
+            （公元1328-29年、公元1329-32年）
+        </div>
+        <!-- 明宗二子：顺帝⑯、宁宗⑮ -->
+        <div class="tree-node node-khan" data-id="toghon" data-init-left="220" data-init-top="770">
+            <span class="node-badge">⑯</span>
+            妥懽帖睦尔（元顺帝）<br>
+            （公元1332-1370年）
+        </div>
+        <div class="tree-node node-khan" data-id="irinchinbal" data-init-left="380" data-init-top="770">
+            <span class="node-badge">⑮</span>
+            懿璘质班（元宁宗）<br>
+            （公元1332年）
+        </div>
+        <!-- 顺帝二子：昭宗⑰、天元帝⑱ -->
+        <div class="tree-node node-khan" data-id="ayushiridara" data-init-left="200" data-init-top="860">
+            <span class="node-badge">⑰</span>
+            爱猷识理答腊（北元昭宗）<br>
+            （公元1370-1378年）
+        </div>
+        <div class="tree-node node-khan" data-id="toghus" data-init-left="360" data-init-top="860">
+            <span class="node-badge">⑱</span>
+            脱古思帖木儿（天元帝）<br>
+            （公元1379-1388年）
+        </div>
+
+        <!-- 答剌麻八剌次子 仁宗⑧ -->
+        <div class="tree-node node-khan" data-id="ayurbarbada" data-init-left="580" data-init-top="480">
+            <span class="node-badge">⑧</span>
+            爱育黎拔力八达（元仁宗）<br>
+            （公元1311-1320年）
+        </div>
+        <!-- 仁宗子 英宗⑨ -->
+        <div class="tree-node node-khan" data-id="shidibala" data-init-left="580" data-init-top="630">
+            <span class="node-badge">⑨</span>
+            硕德八剌（元英宗）<br>
+            （公元1320-1323年）
+        </div>
+    </div>
+
+<script>
+// 1. 定义所有亲属连线关系：[{父/夫id,子/妻id,类型:wife夫妻/child父子}]
+const linkRules = [
+    // 夫妻线
+    {a:"kublai", b:"chabi", type:"wife"},
+    {a:"jingim", b:"kokochin", type:"wife"},
+    {a:"darmabala", b:"dagi", type:"wife"},
+    {a:"temur", b:"bulukhan", type:"wife"},
+    // 忽必烈的子女
+    {a:"kublai", b:"dorji", type:"child"},
+    {a:"kublai", b:"jingim", type:"child"},
+    {a:"kublai", b:"mangala", type:"child"},
+    {a:"kublai", b:"namugan", type:"child"},
+    // 真金的子女
+    {a:"jingim", b:"gamala", type:"child"},
+    {a:"jingim", b:"darmabala", type:"child"},
+    {a:"jingim", b:"temur", type:"child"},
+    // 忙哥剌之子阿难
+    {a:"mangala", b:"anan", type:"child"},
+    // 甘麻剌一脉
+    {a:"gamala", b:"yesuntemur", type:"child"},
+    {a:"yesuntemur", b:"asujibha", type:"child"},
+    // 答剌麻八剌二子武宗、仁宗
+    {a:"darmabala", b:"haishan", type:"child"},
+    {a:"darmabala", b:"ayurbarbada", type:"child"},
+    // 武宗二子明宗、文宗
+    {a:"haishan", b:"hoshila", type:"child"},
+    {a:"haishan", b:"tughtemur", type:"child"},
+    // 仁宗之子英宗
+    {a:"ayurbarbada", b:"shidibala", type:"child"},
+    // 明宗二子顺帝、宁宗
+    {a:"hoshila", b:"toghon", type:"child"},
+    {a:"hoshila", b:"irinchinbal", type:"child"},
+    // 顺帝二子昭宗、天元帝
+    {a:"toghon", b:"ayushiridara", type:"child"},
+    {a:"toghon", b:"toghus", type:"child"},
+];
+
+const svg = document.getElementById("lineSvg");
+const allNodes = document.querySelectorAll(".tree-node");
+const STORAGE_KEY = "yuan-tree-layout-data";
+let dragTarget = null;
+let dragStartX = 0, dragStartY = 0;
+let nodeStartLeft = 0, nodeStartTop = 0;
+
+// 获取节点中心坐标
+function getNodeCenter(el){
+    const left = parseFloat(el.style.left);
+    const top = parseFloat(el.style.top);
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    return {
+        x: left + w/2,
+        y: top + h/2
+    }
+}
+
+// 重绘全部连线
+function redrawLines(){
+    svg.innerHTML = "";
+    linkRules.forEach(rule=>{
+        const elA = document.querySelector(`[data-id="${rule.a}"]`);
+        const elB = document.querySelector(`[data-id="${rule.b}"]`);
+        if(!elA || !elB) return;
+        const p1 = getNodeCenter(elA);
+        const p2 = getNodeCenter(elB);
+        if(rule.type === "wife"){
+            // 夫妻：水平直线
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", p1.x);
+            line.setAttribute("y1", p1.y);
+            line.setAttribute("x2", p2.x);
+            line.setAttribute("y2", p2.y);
+            line.setAttribute("stroke", "#333");
+            line.setAttribute("stroke-width", "1.5");
+            svg.appendChild(line);
+        }else{
+            // 父子：标准阶梯分支线
+            const midY = (p1.y + p2.y) / 2;
+            const pathD = `M${p1.x} ${p1.y} L${p1.x} ${midY} L${p2.x} ${midY} L${p2.x} ${p2.y}`;
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathD);
+            path.setAttribute("stroke", "#333");
+            path.setAttribute("stroke-width", "1.5");
+            path.setAttribute("fill", "none");
+            svg.appendChild(path);
+        }
+    })
+}
+
+// 保存所有节点坐标到本地存储
+function saveLayout(){
+    const layoutData = {};
+    allNodes.forEach(node=>{
+        const id = node.dataset.id;
+        layoutData[id] = {
+            left: parseFloat(node.style.left),
+            top: parseFloat(node.style.top)
+        }
+    })
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(layoutData));
+}
+
+// 从本地存储加载布局
+function loadLayout(){
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(!saved) return false;
+    try{
+        const layoutData = JSON.parse(saved);
+        allNodes.forEach(node=>{
+            const id = node.dataset.id;
+            if(layoutData[id]){
+                node.style.left = layoutData[id].left + "px";
+                node.style.top = layoutData[id].top + "px";
+            }
+        })
+        return true;
+    }catch(e){
+        localStorage.removeItem(STORAGE_KEY);
+        return false;
+    }
+}
+
+// 重置到初始原始位置
+function resetLayout(){
+    allNodes.forEach(node=>{
+        const initL = node.dataset.initLeft;
+        const initT = node.dataset.initTop;
+        node.style.left = initL + "px";
+        node.style.top = initT + "px";
+    })
+    saveLayout();
+    redrawLines();
+}
+
+// 拖拽绑定
+allNodes.forEach(node=>{
+    node.addEventListener("mousedown", (e)=>{
+        dragTarget = node;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        nodeStartLeft = parseFloat(node.style.left);
+        nodeStartTop = parseFloat(node.style.top);
+        e.preventDefault();
+    })
+})
+document.addEventListener("mousemove", (e)=>{
+    if(!dragTarget) return;
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+    dragTarget.style.left = `${nodeStartLeft + dx}px`;
+    dragTarget.style.top = `${nodeStartTop + dy}px`;
+    redrawLines();
+})
+document.addEventListener("mouseup", ()=>{
+    if(dragTarget){
+        saveLayout(); // 拖拽松开自动保存当前布局
+    }
+    dragTarget = null;
+})
+
+// 重置按钮点击事件
+document.getElementById("resetBtn").addEventListener("click", resetLayout);
+
+// 页面初始化执行
+window.onload = function(){
+    loadLayout();
+    redrawLines();
+}
+</script>
+</body>
+</html>

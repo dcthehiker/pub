@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>廣韻 · 韻部</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,'Helvetica Neue','SF Pro Display','SF Pro Text','Noto Sans',system-ui,sans-serif;
+  background:#fff;color:#111;
+  padding:36px 16px;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+.container{max-width:540px;margin:0 auto;position:relative}
+
+/* Swiss-style accent */
+.accent{width:48px;height:2px;background:#DA291C;margin:0 auto 14px}
+
+h1{
+  font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:2.5px;
+  color:#999;text-align:center;
+  margin-bottom:44px;
+}
+
+.group{
+  display:flex;flex-wrap:wrap;align-items:flex-start;
+  margin-bottom:24px;
+}
+.group:last-child{margin-bottom:0}
+
+.card{
+  display:flex;flex-direction:column;align-items:center;
+  width:48px;padding:6px 0;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;touch-action:manipulation;
+  border-radius:6px;
+  transition:background .15s ease;
+}
+.card.selected{background:#f5f5f5}
+
+.ipa{
+  font-size:9px;font-weight:400;color:#bbb;
+  line-height:1.3;text-align:center;
+  min-height:24px;
+  display:flex;align-items:flex-end;justify-content:center;
+  font-family:'Helvetica Neue','SF Pro Text',-apple-system,system-ui,'Noto Sans',sans-serif;
+  letter-spacing:.02em;
+  word-break:keep-all;
+  transition:transform .18s ease,margin-bottom .18s ease;
+}
+.card.selected .ipa{transform:scale(1.7);transform-origin:center bottom;margin-bottom:6px}
+
+.char{
+  font-size:21px;font-weight:500;line-height:1.3;
+  color:#111;margin-top:2px;
+  transition:transform .18s ease;
+}
+.card.selected .char{transform:scale(1.5)}
+
+/* Tablet and up */
+@media(min-width:420px){
+  .card{width:58px;padding:8px 0}
+  .ipa{font-size:10px;min-height:28px}
+  .char{font-size:25px}
+}
+@media(min-width:600px){
+  body{padding:48px 24px}
+  .card{width:66px}
+  .ipa{font-size:11px;min-height:30px}
+  .char{font-size:28px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="accent"></div>
+  <h1>廣韻韻部</h1>
+  <div id="app"></div>
+</div>
+<script>
+const DATA = [
+  '東冬鍾江'.split('').map((c,i)=>[c,['tuŋ','toŋ','ʨʉoŋ','kọŋ'][i]]),
+  '支脂之微'.split('').map((c,i)=>[c,['ʨie','ʨi','ʨɨ','mʉj'][i]]),
+  '魚虞模'.split('').map((c,i)=>[c,['ŋɨə','ŋʉo','mo'][i]]),
+  '齊佳皆灰咍'.split('').map((c,i)=>[c,['ʣej','kẹ','kẹj','hoj','həj'][i]]),
+  '真諄臻文欣元'.split('').map((c,i)=>[c,['ʨin','ʨʷin','ꭧịn','mʉn','hɨn','ŋʉon'][i]]),
+  '魂痕寒'.split('').map((c,i)=>[c,['ɦon','ɦən','ɦɑn'][i]]),
+  '桓刪山'.split('').map((c,i)=>[c,['ɦʷɑn','ʂạn','ʂẹn'][i]]),
+  '先仙蕭宵'.split('').map((c,i)=>[c,['sen','sien','sew','siew'][i]]),
+  '肴豪歌戈'.split('').map((c,i)=>[c,['ɦạw','ɦɑw','kɑ','kʷɑ'][i]]),
+  '麻陽唐'.split('').map((c,i)=>[c,['mạ','jɨɑŋ','dɑŋ'][i]]),
+  '庚耕清青蒸登'.split('').map((c,i)=>[c,['kạŋ','kẹŋ','ʦʰiaŋ','ʦʰeŋ','ʨɨŋ','təŋ'][i]]),
+  '尤侯幽侵覃談'.split('').map((c,i)=>[c,['ɦʉu','ɦu','ʔiw','ʦʰim','dəm','dɑm'][i]]),
+  '鹽添咸'.split('').map((c,i)=>[c,['jiem','tʰem','ɦẹm'][i]]),
+  '銜嚴凡'.split('').map((c,i)=>[c,['ɦạm','ŋɨəm','bʉom'][i]]),
+];
+
+const app = document.getElementById('app');
+
+DATA.forEach(row => {
+  const group = document.createElement('div');
+  group.className = 'group';
+  row.forEach(([ch, ipa]) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<div class="ipa">${ipa}</div><div class="char">${ch}</div>`;
+    card.addEventListener('click', () => play(ch, card));
+    group.appendChild(card);
+  });
+  app.appendChild(group);
+});
+
+let currentAudio = null;
+let currentCard = null;
+
+function selectCard(el) {
+  if (currentCard && currentCard !== el) currentCard.classList.remove('selected');
+  el.classList.add('selected');
+  currentCard = el;
+}
+
+function play(ch, el) {
+  selectCard(el);
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  const a = new Audio(`./res/${ch}.mp3`);
+  currentAudio = a;
+  a.play().catch(() => {});
+  a.onended = () => { currentAudio = null; };
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.card') && currentCard) {
+    currentCard.classList.remove('selected');
+    currentCard = null;
+  }
+});
+</script>
+</body>
+</html>

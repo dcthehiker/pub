@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>汉语历史音变全景图谱 (Historical Chinese Phonology Visualizer)</title>
+  <style>
+    :root {
+      --bg-main: #060911;
+      --bg-card: #0F172A;
+      --bg-card-sub: #1E293B;
+      --border-color: #334155;
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --accent-cyan: #38BDF8;
+      --accent-amber: #FBBF24;
+      --accent-emerald: #34D399;
+      --accent-rose: #FB7185;
+      --accent-purple: #C084FC;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, 'PingFang SC', 'Noto Sans SC', 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      padding: 32px 24px;
+    }
+
+    .container {
+      max-width: 1480px; /* 充分利用高分辨率桌面宽度 */
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: #1E293B;
+      color: var(--accent-cyan);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      border: 1px solid #334155;
+    }
+    h1 {
+      font-size: 30px;
+      font-weight: 800;
+      color: #FFF;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 15px;
+      max-width: 900px;
+    }
+
+    /* Tab 导航 */
+    .tabs-nav {
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 14px;
+      margin-bottom: 28px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      background: #0F172A;
+      border: 1px solid #1E293B;
+      color: var(--text-secondary);
+      padding: 12px 22px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      background: #1E293B;
+      color: #FFF;
+      border-color: #475569;
+    }
+    .tab-btn.active {
+      background: #1E293B;
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 4px 16px rgba(56, 189, 248, 0.15);
+    }
+
+    /* 内容面板 */
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    .tab-pane.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 1100px) {
+      .grid-2col { grid-template-columns: 1fr; }
+    }
+
+    .svg-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      width: 100%;
+    }
+    .svg-wrapper svg {
+      width: 100%;
+      height: auto;
+    }
+
+    /* 信息面板 */
+    .info-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 24px;
+    }
+    .card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #FFF;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+    .card p:last-child { margin-bottom: 0; }
+    .tag-rule {
+      display: inline-block;
+      padding: 4px 10px;
+      background: #1E293B;
+      color: var(--accent-amber);
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 13px;
+      margin: 4px 0;
+      border: 1px solid #334155;
+    }
+    ul.fact-list {
+      padding-left: 20px;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+    }
+    ul.fact-list li { margin-bottom: 8px; line-height: 1.6; }
+    strong { color: #F1F5F9; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="badge">HISTORICAL PHONOLOGY VISUAL ENGINE</div>
+    <h1>现代汉语声母系统：历史音变总谱</h1>
+    <p class="subtitle">全面展现三千年语音大分化与大合流：上古复辅音解体、中古尖团知庄章鼎立、近代北方官话清化合并规则全景。</p>
+  </header>
+
+  <!-- 导航 Tabs -->
+  <div class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab(0)">00. 宏观演变演化树概览</button>
+    <button class="tab-btn" onclick="switchTab(1)">01. 尖团合流 (j, q, x)</button>
+    <button class="tab-btn" onclick="switchTab(2)">02. 卷舌四合一 (zh, ch, sh, r)</button>
+    <button class="tab-btn" onclick="switchTab(3)">03. 全浊清化 (平送仄不送)</button>
+    <button class="tab-btn" onclick="switchTab(4)">04. 轻唇化诞生 (f)</button>
+    <button class="tab-btn" onclick="switchTab(5)">05. 喉鼻弱化 (零声母与 h)</button>
+  </div>
+
+  <!-- ================= TAB 0: 全局总览 (宽幅重构大图) ================= -->
+  <div class="tab-pane active" id="pane-0">
+    <div class="card" style="margin-bottom: 20px;">
+      <h3>宏观演进演化树：三千年声母聚合消长</h3>
+      <p>普通话声母并非独立起源，而是先秦上古音经历中古四等分立、近古元代《中原音韵》乃至清末北京音系重组后的合流产物。图示横向展开历时发展脉络，展示各发音部位由繁入简、合并消融的全局流向。</p>
+    </div>
+    <div class="svg-wrapper">
+      <svg viewBox="0 0 1440 880" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="t0-bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#0F172A"/><stop offset="100%" stop-color="#020617"/>
+          </linearGradient>
+          <linearGradient id="t0-bar-oc" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1E293B"/><stop offset="100%" stop-color="#0F172A"/>
+          </linearGradient>
+          <marker id="t0-arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,1 L7,4 L0,7 Z" fill="#64748B"/>
+          </marker>
+          <marker id="t0-arr-cyan" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,1 L7,4 L0,7 Z" fill="#38BDF8"/>
+          </marker>
+          <marker id="t0-arr-amber" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,1 L7,4 L0,7 Z" fill="#FBBF24"/>
+          </marker>
+          <marker id="t0-arr-emerald" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,1 L7,4 L0,7 Z" fill="#34D399"/>
+          </marker>
+          <marker id="t0-arr-purple" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,1 L7,4 L0,7 Z" fill="#C084FC"/>
+          </marker>
+        </defs>
+
+        <rect width="1440" height="880" rx="20" fill="url(#t0-bg)"/>
+
+        <!-- 纵向三大历史时期列背景与巨幅表头 -->
+        <!-- 列 1: 上古 -->
+        <rect x="30" y="30" width="310" height="820" rx="16" fill="#0B132B" stroke="#1E293B" stroke-width="1.5"/>
+        <rect x="50" y="50" width="270" height="42" rx="10" fill="#1E293B"/>
+        <text x="185" y="77" fill="#F8FAFC" font-size="16" font-weight="800" text-anchor="middle">上古汉语 (先秦西汉)</text>
+
+        <!-- 列 2: 中古 -->
+        <rect x="370" y="30" width="560" height="820" rx="16" fill="#0B132B" stroke="#1E293B" stroke-width="1.5"/>
+        <rect x="390" y="50" width="520" height="42" rx="10" fill="#1E293B"/>
+        <text x="650" y="77" fill="#F8FAFC" font-size="16" font-weight="800" text-anchor="middle">中古汉语 (隋唐宋《切韵》《广韵》三十六字母)</text>
+
+        <!-- 列 3: 现代 -->
+        <rect x="960" y="30" width="450" height="820" rx="16" fill="#0B132B" stroke="#1E293B" stroke-width="1.5"/>
+        <rect x="980" y="50" width="410" height="42" rx="10" fill="#1E293B"/>
+        <text x="1185" y="77" fill="#F8FAFC" font-size="16" font-weight="800" text-anchor="middle">现代普通话 (Modern Chinese)</text>
+
+        <!-- ================= 组 1: 唇音系统 ================= -->
+        <g transform="translate(0, 115)">
+          <!-- OC -->
+          <rect x="50" y="10" width="270" height="70" rx="12" fill="#1E293B" stroke="#374151"/>
+          <text x="70" y="40" fill="#F8FAFC" font-size="16" font-family="monospace" font-weight="bold">*p-, *pʰ-, *b-, *m-</text>
+          <text x="70" y="64" fill="#94A3B8" font-size="13">原生双唇重唇音 (古无轻唇)</text>
+
+          <!-- MC 分化 -->
+          <rect x="390" y="0" width="250" height="44" rx="8" fill="#1E293B" stroke="#38BDF8"/>
+          <text x="410" y="28" fill="#E0F2FE" font-size="14" font-weight="bold">帮 滂 并 明 (重唇组)</text>
+
+          <rect x="390" y="52" width="250" height="44" rx="8" fill="#1E293B" stroke="#FB7185"/>
+          <text x="410" y="80" fill="#FFE4E6" font-size="14" font-weight="bold">非 敷 奉 微 (轻唇三等合口)</text>
+
+          <!-- 现代 -->
+          <rect x="980" y="0" width="410" height="44" rx="8" fill="#1E293B" stroke="#38BDF8"/>
+          <text x="1000" y="28" fill="#38BDF8" font-size="15" font-weight="bold">b, p, m <tspan fill="#94A3B8" font-size="13">(保留双唇阻碍/鼻音)</tspan></text>
+
+          <rect x="980" y="52" width="410" height="44" rx="8" fill="#1E293B" stroke="#FB7185"/>
+          <text x="1000" y="80" fill="#FB7185" font-size="15" font-weight="bold">f, w / 零声母 <tspan fill="#94A3B8" font-size="13">(唇齿擦化 / 微母弱化为通音)</tspan></text>
+
+          <!-- 连线 -->
+          <path d="M 320 45 L 390 22" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#t0-arr)"/>
+          <path d="M 320 45 L 390 74" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#t0-arr)"/>
+          <path d="M 640 22 L 980 22" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#t0-arr-cyan)"/>
+          <path d="M 640 74 L 980 74" fill="none" stroke="#FB7185" stroke-width="2" marker-end="url(#t0-arr)"/>
+        </g>
+
+        <!-- ================= 组 2: 舌头音、舌上音与照系 (卷舌大聚流) ================= -->
+        <g transform="translate(0, 240)">
+          <!-- OC 舌音原初 -->
+          <rect x="50" y="20" width="270" height="150" rx="12" fill="#1E293B" stroke="#374151"/>
+          <text x="70" y="52" fill="#34D399" font-size="15" font-weight="bold">原生舌音与前缀复合音</text>
+          <text x="70" y="80" fill="#F8FAFC" font-size="14" font-family="monospace">*t-, *tʰ-, *d- (端组)</text>
+          <text x="70" y="106" fill="#F8FAFC" font-size="14" font-family="monospace">*tr-, *tsr- (伴流音 *r)</text>
+          <text x="70" y="132" fill="#F8FAFC" font-size="14" font-family="monospace">*tj-, *s-t-, *m-r- (伴介音/鼻音)</text>
+          <text x="70" y="156" fill="#94A3B8" font-size="12">古无舌上、古无正齿（钱大昕律）</text>
+
+          <!-- MC 分流为五大类 -->
+          <rect x="390" y="0" width="250" height="38" rx="8" fill="#1E293B" stroke="#34D399"/>
+          <text x="410" y="25" fill="#A7F3D0" font-size="14" font-weight="bold">端 透 定 来 (舌头音)</text>
+
+          <rect x="390" y="46" width="250" height="38" rx="8" fill="#1E293B" stroke="#10B981"/>
+          <text x="410" y="71" fill="#6EE7B7" font-size="14" font-weight="bold">知 彻 澄 (舌上卷舌塞音 ʈ)</text>
+
+          <rect x="390" y="92" width="250" height="38" rx="8" fill="#1E293B" stroke="#FB923C"/>
+          <text x="410" y="117" fill="#FFEDD5" font-size="14" font-weight="bold">庄 初 崇 生 (照二/齿龈卷舌 tʂ)</text>
+
+          <rect x="390" y="138" width="250" height="38" rx="8" fill="#1E293B" stroke="#C084FC"/>
+          <text x="410" y="163" fill="#F3E8FF" font-size="14" font-weight="bold">章 昌 常 书 禅 (照三/硬腭 tɕ)</text>
+
+          <rect x="390" y="184" width="250" height="38" rx="8" fill="#1E293B" stroke="#FB7185"/>
+          <text x="410" y="209" fill="#FFE4E6" font-size="14" font-weight="bold">日母 (硬腭鼻音 ȵ / ɲ)</text>
+
+          <!-- 现代结果 -->
+          <rect x="980" y="0" width="410" height="42" rx="8" fill="#1E293B" stroke="#34D399"/>
+          <text x="1000" y="26" fill="#34D399" font-size="15" font-weight="bold">d, t, n, l <tspan fill="#94A3B8" font-size="13">(保留舌尖中塞音/鼻音/边音)</tspan></text>
+
+          <!-- 巨型卷舌卡片 -->
+          <rect x="980" y="55" width="410" height="155" rx="12" fill="#1E293B" stroke="#F59E0B" stroke-width="2"/>
+          <text x="1005" y="88" fill="#FBBF24" font-size="20" font-weight="800">zh, ch, sh, r (卷舌四合一)</text>
+          <text x="1005" y="118" fill="#CBD5E1" font-size="14">• 知组塞音塞擦化：<tspan font-family="monospace">ʈ → tʂ (zh, ch)</tspan></text>
+          <text x="1005" y="142" fill="#CBD5E1" font-size="14">• 照二与照三去颚化：<tspan font-family="monospace">tɕ → tʂ (zh, ch, sh)</tspan></text>
+          <text x="1005" y="166" fill="#CBD5E1" font-size="14">• 日母脱落硬腭鼻音塞性：<tspan font-family="monospace">ȵ → ɻ / ʐ (r)</tspan></text>
+          <text x="1005" y="190" fill="#94A3B8" font-size="13">彻底统辖北方官话翘舌音域</text>
+
+          <!-- 连线组 -->
+          <path d="M 320 95 L 390 19" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#t0-arr)"/>
+          <path d="M 320 95 L 390 65" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#t0-arr)"/>
+          <path d="M 320 95 L 390 111" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#t0-arr)"/>
+          <path d="M 320 95 L 390 157" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#t0-arr)"/>
+          <path d="M 320 95 L 390 203" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#t0-arr)"/>
+
+          <path d="M 640 19 L 980 19" fill="none" stroke="#34D399" stroke-width="2" marker-end="url(#t0-arr-emerald)"/>
+          <path d="M 640 65 L 980 110" fill="none" stroke="#10B981" stroke-width="2" marker-end="url(#t0-arr)"/>
+          <path d="M 640 111 L 980 125" fill="none" stroke="#FB923C" stroke-width="2" marker-end="url(#t0-arr)"/>
+          <path d="M 640 157 L 980 140" fill="none" stroke="#C084FC" stroke-width="2" marker-end="url(#t0-arr-purple)"/>
+          <path d="M 640 203 L 980 165" fill="none" stroke="#FB7185" stroke-width="2" marker-end="url(#t0-arr)"/>
+        </g>
+
+        <!-- ================= 组 3: 齿音与舌根音 (尖团大合流) ================= -->
+        <g transform="translate(0, 500)">
+          <!-- OC -->
+          <rect x="50" y="10" width="270" height="55" rx="12" fill="#1E293B" stroke="#374151"/>
+          <text x="70" y="42" fill="#FBBF24" font-size="15" font-family="monospace" font-weight="bold">*ts-, *tsʰ-, *s- (原生齿音)</text>
+
+          <rect x="50" y="75" width="270" height="55" rx="12" fill="#1E293B" stroke="#374151"/>
+          <text x="70" y="108" fill="#38BDF8" font-size="15" font-family="monospace" font-weight="bold">*k-, *kʰ-, *g-, *Kl- (软腭/复辅)</text>
+
+          <!-- MC 精系与见系 -->
+          <rect x="390" y="10" width="250" height="55" rx="8" fill="#1E293B" stroke="#FBBF24"/>
+          <text x="410" y="36" fill="#FDE68A" font-size="15" font-weight="bold">精 清 从 心 邪 (精组齿音)</text>
+          <text x="410" y="56" fill="#94A3B8" font-size="12">传统齿头音 ts, tsʰ, dz, s, z</text>
+
+          <rect x="390" y="75" width="250" height="55" rx="8" fill="#1E293B" stroke="#38BDF8"/>
+          <text x="410" y="101" fill="#BAE6FD" font-size="15" font-weight="bold">见 溪 群 晓 匣 (见组牙音)</text>
+          <text x="410" y="121" fill="#94A3B8" font-size="12">传统舌根/软腭音 k, kʰ, ɡ, x, ɣ</text>
+
+          <!-- 现代分化三大去处 -->
+          <rect x="980" y="0" width="410" height="42" rx="8" fill="#1E293B" stroke="#FBBF24"/>
+          <text x="1000" y="26" fill="#FBBF24" font-size="15" font-weight="bold">z, c, s <tspan fill="#94A3B8" font-size="13">(精系遇开/合口洪音保留平舌)</tspan></text>
+
+          <rect x="980" y="50" width="410" height="65" rx="10" fill="#1E293B" stroke="#A855F7" stroke-width="2"/>
+          <text x="1005" y="76" fill="#C084FC" font-size="17" font-weight="800">j, q, x (尖团合流：遇细音 i, ü)</text>
+          <text x="1005" y="100" fill="#CBD5E1" font-size="13">精系细音(尖) + 见系细音(团) 在硬腭处完全重合</text>
+
+          <rect x="980" y="122" width="410" height="42" rx="8" fill="#1E293B" stroke="#38BDF8"/>
+          <text x="1000" y="148" fill="#38BDF8" font-size="15" font-weight="bold">g, k, h <tspan fill="#94A3B8" font-size="13">(见系遇开/合口洪音保留软腭音)</tspan></text>
+
+          <!-- 连线 -->
+          <path d="M 320 37 L 390 37" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#t0-arr)"/>
+          <path d="M 320 102 L 390 102" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#t0-arr)"/>
+
+          <path d="M 640 30 L 980 21" fill="none" stroke="#FBBF24" stroke-width="2" marker-end="url(#t0-arr-amber)"/>
+          <path d="M 640 45 L 980 75" fill="none" stroke="#FBBF24" stroke-width="2" marker-end="url(#t0-arr-amber)"/>
+          <path d="M 640 95 L 980 90" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#t0-arr-cyan)"/>
+          <path d="M 640 110 L 980 143" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#t0-arr-cyan)"/>
+        </g>
+
+        <!-- ================= 组 4: 疑母、影母弱化 ================= -->
+        <g transform="translate(0, 715)">
+          <rect x="390" y="10" width="450" height="45" rx="8" fill="#1E293B" stroke="#64748B"/>
+          <text x="410" y="38" fill="#CBD5E1" font-size="14" font-weight="bold">疑母 [ŋ] (软腭鼻音) · 影母 [ʔ] (声门清喉塞)</text>
+
+          <rect x="980" y="10" width="410" height="45" rx="8" fill="#1E293B" stroke="#94A3B8"/>
+          <text x="1000" y="38" fill="#F1F5F9" font-size="15" font-weight="bold">零声母 / y / w <tspan fill="#94A3B8" font-size="13">(塞音成分脱落形成通音)</tspan></text>
+
+          <path d="M 840 32 L 980 32" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#t0-arr)"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ================= TAB 1: 尖团合流 (完整高密度原版迁移) ================= -->
+  <div class="tab-pane" id="pane-1">
+    <div class="grid-2col">
+      <div class="svg-wrapper">
+        <svg viewBox="0 0 760 1180" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="t1-bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0F172A" /><stop offset="100%" stop-color="#020617" />
+            </linearGradient>
+            <linearGradient id="t1-cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#1E293B" stop-opacity="0.95" /><stop offset="100%" stop-color="#0F172A" stop-opacity="0.95" />
+            </linearGradient>
+            <linearGradient id="t1-heroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#F43F5E" /><stop offset="50%" stop-color="#8B5CF6" /><stop offset="100%" stop-color="#6366F1" />
+            </linearGradient>
+            <marker id="t1-arr-cyan" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 1 L 7 4 L 0 7 z" fill="#38BDF8" />
+            </marker>
+            <marker id="t1-arr-amber" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 1 L 7 4 L 0 7 z" fill="#FBBF24" />
+            </marker>
+            <marker id="t1-arr-slate" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 1 L 7 4 L 0 7 z" fill="#64748B" />
+            </marker>
+            <marker id="t1-arr-violet" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 1 L 7 4 L 0 7 z" fill="#A855F7" />
+            </marker>
+            <filter id="t1-shadow" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.5" />
+            </filter>
+          </defs>
+
+          <!-- 画布背景 -->
+          <rect width="760" height="1180" rx="24" fill="url(#t1-bgGrad)" />
+
+          <!-- 顶部标题区 -->
+          <g transform="translate(48, 50)">
+            <rect x="0" y="0" width="120" height="24" rx="12" fill="#334155" />
+            <text x="60" y="16" fill="#94A3B8" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="1">PALATALIZATION</text>
+            <text x="0" y="54" fill="#F8FAFC" font-size="24" font-weight="800">现代汉语 j, q, x 语音流转演变</text>
+            <text x="0" y="78" fill="#64748B" font-size="13">从上古复合声母、中古尖团分立，到近代颚化合流全历程</text>
+          </g>
+
+          <!-- 阶段 1: 上古阶段 -->
+          <g transform="translate(48, 155)">
+            <circle cx="16" cy="16" r="14" fill="#1E293B" stroke="#475569" stroke-width="2" />
+            <text x="16" y="21" fill="#CBD5E1" font-size="12" font-family="monospace" text-anchor="middle">01</text>
+            <text x="40" y="22" fill="#E2E8F0" font-size="16" font-weight="800">上古阶段 (Old Chinese)</text>
+            <text x="210" y="22" fill="#64748B" font-size="12">先秦两汉 · 复辅音与原始发音部位</text>
+
+            <!-- 卡片 1-1: 见系源 -->
+            <g transform="translate(0, 48)">
+              <rect width="320" height="130" rx="16" fill="url(#t1-cardGrad)" stroke="#0284C7" stroke-width="1.5" filter="url(#t1-shadow)" />
+              <rect x="0" y="0" width="6" height="130" rx="3" fill="#0284C7" />
+              <text x="22" y="30" fill="#38BDF8" font-size="14" font-weight="bold">软腭系前身（舌根/复辅音）</text>
+              <text x="22" y="58" fill="#F1F5F9" font-size="13" font-family="monospace">*k- / *kʰ- / *g-</text>
+              <text x="142" y="58" fill="#94A3B8" font-size="12">单辅音软腭塞音</text>
+              <text x="22" y="84" fill="#F1F5F9" font-size="13" font-family="monospace">*Kl- / *Kr-</text>
+              <text x="110" y="84" fill="#94A3B8" font-size="12">含流音复辅音（如 各/路）</text>
+              <text x="22" y="110" fill="#F1F5F9" font-size="13" font-family="monospace">*s-k-</text>
+              <text x="74" y="110" fill="#94A3B8" font-size="12">前缀复合音与清化源</text>
+            </g>
+
+            <!-- 卡片 1-2: 精系源 -->
+            <g transform="translate(344, 48)">
+              <rect width="320" height="130" rx="16" fill="url(#t1-cardGrad)" stroke="#D97706" stroke-width="1.5" filter="url(#t1-shadow)" />
+              <rect x="0" y="0" width="6" height="130" rx="3" fill="#D97706" />
+              <text x="22" y="30" fill="#FBBF24" font-size="14" font-weight="bold">舌齿音系前身（舌头/齿音）</text>
+              <text x="22" y="58" fill="#F1F5F9" font-size="13" font-family="monospace">*t- / *ts- / *s-</text>
+              <text x="135" y="58" fill="#94A3B8" font-size="12">古无舌上、原生齿音</text>
+              <text x="22" y="84" fill="#F1F5F9" font-size="13" font-family="monospace">*St- / *Pr- 等</text>
+              <text x="120" y="84" fill="#94A3B8" font-size="12">复辅音分化群</text>
+              <text x="22" y="110" fill="#64748B" font-size="11">主要演进为知庄章组及精组原型</text>
+            </g>
+          </g>
+
+          <!-- 连接段 1 -> 2: 引导流线 -->
+          <g fill="none">
+            <path d="M 208 335 L 208 395" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#t1-arr-cyan)" />
+            <path d="M 504 335 L 504 395" stroke="#FBBF24" stroke-width="2.5" marker-end="url(#t1-arr-amber)" />
+            <path d="M 540 335 C 540 365, 630 365, 630 395" stroke="#64748B" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#t1-arr-slate)" />
+          </g>
+
+          <!-- 阶段 2: 中古阶段 -->
+          <g transform="translate(48, 405)">
+            <circle cx="16" cy="16" r="14" fill="#1E293B" stroke="#475569" stroke-width="2" />
+            <text x="16" y="21" fill="#CBD5E1" font-size="12" font-family="monospace" text-anchor="middle">02</text>
+            <text x="40" y="22" fill="#E2E8F0" font-size="16" font-weight="800">中古阶段 (Middle Chinese)</text>
+            <text x="212" y="22" fill="#64748B" font-size="12">切韵·广韵系统 · 尖团界限分明</text>
+
+            <!-- 中古见系 (团音) -->
+            <g transform="translate(0, 48)">
+              <rect width="260" height="150" rx="16" fill="url(#t1-cardGrad)" stroke="#38BDF8" stroke-width="2" filter="url(#t1-shadow)" />
+              <rect x="18" y="16" width="60" height="20" rx="6" fill="#0369A1" />
+              <text x="48" y="30" fill="#E0F2FE" font-size="11" font-weight="bold" text-anchor="middle">团音祖源</text>
+              <text x="18" y="60" fill="#F8FAFC" font-size="16" font-weight="bold">中古见系 (软腭音)</text>
+              <text x="18" y="85" fill="#38BDF8" font-size="12" font-family="monospace">k, kʰ, ɡ, x, ɣ (见溪群晓匣)</text>
+              <text x="18" y="112" fill="#94A3B8" font-size="12">传统发音部位为“牙音/喉音”</text>
+              <text x="18" y="132" fill="#64748B" font-size="11">存古例：江 (k-)、欺 (kʰ-)、鞋 (ɣ-)</text>
+            </g>
+
+            <!-- 中古精系 (尖音) -->
+            <g transform="translate(280, 48)">
+              <rect width="250" height="150" rx="16" fill="url(#t1-cardGrad)" stroke="#FBBF24" stroke-width="2" filter="url(#t1-shadow)" />
+              <rect x="18" y="16" width="60" height="20" rx="6" fill="#B45309" />
+              <text x="48" y="30" fill="#FEF3C7" font-size="11" font-weight="bold" text-anchor="middle">尖音祖源</text>
+              <text x="18" y="60" fill="#F8FAFC" font-size="16" font-weight="bold">中古精系 (齿龈音)</text>
+              <text x="18" y="85" fill="#FBBF24" font-size="12" font-family="monospace">ts, tsʰ, dz, s, z (精清从心邪)</text>
+              <text x="18" y="112" fill="#94A3B8" font-size="12">传统发音部位为“舌尖前音”</text>
+              <text x="18" y="132" fill="#64748B" font-size="11">存古例：箭 (ts-)、秋 (tsʰ-)、修 (s-)</text>
+            </g>
+
+            <!-- 中古知照系 (旁支) -->
+            <g transform="translate(548, 48)">
+              <rect width="116" height="150" rx="16" fill="#1E293B" stroke="#475569" stroke-width="1" stroke-dasharray="3,3" />
+              <text x="58" y="34" fill="#94A3B8" font-size="12" font-weight="bold" text-anchor="middle">中古知/照系</text>
+              <text x="58" y="58" fill="#64748B" font-size="10" font-family="monospace" text-anchor="middle">ʈ, ʈʂ, tɕ...</text>
+              <text x="58" y="90" fill="#CBD5E1" font-size="11" text-anchor="middle">绝大部分流向：</text>
+              <rect x="18" y="102" width="80" height="26" rx="6" fill="#0F172A" />
+              <text x="58" y="119" fill="#F43F5E" font-size="11" font-family="monospace" text-anchor="middle">zh, ch, sh</text>
+              <text x="58" y="140" fill="#64748B" font-size="9" text-anchor="middle">极少数方言变读混入</text>
+            </g>
+          </g>
+
+          <!-- 阶段 3: 条件颚化机制 -->
+          <g transform="translate(48, 650)">
+            <rect width="664" height="110" rx="20" fill="#1E1B4B" stroke="#6366F1" stroke-width="1.5" filter="url(#t1-shadow)" />
+
+            <path d="M 130 -47 L 130 -15 C 130 5, 230 15, 230 30" fill="none" stroke="#38BDF8" stroke-width="2.5" />
+            <path d="M 405 -47 L 405 -15 C 405 5, 330 15, 330 30" fill="none" stroke="#FBBF24" stroke-width="2.5" />
+
+            <text x="332" y="32" fill="#A5B4FC" font-size="12" font-weight="bold" text-anchor="middle" letter-spacing="1">关键音变动力 · 近古到近代 (明清)</text>
+            <text x="332" y="62" fill="#FFFFFF" font-size="17" font-weight="800" text-anchor="middle">条件颚化 (Palatalization) 与 尖团合流</text>
+
+            <g transform="translate(42, 75)">
+              <rect x="0" y="0" width="270" height="24" rx="6" fill="#312E81" />
+              <text x="135" y="16" fill="#C7D2FE" font-size="11" text-anchor="middle">遇前高元音/介音 [i], [y] (齐齿/撮口呼)</text>
+            </g>
+            <g transform="translate(340, 75)">
+              <rect x="0" y="0" width="280" height="24" rx="6" fill="#312E81" />
+              <text x="140" y="16" fill="#C7D2FE" font-size="11" text-anchor="middle">发音部位向硬腭聚拢：舌面拱起闭塞/摩擦</text>
+            </g>
+          </g>
+
+          <!-- 连接段 3 -> 4 -->
+          <g fill="none">
+            <path d="M 380 760 L 380 820" stroke="#A855F7" stroke-width="3" marker-end="url(#t1-arr-violet)" />
+            <path d="M 650 600 C 650 780, 520 840, 480 850" stroke="#64748B" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#t1-arr-slate)" />
+          </g>
+
+          <!-- 阶段 4: 现代结果 -->
+          <g transform="translate(48, 830)">
+            <circle cx="16" cy="16" r="14" fill="#1E293B" stroke="#475569" stroke-width="2" />
+            <text x="16" y="21" fill="#CBD5E1" font-size="12" font-family="monospace" text-anchor="middle">03</text>
+            <text x="40" y="22" fill="#E2E8F0" font-size="16" font-weight="800">现代普通话 (Modern Standard Chinese)</text>
+            <text x="360" y="22" fill="#64748B" font-size="12">新生舌面塞擦音与擦音</text>
+
+            <rect x="0" y="44" width="664" height="190" rx="20" fill="url(#t1-cardGrad)" stroke="#8B5CF6" stroke-width="2" filter="url(#t1-shadow)" />
+
+            <!-- J 列 -->
+            <g transform="translate(42, 68)">
+              <rect width="180" height="142" rx="14" fill="#0F172A" stroke="#334155" stroke-width="1" />
+              <circle cx="34" cy="34" r="18" fill="url(#t1-heroGrad)" />
+              <text x="34" y="42" fill="#FFFFFF" font-size="18" font-family="monospace" text-anchor="middle">j</text>
+              <text x="64" y="34" fill="#E2E8F0" font-size="15" font-family="monospace">[tɕ]</text>
+              <text x="64" y="48" fill="#64748B" font-size="11">不送气清塞擦音</text>
+              <line x1="20" y1="64" x2="160" y2="64" stroke="#1E293B" stroke-width="1" />
+              <text x="20" y="85" fill="#38BDF8" font-size="11">团音：鸡、基、家 (见)</text>
+              <text x="20" y="105" fill="#FBBF24" font-size="11">尖音：积、节、姐 (精)</text>
+              <text x="20" y="125" fill="#94A3B8" font-size="10">浊平：桥、嚼 (群/从)</text>
+            </g>
+
+            <!-- Q 列 -->
+            <g transform="translate(242, 68)">
+              <rect width="180" height="142" rx="14" fill="#0F172A" stroke="#334155" stroke-width="1" />
+              <circle cx="34" cy="34" r="18" fill="url(#t1-heroGrad)" />
+              <text x="34" y="42" fill="#FFFFFF" font-size="18" font-family="monospace" text-anchor="middle">q</text>
+              <text x="64" y="34" fill="#E2E8F0" font-size="15" font-family="monospace">[tɕʰ]</text>
+              <text x="64" y="48" fill="#64748B" font-size="11">送气清塞擦音</text>
+              <line x1="20" y1="64" x2="160" y2="64" stroke="#1E293B" stroke-width="1" />
+              <text x="20" y="85" fill="#38BDF8" font-size="11">团音：欺、去、轻 (溪)</text>
+              <text x="20" y="105" fill="#FBBF24" font-size="11">尖音：妻、七、秋 (清)</text>
+              <text x="20" y="125" fill="#94A3B8" font-size="10">浊仄：企、渐 (群/从)</text>
+            </g>
+
+            <!-- X 列 -->
+            <g transform="translate(442, 68)">
+              <rect width="180" height="142" rx="14" fill="#0F172A" stroke="#334155" stroke-width="1" />
+              <circle cx="34" cy="34" r="18" fill="url(#t1-heroGrad)" />
+              <text x="34" y="42" fill="#FFFFFF" font-size="18" font-family="monospace" text-anchor="middle">x</text>
+              <text x="64" y="34" fill="#E2E8F0" font-size="15" font-family="monospace">[ɕ]</text>
+              <text x="64" y="48" fill="#64748B" font-size="11">清擦音</text>
+              <line x1="20" y1="64" x2="160" y2="64" stroke="#1E293B" stroke-width="1" />
+              <text x="20" y="85" fill="#38BDF8" font-size="11">团音：希、香、下 (晓/匣)</text>
+              <text x="20" y="105" fill="#FBBF24" font-size="11">尖音：西、心、修 (心/邪)</text>
+              <text x="20" y="125" fill="#94A3B8" font-size="10">例外：虚、夕、雪</text>
+            </g>
+          </g>
+
+          <!-- 底部图例说明栏 -->
+          <g transform="translate(48, 1085)">
+            <rect width="664" height="50" rx="12" fill="#0B132B" stroke="#1E293B" stroke-width="1" />
+            <circle cx="40" cy="25" r="5" fill="#38BDF8" />
+            <text x="54" y="29" fill="#94A3B8" font-size="12">团音流向 (见系舌根软腭音)</text>
+            <circle cx="250" cy="25" r="5" fill="#FBBF24" />
+            <text x="264" y="29" fill="#94A3B8" font-size="12">尖音流向 (精系舌尖齿龈音)</text>
+            <line x1="450" y1="25" x2="480" y2="25" stroke="#64748B" stroke-width="2" stroke-dasharray="4,4" />
+            <text x="492" y="29" fill="#64748B" font-size="12">知照系旁流 / 极少数特例</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- 侧边信息栏 -->
+      <div class="info-panel">
+        <div class="card">
+          <h3>音变原动力与协同发音</h3>
+          <p><span class="tag-rule">见系软腭音 + [i]/[y] → 舌面接触前移硬腭化 (团音)</span></p>
+          <p><span class="tag-rule">精系舌尖齿龈音 + [i]/[y] → 舌体向上拱起接触硬腭 (尖音)</span></p>
+          <p>现代汉语普通话的舌面音 <strong>j, q, x</strong> 是发音器官在追求生理省力过程中的典型产物。发音者在试图同时发出前高元音 $[i]$ 或撮口呼 $[y]$ 时，舌头无法在短时间内完成“先向后缩至软腭、再迅速向前上贴紧硬腭”的剧烈位移，因而引发了发音部位的趋同化。</p>
+        </div>
+        <div class="card">
+          <h3>活化石与历史存古证据</h3>
+          <ul class="fact-list">
+            <li><strong>京剧韵白分尖团</strong>：传统京剧演员至今严格区分尖团音。例如“剑 (团) 不等于 箭 (尖)”、“心 (尖) 不等于 欣 (团)”。</li>
+            <li><strong>闽南语未颚化</strong>：闽语完整保留中古前见系状态，例如“家”读 <code>ke/ka</code>，“九”读 <code>kau</code>，“桥”读 <code>kio</code>。</li>
+            <li><strong>粤语与客家话</strong>：“见”读 <code>gin</code>，“欺”读 <code>hei</code>，“希”读 <code>hei</code>，见系基本不颚化。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB 2: 卷舌四合一 (完整高密度原版迁移) ================= -->
+  <div class="tab-pane" id="pane-2">
+    <div class="grid-2col">
+      <div class="svg-wrapper">
+        <svg viewBox="0 0 760 1260" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="t2-bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0F172A" /><stop offset="100%" stop-color="#020617" />
+            </linearGradient>
+            <linearGradient id="t2-cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#1E293B" stop-opacity="0.95" /><stop offset="100%" stop-color="#0F172A" stop-opacity="0.95" />
+            </linearGradient>
+            <linearGradient id="t2-retroHeroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#F59E0B" /><stop offset="50%" stop-color="#EC4899" /><stop offset="100%" stop-color="#6366F1" />
+            </linearGradient>
+            <marker id="t2-arr-emerald" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 1 L 7 4 L 0 7 z" fill="#34D399" />
+            </marker>
+            <marker id="t2-arr-orange" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 1 L 7 4 L 0 7 z" fill="#FB923C" />
+            </marker>
+            <marker id="t2-arr-purple" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 1 L 7 4 L 0 7 z" fill="#C084FC" />
+            </marker>
+            <marker id="t2-arr-rose" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 1 L 7 4 L 0 7 z" fill="#FB7185" />
+            </marker>
+            <marker id="t2-arr-fusion" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 1 L 7 4 L 0 7 z" fill="#EC4899" />
+            </marker>
+            <filter id="t2-shadow" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.5" />
+            </filter>
+          </defs>
+
+          <!-- 整体画布背景 -->
+          <rect width="760" height="1260" rx="24" fill="url(#t2-bgGrad)" />
+
+          <!-- 顶部标题栏 -->
+          <g transform="translate(48, 46)">
+            <rect x="0" y="0" width="138" height="24" rx="12" fill="#334155" />
+            <text x="69" y="16" fill="#94A3B8" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="1">RETROFLEX PHONOLOGY</text>
+            <text x="0" y="52" fill="#F8FAFC" font-size="24" font-weight="800">现代汉语 zh, ch, sh, r 演变流转</text>
+            <text x="0" y="74" fill="#64748B" font-size="13">古无舌上、照二归庄、照三归章与近代卷舌合流全息图</text>
+          </g>
+
+          <!-- 阶段 1: 上古阶段 -->
+          <g transform="translate(48, 150)">
+            <circle cx="16" cy="16" r="14" fill="#1E293B" stroke="#475569" stroke-width="2" />
+            <text x="16" y="21" fill="#CBD5E1" font-size="12" font-family="monospace" text-anchor="middle">01</text>
+            <text x="40" y="22" fill="#E2E8F0" font-size="16" font-weight="800">上古阶段 (Old Chinese)</text>
+            <text x="210" y="22" fill="#64748B" font-size="12">先秦两汉 · 原生舌音与齿音群（钱大昕“古无舌上音”）</text>
+
+            <!-- 上古端组/舌音 (左) -->
+            <g transform="translate(0, 42)">
+              <rect width="320" height="120" rx="14" fill="url(#t2-cardGrad)" stroke="#059669" stroke-width="1.5" filter="url(#t2-shadow)" />
+              <rect x="0" y="0" width="5" height="120" rx="2.5" fill="#10B981" />
+              <text x="20" y="28" fill="#34D399" font-size="13" font-weight="bold">原生舌头音 (端组 *t- 脉络)</text>
+              <text x="20" y="52" fill="#F1F5F9" font-size="13" font-family="monospace">*t- / *tʰ- / *d-</text>
+              <text x="135" y="52" fill="#94A3B8" font-size="11">无舌上音，全读舌头</text>
+              <text x="20" y="76" fill="#F1F5F9" font-size="13" font-family="monospace">*tr- / *tʰr- / *dr-</text>
+              <text x="145" y="76" fill="#94A3B8" font-size="11">含流音 *r（转入知组）</text>
+              <text x="20" y="100" fill="#F1F5F9" font-size="13" font-family="monospace">*tj- / *tʰj- / *dj-</text>
+              <text x="145" y="100" fill="#94A3B8" font-size="11">含介音 *j（转入章组）</text>
+            </g>
+
+            <!-- 上古齿音/复合前缀 (右) -->
+            <g transform="translate(344, 42)">
+              <rect width="320" height="120" rx="14" fill="url(#t2-cardGrad)" stroke="#D97706" stroke-width="1.5" filter="url(#t2-shadow)" />
+              <rect x="0" y="0" width="5" height="120" rx="2.5" fill="#F59E0B" />
+              <text x="20" y="28" fill="#FBBF24" font-size="13" font-weight="bold">原生齿音与复合音 (*ts-/*s- 脉络)</text>
+              <text x="20" y="52" fill="#F1F5F9" font-size="13" font-family="monospace">*ts-r- / *s-r-</text>
+              <text x="120" y="52" fill="#94A3B8" font-size="11">齿音伴 *r（转入庄组）</text>
+              <text x="20" y="76" fill="#F1F5F9" font-size="13" font-family="monospace">*s-t- / *s-n-</text>
+              <text x="120" y="76" fill="#94A3B8" font-size="11">清化前缀（转入书/禅母）</text>
+              <text x="20" y="100" fill="#F1F5F9" font-size="13" font-family="monospace">*m-roŋ / *n-</text>
+              <text x="125" y="100" fill="#94A3B8" font-size="11">流音鼻音（日母前身）</text>
+            </g>
+          </g>
+
+          <!-- 连接段 1 -> 2: 四流分立通道 -->
+          <g fill="none">
+            <path d="M 140 314 L 125 365" stroke="#34D399" stroke-width="2" marker-end="url(#t2-arr-emerald)" />
+            <path d="M 420 314 C 420 335, 290 335, 275 365" stroke="#FB923C" stroke-width="2" marker-end="url(#t2-arr-orange)" />
+            <path d="M 260 314 C 260 335, 420 335, 435 365" stroke="#C084FC" stroke-width="2" marker-end="url(#t2-arr-purple)" />
+            <path d="M 580 314 L 595 365" stroke="#FB7185" stroke-width="2" marker-end="url(#t2-arr-rose)" />
+          </g>
+
+          <!-- 阶段 2: 中古阶段 -->
+          <g transform="translate(48, 375)">
+            <circle cx="16" cy="16" r="14" fill="#1E293B" stroke="#475569" stroke-width="2" />
+            <text x="16" y="21" fill="#CBD5E1" font-size="12" font-family="monospace" text-anchor="middle">02</text>
+            <text x="40" y="22" fill="#E2E8F0" font-size="16" font-weight="800">中古阶段 (Middle Chinese)</text>
+            <text x="210" y="22" fill="#64748B" font-size="12">《切韵》《广韵》系统 · 知庄章日四系鼎立</text>
+
+            <!-- 知组 -->
+            <g transform="translate(0, 42)">
+              <rect width="158" height="165" rx="14" fill="url(#t2-cardGrad)" stroke="#059669" stroke-width="1.5" filter="url(#t2-shadow)" />
+              <text x="16" y="28" fill="#34D399" font-size="14" font-weight="bold">知组 (舌上音)</text>
+              <text x="16" y="50" fill="#94A3B8" font-size="11" font-family="monospace">ʈ, ʈʰ, ɖ</text>
+              <text x="16" y="74" fill="#CBD5E1" font-size="11">声母：知、彻、澄</text>
+              <line x1="16" y1="84" x2="142" y2="84" stroke="#334155" stroke-width="1" />
+              <text x="16" y="104" fill="#64748B" font-size="11">特征：卷舌塞音</text>
+              <text x="16" y="124" fill="#64748B" font-size="11">例字：知、中、抽</text>
+              <text x="16" y="144" fill="#34D399" font-size="10">源自：上古端组*tr-</text>
+            </g>
+
+            <!-- 庄组 -->
+            <g transform="translate(168, 42)">
+              <rect width="158" height="165" rx="14" fill="url(#t2-cardGrad)" stroke="#D97706" stroke-width="1.5" filter="url(#t2-shadow)" />
+              <text x="16" y="28" fill="#FB923C" font-size="14" font-weight="bold">庄组 (照二)</text>
+              <text x="16" y="50" fill="#94A3B8" font-size="11" font-family="monospace">tʂ, tʂʰ, dʐ, ʂ</text>
+              <text x="16" y="74" fill="#CBD5E1" font-size="11">声母：庄初崇生</text>
+              <line x1="16" y1="84" x2="142" y2="84" stroke="#334155" stroke-width="1" />
+              <text x="16" y="104" fill="#64748B" font-size="11">特征：齿龈卷舌音</text>
+              <text x="16" y="124" fill="#64748B" font-size="11">例字：装、初、生</text>
+              <text x="16" y="144" fill="#FB923C" font-size="10">主配：中古二等韵</text>
+            </g>
+
+            <!-- 章组 -->
+            <g transform="translate(336, 42)">
+              <rect width="158" height="165" rx="14" fill="url(#t2-cardGrad)" stroke="#9333EA" stroke-width="1.5" filter="url(#t2-shadow)" />
+              <text x="16" y="28" fill="#C084FC" font-size="14" font-weight="bold">章组 (照三)</text>
+              <text x="16" y="50" fill="#94A3B8" font-size="11" font-family="monospace">tɕ, tɕʰ, ʑ, ɕ</text>
+              <text x="16" y="74" fill="#CBD5E1" font-size="11">声母：章昌常书禅</text>
+              <line x1="16" y1="84" x2="142" y2="84" stroke="#334155" stroke-width="1" />
+              <text x="16" y="104" fill="#64748B" font-size="11">特征：龈腭/硬腭音</text>
+              <text x="16" y="124" fill="#64748B" font-size="11">例字：周、春、水</text>
+              <text x="16" y="144" fill="#C084FC" font-size="10">主配：中古三等带-j-</text>
+            </g>
+
+            <!-- 日母 -->
+            <g transform="translate(506, 42)">
+              <rect width="158" height="165" rx="14" fill="url(#t2-cardGrad)" stroke="#E11D48" stroke-width="1.5" filter="url(#t2-shadow)" />
+              <text x="16" y="28" fill="#FB7185" font-size="14" font-weight="bold">日母 (半齿音)</text>
+              <text x="16" y="50" fill="#94A3B8" font-size="11" font-family="monospace">ȵ / ɲ</text>
+              <text x="16" y="74" fill="#CBD5E1" font-size="11">声母：日母独立</text>
+              <line x1="16" y1="84" x2="142" y2="84" stroke="#334155" stroke-width="1" />
+              <text x="16" y="104" fill="#64748B" font-size="11">特征：硬腭鼻音</text>
+              <text x="16" y="124" fill="#64748B" font-size="11">例字：日、人、热</text>
+              <text x="16" y="144" fill="#FB7185" font-size="10">脱落鼻塞转卷舌</text>
+            </g>
+          </g>
+
+          <!-- 阶段 3: 近古到近代音变动力 -->
+          <g transform="translate(48, 638)">
+            <rect width="664" height="120" rx="18" fill="#1A102F" stroke="#8B5CF6" stroke-width="1.5" filter="url(#t2-shadow)" />
+
+            <path d="M 80 -48 L 80 -15 C 80 10, 240 15, 240 32" fill="none" stroke="#34D399" stroke-width="2" />
+            <path d="M 248 -48 L 248 -10 C 248 10, 290 15, 290 32" fill="none" stroke="#FB923C" stroke-width="2" />
+            <path d="M 416 -48 L 416 -10 C 416 10, 374 15, 374 32" fill="none" stroke="#C084FC" stroke-width="2" />
+            <path d="M 584 -48 L 584 -15 C 584 10, 424 15, 424 32" fill="none" stroke="#FB7185" stroke-width="2" />
+
+            <text x="332" y="32" fill="#E9D5FF" font-size="12" font-weight="bold" text-anchor="middle" letter-spacing="1">近代官话融合枢纽 · 《中原音韵》至清代</text>
+            <text x="332" y="60" fill="#FFFFFF" font-size="17" font-weight="800" text-anchor="middle">塞擦化、去颚化 与 卷舌大合流</text>
+
+            <g transform="translate(24, 76)">
+              <rect x="0" y="0" width="190" height="26" rx="6" fill="#2E1065" />
+              <text x="95" y="17" fill="#DDD6FE" font-size="11" text-anchor="middle">知组塞音塞擦化: ʈ → tʂ</text>
+            </g>
+            <g transform="translate(226, 76)">
+              <rect x="0" y="0" width="210" height="26" rx="6" fill="#2E1065" />
+              <text x="105" y="17" fill="#DDD6FE" font-size="11" text-anchor="middle">章组去颚化后移: tɕ → tʂ</text>
+            </g>
+            <g transform="translate(448, 76)">
+              <rect x="0" y="0" width="190" height="26" rx="6" fill="#2E1065" />
+              <text x="95" y="17" fill="#DDD6FE" font-size="11" text-anchor="middle">日母脱落鼻音: ȵ → ʐ/ɻ</text>
+            </g>
+          </g>
+
+          <!-- 汇聚下行箭头 -->
+          <path d="M 380 760 L 380 812" fill="none" stroke="#EC4899" stroke-width="3" marker-end="url(#t2-arr-fusion)" />
+
+          <!-- 阶段 4: 现代结果 -->
+          <g transform="translate(48, 824)">
+            <circle cx="16" cy="16" r="14" fill="#1E293B" stroke="#475569" stroke-width="2" />
+            <text x="16" y="21" fill="#CBD5E1" font-size="12" font-family="monospace" text-anchor="middle">03</text>
+            <text x="40" y="22" fill="#E2E8F0" font-size="16" font-weight="800">现代普通话 (Modern Standard Chinese)</text>
+            <text x="360" y="22" fill="#64748B" font-size="12">卷舌塞擦音、擦音与通音体系</text>
+
+            <rect x="0" y="40" width="664" height="250" rx="18" fill="url(#t2-cardGrad)" stroke="#F59E0B" stroke-width="1.5" filter="url(#t2-shadow)" />
+
+            <!-- 四列布局: zh, ch, sh, r -->
+            <g transform="translate(24, 60)">
+              <rect width="144" height="206" rx="12" fill="#0F172A" stroke="#334155" stroke-width="1" />
+              <circle cx="30" cy="30" r="16" fill="url(#t2-retroHeroGrad)" />
+              <text x="30" y="37" fill="#FFFFFF" font-size="16" font-family="monospace" text-anchor="middle">zh</text>
+              <text x="56" y="30" fill="#F8FAFC" font-size="14" font-family="monospace">[tʂ]</text>
+              <text x="56" y="44" fill="#64748B" font-size="10">清不送气塞擦音</text>
+              <line x1="12" y1="56" x2="132" y2="56" stroke="#1E293B" stroke-width="1" />
+              <text x="12" y="78" fill="#34D399" font-size="11">知：知、中、猪</text>
+              <text x="12" y="98" fill="#FB923C" font-size="11">庄：装、抓、争</text>
+              <text x="12" y="118" fill="#C084FC" font-size="11">章：周、真、专</text>
+              <text x="12" y="138" fill="#94A3B8" font-size="11">澄仄：重、直、赵</text>
+              <text x="12" y="158" fill="#64748B" font-size="10">崇仄：助、栈</text>
+            </g>
+
+            <g transform="translate(182, 60)">
+              <rect width="144" height="206" rx="12" fill="#0F172A" stroke="#334155" stroke-width="1" />
+              <circle cx="30" cy="30" r="16" fill="url(#t2-retroHeroGrad)" />
+              <text x="30" y="37" fill="#FFFFFF" font-size="16" font-family="monospace" text-anchor="middle">ch</text>
+              <text x="56" y="30" fill="#F8FAFC" font-size="14" font-family="monospace">[tʂʰ]</text>
+              <text x="56" y="44" fill="#64748B" font-size="10">清送气塞擦音</text>
+              <line x1="12" y1="56" x2="132" y2="56" stroke="#1E293B" stroke-width="1" />
+              <text x="12" y="78" fill="#34D399" font-size="11">彻：抽、丑、超</text>
+              <text x="12" y="98" fill="#FB923C" font-size="11">初：初、楚、差</text>
+              <text x="12" y="118" fill="#C084FC" font-size="11">昌：春、唱、齿</text>
+              <text x="12" y="138" fill="#94A3B8" font-size="11">澄平：池、长、除</text>
+              <text x="12" y="158" fill="#64748B" font-size="10">常母：成、柴、船</text>
+            </g>
+
+            <g transform="translate(340, 60)">
+              <rect width="144" height="206" rx="12" fill="#0F172A" stroke="#334155" stroke-width="1" />
+              <circle cx="30" cy="30" r="16" fill="url(#t2-retroHeroGrad)" />
+              <text x="30" y="37" fill="#FFFFFF" font-size="16" font-family="monospace" text-anchor="middle">sh</text>
+              <text x="56" y="30" fill="#F8FAFC" font-size="14" font-family="monospace">[ʂ]</text>
+              <text x="56" y="44" fill="#64748B" font-size="10">清卷舌擦音</text>
+              <line x1="12" y1="56" x2="132" y2="56" stroke="#1E293B" stroke-width="1" />
+              <text x="12" y="78" fill="#FB923C" font-size="11">生：生、师、沙</text>
+              <text x="12" y="98" fill="#C084FC" font-size="11">书：书、水、诗</text>
+              <text x="12" y="118" fill="#94A3B8" font-size="11">禅：石、食、受</text>
+              <text x="12" y="138" fill="#64748B" font-size="11">古复辅音 *s-t- 流</text>
+              <text x="12" y="158" fill="#64748B" font-size="10">例：寺→待/侍/特</text>
+            </g>
+
+            <g transform="translate(498, 60)">
+              <rect width="144" height="206" rx="12" fill="#0F172A" stroke="#334155" stroke-width="1" />
+              <circle cx="30" cy="30" r="16" fill="url(#t2-retroHeroGrad)" />
+              <text x="30" y="37" fill="#FFFFFF" font-size="16" font-family="monospace" text-anchor="middle">r</text>
+              <text x="56" y="30" fill="#F8FAFC" font-size="14" font-family="monospace">[ɻ / ʐ]</text>
+              <text x="56" y="44" fill="#64748B" font-size="10">浊卷舌通音/擦音</text>
+              <line x1="12" y1="56" x2="132" y2="56" stroke="#1E293B" stroke-width="1" />
+              <text x="12" y="78" fill="#FB7185" font-size="11">日：日、热、肉</text>
+              <text x="12" y="98" fill="#FB7185" font-size="11">日：人、染、柔</text>
+              <text x="12" y="118" fill="#64748B" font-size="11">原硬腭鼻音 ȵ-</text>
+              <text x="12" y="138" fill="#64748B" font-size="10">鼻音声值剥落</text>
+              <text x="12" y="158" fill="#64748B" font-size="10">舌尖上翘成通音</text>
+            </g>
+          </g>
+
+          <!-- 底部说明 -->
+          <g transform="translate(48, 1160)">
+            <rect width="664" height="52" rx="12" fill="#0B132B" stroke="#1E293B" stroke-width="1" />
+            <circle cx="36" cy="26" r="5" fill="#34D399" />
+            <text x="48" y="30" fill="#94A3B8" font-size="11">知组 (舌上塞音)</text>
+            <circle cx="166" cy="26" r="5" fill="#FB923C" />
+            <text x="178" y="30" fill="#94A3B8" font-size="11">庄组 (照二齿龈)</text>
+            <circle cx="296" cy="26" r="5" fill="#C084FC" />
+            <text x="308" y="30" fill="#94A3B8" font-size="11">章组 (照三硬腭)</text>
+            <circle cx="426" cy="26" r="5" fill="#FB7185" />
+            <text x="438" y="30" fill="#94A3B8" font-size="11">日母 (硬腭鼻音)</text>
+            <circle cx="556" cy="26" r="5" fill="#F59E0B" />
+            <text x="568" y="30" fill="#94A3B8" font-size="11">现代卷舌合流</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-panel">
+        <div class="card">
+          <h3>上古向中古的分裂动力</h3>
+          <p><span class="tag-rule">*r 介音假说：端组舌音在介音 *r 诱导下卷舌化转入知组</span></p>
+          <p><span class="tag-rule">*j 介音假说：端组舌音在介音 *j 诱导下硬腭化转入章组</span></p>
+          <p>清代学者钱大昕“古无舌上音”和黄侃“照二归精，照三归端”奠定了这一理论基础。在上古先秦，并没有知组（ʈ-）与章组（tɕ-），现代读翘舌音的字当时往往直接读舌尖塞音 <strong>d / t</strong>。</p>
+        </div>
+        <div class="card">
+          <h3>文字谐声与异读铁证</h3>
+          <ul class="fact-list">
+            <li><strong>“竹” (zhú) 与 “笃” (dǔ)</strong>：竹字从笃省声，上古同声符。</li>
+            <li><strong>“追” (zhuī) 与 “官” (guān) / “堆” (duī)</strong>：追从阜声，本读同堆。</li>
+            <li><strong>“重” (zhòng / chóng) 与 “童” (tóng) / “动” (dòng)</strong>：童从重省声，同源分化。</li>
+            <li><strong>闽南语存古</strong>：“猪”读 <code>di</code>，“茶”读 <code>de</code>，“直”读 <code>dit</code>。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB 3: 全浊清化 (平送仄不送 - 大幅扩充版) ================= -->
+  <div class="tab-pane" id="pane-3">
+    <div class="grid-2col">
+      <div class="svg-wrapper">
+        <svg viewBox="0 0 760 1050" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="t3-bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#0F172A"/><stop offset="100%" stop-color="#020617"/>
+            </linearGradient>
+            <linearGradient id="t3-card" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1E293B"/><stop offset="100%" stop-color="#0F172A"/>
+            </linearGradient>
+            <marker id="t3-arr-pink" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,1 L7,4 L0,7 Z" fill="#F43F5E"/>
+            </marker>
+            <marker id="t3-arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,1 L7,4 L0,7 Z" fill="#38BDF8"/>
+            </marker>
+            <filter id="t3-sh" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.5"/>
+            </filter>
+          </defs>
+
+          <rect width="760" height="1050" rx="24" fill="url(#t3-bg)"/>
+
+          <!-- 标题 -->
+          <g transform="translate(48, 45)">
+            <rect x="0" y="0" width="138" height="24" rx="12" fill="#334155"/>
+            <text x="69" y="16" fill="#94A3B8" font-size="11" font-weight="bold" text-anchor="middle" letter-spacing="1">DEVOICING LAW</text>
+            <text x="0" y="52" fill="#F8FAFC" font-size="24" font-weight="800">全浊清化：中古声母“平送仄不送”律</text>
+            <text x="0" y="74" fill="#64748B" font-size="13">中古六大全浊塞音/塞擦音在北方官话中的清化与声调对立分流</text>
+          </g>
+
+          <!-- 阶段 1: 中古全浊声母原态 -->
+          <g transform="translate(48, 145)">
+            <rect width="664" height="135" rx="16" fill="url(#t3-card)" stroke="#475569" stroke-width="1.5" filter="url(#t3-sh)"/>
+            <text x="24" y="32" fill="#CBD5E1" font-size="14" font-weight="bold">中古汉语六大全浊阻碍音声母（带声带震动的真正浊音）</text>
+
+            <g transform="translate(24, 48)">
+              <rect x="0" y="0" width="96" height="66" rx="8" fill="#0F172A" stroke="#334155"/>
+              <text x="48" y="28" fill="#F8FAFC" font-size="16" font-family="monospace" font-weight="bold" text-anchor="middle">并母 [b]</text>
+              <text x="48" y="50" fill="#94A3B8" font-size="11" text-anchor="middle">平、病、步</text>
+
+              <rect x="106" y="0" width="96" height="66" rx="8" fill="#0F172A" stroke="#334155"/>
+              <text x="154" y="28" fill="#F8FAFC" font-size="16" font-family="monospace" font-weight="bold" text-anchor="middle">定母 [d]</text>
+              <text x="154" y="50" fill="#94A3B8" font-size="11" text-anchor="middle">堂、道、同</text>
+
+              <rect x="212" y="0" width="96" height="66" rx="8" fill="#0F172A" stroke="#334155"/>
+              <text x="260" y="28" fill="#F8FAFC" font-size="16" font-family="monospace" font-weight="bold" text-anchor="middle">群母 [ɡ]</text>
+              <text x="260" y="50" fill="#94A3B8" font-size="11" text-anchor="middle">桥、共、巨</text>
+
+              <rect x="318" y="0" width="96" height="66" rx="8" fill="#0F172A" stroke="#334155"/>
+              <text x="366" y="28" fill="#F8FAFC" font-size="16" font-family="monospace" font-weight="bold" text-anchor="middle">从母 [dz]</text>
+              <text x="366" y="50" fill="#94A3B8" font-size="11" text-anchor="middle">存、坐、在</text>
+
+              <rect x="424" y="0" width="96" height="66" rx="8" fill="#0F172A" stroke="#334155"/>
+              <text x="472" y="28" fill="#F8FAFC" font-size="16" font-family="monospace" font-weight="bold" text-anchor="middle">澄母 [ɖ]</text>
+              <text x="472" y="50" fill="#94A3B8" font-size="11" text-anchor="middle">池、直、重</text>
+
+              <rect x="530" y="0" width="86" height="66" rx="8" fill="#0F172A" stroke="#334155"/>
+              <text x="573" y="28" fill="#F8FAFC" font-size="16" font-family="monospace" font-weight="bold" text-anchor="middle">崇母 [dʐ]</text>
+              <text x="573" y="50" fill="#94A3B8" font-size="11" text-anchor="middle">查、助、崇</text>
+            </g>
+          </g>
+
+          <!-- 分化管道 -->
+          <g fill="none">
+            <path d="M 210 280 L 210 350" stroke="#F43F5E" stroke-width="3" marker-end="url(#t3-arr-pink)"/>
+            <path d="M 550 280 L 550 350" stroke="#38BDF8" stroke-width="3" marker-end="url(#t3-arr-blue)"/>
+          </g>
+
+          <!-- 阶段 2: 左右分立的两大规则卡片 -->
+          <g transform="translate(48, 360)">
+            <!-- 左侧：平声送气 -->
+            <rect width="320" height="390" rx="18" fill="url(#t3-card)" stroke="#F43F5E" stroke-width="2" filter="url(#t3-sh)"/>
+            <rect x="20" y="20" width="130" height="26" rx="8" fill="#881337"/>
+            <text x="85" y="37" fill="#FECDD3" font-size="12" font-weight="bold" text-anchor="middle">平声条件：送气清化</text>
+            <text x="20" y="72" fill="#F43F5E" font-size="20" font-weight="800">全浊平声 → 送气清音</text>
+            <text x="20" y="96" fill="#94A3B8" font-size="12">全部派入普通话阳平调（第二声 ˊ ）</text>
+            <line x1="20" y1="110" x2="300" y2="110" stroke="#334155"/>
+
+            <g transform="translate(20, 126)">
+              <text x="0" y="20" fill="#F8FAFC" font-size="14">并母 [b] → <strong style="fill:#F43F5E;">p</strong>：平、爬、朋、庞</text>
+              <text x="0" y="56" fill="#F8FAFC" font-size="14">定母 [d] → <strong style="fill:#F43F5E;">t</strong>：头、堂、徒、同</text>
+              <text x="0" y="92" fill="#F8FAFC" font-size="14">群母 [ɡ] → <strong style="fill:#F43F5E;">q / k</strong>：桥、葵、穷、狂</text>
+              <text x="0" y="128" fill="#F8FAFC" font-size="14">从母 [dz] → <strong style="fill:#F43F5E;">c / q</strong>：残、才、存、情</text>
+              <text x="0" y="164" fill="#F8FAFC" font-size="14">澄母 [ɖ] → <strong style="fill:#F43F5E;">ch</strong>：池、长、晨、虫</text>
+              <text x="0" y="200" fill="#F8FAFC" font-size="14">崇母 [dʐ] → <strong style="fill:#F43F5E;">ch</strong>：柴、查、成</text>
+              <text x="0" y="234" fill="#64748B" font-size="12">气流喷涌特征在清化时被强制放大留存</text>
+            </g>
+
+            <!-- 右侧：仄声不送气 -->
+            <g transform="translate(344, 0)">
+              <rect width="320" height="390" rx="18" fill="url(#t3-card)" stroke="#38BDF8" stroke-width="2" filter="url(#t3-sh)"/>
+              <rect x="20" y="20" width="140" height="26" rx="8" fill="#0C4A6E"/>
+              <text x="90" y="37" fill="#BAE6FD" font-size="12" font-weight="bold" text-anchor="middle">仄声条件：不送气清化</text>
+              <text x="20" y="72" fill="#38BDF8" font-size="20" font-weight="800">全浊仄声 → 不送气清音</text>
+              <text x="20" y="96" fill="#94A3B8" font-size="12">归入去声（第四声 ˋ）及入声派入</text>
+              <line x1="20" y1="110" x2="300" y2="110" stroke="#334155"/>
+
+              <g transform="translate(20, 126)">
+                <text x="0" y="20" fill="#F8FAFC" font-size="14">并母 [b] → <strong style="fill:#38BDF8;">b</strong>：病、步、白、被、倍</text>
+                <text x="0" y="56" fill="#F8FAFC" font-size="14">定母 [d] → <strong style="fill:#38BDF8;">d</strong>：道、地、代、读、洞</text>
+                <text x="0" y="92" fill="#F8FAFC" font-size="14">群母 [ɡ] → <strong style="fill:#38BDF8;">j / g</strong>：巨、共、倦、跪</text>
+                <text x="0" y="128" fill="#F8FAFC" font-size="14">从母 [dz] → <strong style="fill:#38BDF8;">z / j</strong>：坐、在、罪、捷</text>
+                <text x="0" y="164" fill="#F8FAFC" font-size="14">澄母 [ɖ] → <strong style="fill:#38BDF8;">zh</strong>：重、直、赵、住</text>
+                <text x="0" y="200" fill="#F8FAFC" font-size="14">崇母 [dʐ] → <strong style="fill:#38BDF8;">zh</strong>：助、栈、骤</text>
+                <text x="0" y="234" fill="#64748B" font-size="12">紧喉特征使气流受阻，转为不送气</text>
+              </g>
+            </g>
+          </g>
+
+          <!-- 阶段 3: 底部声调补偿机制图示 -->
+          <g transform="translate(48, 775)">
+            <rect width="664" height="230" rx="18" fill="#0F172A" stroke="#6366F1" stroke-width="1.5" filter="url(#t3-sh)"/>
+            <text x="24" y="32" fill="#A5B4FC" font-size="15" font-weight="800">声调补偿律：音高对立取代原本的清浊对立（声调分化）</text>
+
+            <g transform="translate(24, 48)">
+              <rect width="295" height="150" rx="10" fill="#1E293B" stroke="#334155"/>
+              <text x="20" y="30" fill="#38BDF8" font-size="13" font-weight="bold">古清音 (全清 / 次清)</text>
+              <text x="20" y="55" fill="#CBD5E1" font-size="12">• 声带松弛高音起调</text>
+              <text x="20" y="80" fill="#CBD5E1" font-size="12">• 清平声 → <strong style="fill:#38BDF8;">阴平</strong> (第一声 55，如 鸡、天、风)</text>
+              <text x="20" y="105" fill="#CBD5E1" font-size="12">• 清上声 → 保持上声 (第三声 214)</text>
+              <text x="20" y="130" fill="#94A3B8" font-size="11">音变：清者声高，调随声走</text>
+
+              <g transform="translate(320, 0)">
+                <rect width="295" height="150" rx="10" fill="#1E293B" stroke="#334155"/>
+                <text x="20" y="30" fill="#F43F5E" font-size="13" font-weight="bold">古浊音 (全浊 / 次浊)</text>
+                <text x="20" y="55" fill="#CBD5E1" font-size="12">• 声带颤动抑制基频</text>
+                <text x="20" y="80" fill="#CBD5E1" font-size="12">• 浊平声 → <strong style="fill:#F43F5E;">阳平</strong> (第二声 35，如 爬、同、房)</text>
+                <text x="20" y="105" fill="#CBD5E1" font-size="12">• 浊上声 → <strong>浊上归去</strong> (归入第四声)</text>
+                <text x="20" y="130" fill="#FBBF24" font-size="11">吴语（苏沪）仍保留 [b], [d], [ɡ] 真正浊音</text>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-panel">
+        <div class="card">
+          <h3>北方官话第一铁律</h3>
+          <p><span class="tag-rule">平送仄不送：全浊平声送气，全浊仄声不送气</span></p>
+          <p>这一规律在北方话演化中精确度极高，它完美解释了为何同声符派生的形声字，其送气状态往往由声调决定：</p>
+          <ul class="fact-list">
+            <li><strong>“同” (阳平) 读 tóng</strong>，而从同得声的<strong>“洞” (去声) 读 dòng</strong>。</li>
+            <li><strong>“重” (阳平) 读 chóng (长重)</strong>，多音字去声读 <strong>zhòng (轻重)</strong>。</li>
+            <li><strong>“长” (阳平) 读 cháng</strong>，而多音字上/去声读 <strong>zhǎng (生长)</strong>。</li>
+            <li><strong>“白” (古入声/归阳平) 读 bái</strong>，因入声属于仄声，故不送气。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>活化石：保留浊音声母的吴语</h3>
+          <p>江浙吴语（如苏州话、无锡话、上海老派方言）至今完整保留了全浊声母系统，发音时声带先发生震动，然后才释放气流，与现代普通话的清不送气 <code>b, d, g</code> 有着本质区别。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB 4: 轻唇化诞生 (f) ================= -->
+  <div class="tab-pane" id="pane-4">
+    <div class="grid-2col">
+      <div class="svg-wrapper">
+        <svg viewBox="0 0 680 720" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="t4-arr-f" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#FB7185"/></marker>
+            <marker id="t4-arr-p" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#38BDF8"/></marker>
+          </defs>
+          <rect width="680" height="720" rx="20" fill="#0B132B"/>
+          <text x="40" y="50" fill="#E2E8F0" font-size="18" font-weight="bold">“古无轻唇音”：唇齿擦音 f 的诞生</text>
+
+          <rect x="40" y="80" width="600" height="100" rx="14" fill="#1E293B" stroke="#475569"/>
+          <text x="60" y="112" fill="#F8FAFC" font-size="15" font-weight="bold">原始帮组 (全为双唇音 / 重唇音)</text>
+          <text x="60" y="138" fill="#94A3B8" font-size="13">帮母 [p] · 滂母 [pʰ] · 并母 [b] · 明母 [m]</text>
+          <text x="60" y="160" fill="#64748B" font-size="12">上古全无 f 声母。字例：分、方、风、飞 当时全读如 [p/b]</text>
+
+          <path d="M 200 180 L 150 250" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#t4-arr-p)"/>
+          <path d="M 480 180 L 530 250" fill="none" stroke="#FB7185" stroke-width="2" marker-end="url(#t4-arr-f)"/>
+
+          <rect x="40" y="260" width="280" height="150" rx="12" fill="#1E293B" stroke="#38BDF8"/>
+          <text x="60" y="292" fill="#38BDF8" font-size="14" font-weight="bold">保持重唇条件</text>
+          <text x="60" y="320" fill="#E2E8F0" font-size="12">中古一、二、四等韵及开口三等</text>
+          <text x="60" y="348" fill="#94A3B8" font-size="11">未发生唇齿接触，保持纯粹双唇塞音</text>
+          <text x="60" y="380" fill="#CBD5E1" font-size="12">例字：波、摆、潘、奔、马</text>
+
+          <rect x="360" y="260" width="280" height="150" rx="12" fill="#1E293B" stroke="#FB7185"/>
+          <text x="380" y="292" fill="#FB7185" font-size="14" font-weight="bold">发生轻唇化条件</text>
+          <text x="380" y="320" fill="#FFE4E6" font-size="12">中古三等合口字（带 -j- 与 -u- 介音）</text>
+          <text x="380" y="348" fill="#94A3B8" font-size="11">高元音促使下唇贴近上齿，形成窄缝擦化</text>
+          <text x="380" y="380" fill="#CBD5E1" font-size="12">例字：风、飞、方、分、服</text>
+
+          <g transform="translate(40, 460)">
+            <rect width="280" height="200" rx="14" fill="#0F172A" stroke="#38BDF8"/>
+            <text x="20" y="36" fill="#38BDF8" font-size="16" font-weight="bold">现代北方普通话：b, p, m</text>
+            <text x="20" y="70" fill="#CBD5E1" font-size="12">帮母 → b：包、布、笔</text>
+            <text x="20" y="100" fill="#CBD5E1" font-size="12">滂母 → p：偏、破、普</text>
+            <text x="20" y="130" fill="#CBD5E1" font-size="12">并母平声 → p：皮、棚、庞</text>
+            <text x="20" y="160" fill="#CBD5E1" font-size="12">并母仄声 → b：病、倍、步</text>
+          </g>
+
+          <g transform="translate(360, 460)">
+            <rect width="280" height="200" rx="14" fill="#0F172A" stroke="#FB7185"/>
+            <text x="20" y="36" fill="#FB7185" font-size="16" font-weight="bold">现代北方普通话：f, w</text>
+            <text x="20" y="70" fill="#FFE4E6" font-size="12">非母 (p-) → f：飞、风、方</text>
+            <text x="20" y="100" fill="#FFE4E6" font-size="12">敷母 (pʰ-) → f：芳、肺、丰</text>
+            <text x="20" y="130" fill="#FFE4E6" font-size="12">奉母 (b-) → f：房、服、佛</text>
+            <text x="20" y="160" fill="#94A3B8" font-size="12">微母 (m-) → w/零声母：问、万、文</text>
+          </g>
+        </svg>
+      </div>
+      <div class="info-panel">
+        <div class="card">
+          <h3>钱大昕“古无轻唇音”</h3>
+          <p><span class="tag-rule">凡轻唇之音，古读皆为重唇</span></p>
+          <p>先秦西汉文献中绝无 <code>f</code> 读音。汉代以“伏羲”为“庖牺”，“佛陀”在东汉译音时用“佛”对译梵文 <code>Buddha</code> 的 <code>b-</code>，皆因当时“佛”读若 <code>b-</code> 或 <code>p-</code>。</p>
+        </div>
+        <div class="card">
+          <h3>形声字偏旁内部石化痕迹</h3>
+          <ul class="fact-list">
+            <li><strong>朋 (重唇 péng) 与 凤 (轻唇 fèng)</strong>：古同声旁。</li>
+            <li><strong>盆 (重唇 pén) 与 分 (轻唇 fēn)</strong>：从分得声。</li>
+            <li><strong>番 (轻唇 fān) 与 潘 (重唇 pān) / 播 (重唇 bō)</strong>：古音完全相通。</li>
+            <li><strong>方言存古</strong>：闽南语至今读“分”如 <code>pun</code>，“飞”如 <code>bue</code>，“饭”如 <code>png</code>。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB 5: 喉鼻弱化与消解 ================= -->
+  <div class="tab-pane" id="pane-5">
+    <div class="grid-2col">
+      <div class="svg-wrapper">
+        <svg viewBox="0 0 680 720" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <rect width="680" height="720" rx="20" fill="#0B132B"/>
+          <text x="40" y="50" fill="#E2E8F0" font-size="18" font-weight="bold">喉音与鼻音声母的弱化及重构</text>
+
+          <g transform="translate(40, 80)">
+            <rect width="600" height="150" rx="14" fill="#1E293B" stroke="#059669"/>
+            <text x="24" y="34" fill="#34D399" font-size="15" font-weight="bold">1. 疑母 [ŋ]：舌根鼻音声母的消解</text>
+            <text x="24" y="64" fill="#CBD5E1" font-size="12">中古原为软腭鼻音（类似 modern 'ng' 放于词首，如粤语“我” ngo5）。</text>
+            <text x="24" y="92" fill="#94A3B8" font-size="12">流向洪音 → 鼻塞脱落，直接成为开音节零声母（岸、爱、安、袄）。</text>
+            <text x="24" y="120" fill="#94A3B8" font-size="12">流向细音 → 先混入半元音 [j]，进而并入 y / 零声母（疑、言、迎）。</text>
+          </g>
+
+          <g transform="translate(40, 255)">
+            <rect width="600" height="140" rx="14" fill="#1E293B" stroke="#6366F1"/>
+            <text x="24" y="34" fill="#818CF8" font-size="15" font-weight="bold">2. 影母 [ʔ]：喉塞音的脱落与平滑化</text>
+            <text x="24" y="64" fill="#CBD5E1" font-size="12">中古为清喉塞音（声门瞬间闭合顿音）。</text>
+            <text x="24" y="92" fill="#94A3B8" font-size="12">在北方近古演进中，喉头紧缩力量完全丧失，转为平滑的纯零声母。</text>
+            <text x="24" y="118" fill="#CBD5E1" font-size="11">字例：鸭、恩、温、音、郁</text>
+          </g>
+
+          <g transform="translate(40, 420)">
+            <rect width="600" height="230" rx="14" fill="#1E293B" stroke="#F59E0B"/>
+            <text x="24" y="34" fill="#FBBF24" font-size="15" font-weight="bold">3. 晓母 [x] 与 匣母 [ɣ/ɦ]：洪音并入 h，细音转入 x</text>
+            <text x="24" y="64" fill="#CBD5E1" font-size="12">晓母为清软腭擦音，匣母为浊音。随着浊音清化，二者混同：</text>
+
+            <rect x="24" y="80" width="260" height="120" rx="10" fill="#0F172A" stroke="#334155"/>
+            <text x="40" y="108" fill="#38BDF8" font-size="13" font-weight="bold">洪音前 → 并入 h [x]</text>
+            <text x="40" y="136" fill="#94A3B8" font-size="12">晓母：花、海、火</text>
+            <text x="40" y="166" fill="#94A3B8" font-size="12">匣母：河、黄、红、厚</text>
+
+            <rect x="310" y="80" width="260" height="120" rx="10" fill="#0F172A" stroke="#334155"/>
+            <text x="326" y="108" fill="#FB7185" font-size="13" font-weight="bold">细音前 → 颚化并入 x [ɕ]</text>
+            <text x="326" y="136" fill="#94A3B8" font-size="12">晓母：香、虚、休</text>
+            <text x="326" y="166" fill="#94A3B8" font-size="12">匣母：下、峡、学</text>
+          </g>
+        </svg>
+      </div>
+      <div class="info-panel">
+        <div class="card">
+          <h3>零声母的多重前身</h3>
+          <p>现代汉语普通话的“零声母”（即以元音开头拼写为 a, o, e 或以 y, w 开头的字），在古代几乎都有实在辅音压阵：</p>
+          <ul class="fact-list">
+            <li><strong>疑母</strong>：软腭鼻音 <code>ŋ-</code>（我、咬、牛、瓦）</li>
+            <li><strong>影母</strong>：喉塞音 <code>ʔ-</code>（安、矮、欧）</li>
+            <li><strong>微母</strong>：双唇浊通音 <code>ṽ-</code>（万、问、微）</li>
+            <li><strong>日母部分字</strong>：硬腭鼻音 <code>ȵ-</code>（儿、耳）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function switchTab(index) {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const panes = document.querySelectorAll('.tab-pane');
+
+    tabs.forEach((tab, i) => {
+      if (i === index) {
+        tab.classList.add('active');
+        panes[i].classList.add('active');
+      } else {
+        tab.classList.remove('active');
+        panes[i].classList.remove('active');
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

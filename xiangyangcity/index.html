@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>南宋襄樊 · 汉江古战图 (1267–1273)</title>
+<meta name="description" content="南宋末年襄阳古城与浩荡汉江三维历史地图。青碧汉江水效、波光粼粼、群山环抱、襄樊双城对峙与宋蒙战役漫游。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --parchment-bg: #e2d6c3;
+  --parchment-dark: #cbb9a0;
+  --ink-black: #24201c;
+  --ink-grey: #564d44;
+  --ink-light: #887a6d;
+  --vermilion: #993328;
+  --ochre: #b58d53;
+  --border-ink: rgba(65, 52, 40, 0.25);
+  --shadow-ink: rgba(38, 32, 28, 0.18);
+  --font-serif: "Noto Serif SC", "Songti SC", "SimSun", "STSong", serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--parchment-bg);
+  color: var(--ink-black);
+  font-family: var(--font-serif);
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+#map-canvas {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  background: #c5b69f;
+}
+
+.vintage-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, rgba(226, 214, 195, 0) 48%, rgba(135, 110, 80, 0.22) 90%, rgba(55, 42, 28, 0.42) 100%);
+  mix-blend-mode: multiply;
+}
+
+/* Header */
+header {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 18px;
+  border: 1px solid var(--border-ink);
+  border-radius: 8px;
+  background: rgba(238, 230, 218, 0.94);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 18px var(--shadow-ink);
+}
+
+.seal-icon {
+  width: 38px;
+  height: 38px;
+  background: var(--vermilion);
+  color: #fff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 19px;
+  letter-spacing: -1px;
+  box-shadow: 0 2px 6px rgba(153, 51, 40, 0.38);
+  border: 1px solid #7d241c;
+}
+
+.brand-text h1 {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  color: var(--ink-black);
+  line-height: 1.2;
+}
+
+.brand-text small {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--ink-grey);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.era-badge {
+  font-size: 11px;
+  background: rgba(181, 141, 83, 0.18);
+  color: #795524;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(181, 141, 83, 0.4);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+
+
+/* Tactical Controls */
+.war-controls {
+  position: fixed;
+  top: 22px;
+  left: 350px;
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(238, 230, 218, 0.94);
+  border: 1px solid var(--border-ink);
+  font-size: 12px;
+}
+
+.war-controls button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-grey);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.war-controls button[aria-pressed="true"] {
+  background: rgba(153, 51, 40, 0.12);
+  border-color: rgba(153, 51, 40, 0.35);
+  color: var(--vermilion);
+}
+
+.indicator-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Sidebar POI list */
+aside#places-sidebar {
+  position: fixed;
+  top: 80px;
+  left: 18px;
+  bottom: 24px;
+  width: 320px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-ink);
+  border-radius: 8px;
+  background: rgba(240, 232, 221, 0.95);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 30px var(--shadow-ink);
+  overflow: hidden;
+}
+
+.sidebar-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(220, 206, 189, 0.45);
+}
+
+.sidebar-header h2 {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--ink-black);
+}
+
+.sidebar-header span {
+  font-size: 11px;
+  color: var(--ink-light);
+}
+
+.places-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.place-item {
+  border: 1px solid rgba(140, 120, 95, 0.22);
+  border-radius: 6px;
+  padding: 9px 12px;
+  background: rgba(247, 241, 232, 0.72);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.place-item:hover {
+  background: rgba(255, 252, 246, 0.96);
+  border-color: var(--ochre);
+  transform: translateX(3px);
+}
+
+.place-item.active {
+  background: #fdfaf4;
+  border-color: var(--vermilion);
+  box-shadow: 0 2px 8px rgba(153, 51, 40, 0.16);
+}
+
+.place-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.place-name {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--ink-black);
+}
+
+.place-tag {
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: rgba(181, 141, 83, 0.16);
+  color: #795524;
+  font-weight: 600;
+}
+
+.place-snippet {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-grey);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Detail Card Modal */
+#detail-card {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 360px;
+  max-height: calc(100vh - 120px);
+  z-index: 12;
+  border-radius: 8px;
+  border: 1px solid var(--border-ink);
+  background: rgba(247, 240, 231, 0.96);
+  box-shadow: 0 12px 40px rgba(45, 36, 28, 0.26);
+  backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.card-head {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border-ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: rgba(226, 214, 198, 0.55);
+}
+
+.card-title-group h2 {
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--ink-black);
+}
+
+.card-title-group small {
+  font-size: 11px;
+  color: var(--ink-light);
+  letter-spacing: 0.5px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.close-btn:hover { color: var(--ink-black); background: rgba(0,0,0,0.06); }
+
+.card-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #382e25;
+}
+
+.card-field {
+  margin-bottom: 12px;
+}
+
+.card-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  font-weight: 900;
+  color: var(--ochre);
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.quote-box {
+  margin: 12px 0 6px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--vermilion);
+  background: rgba(153, 51, 40, 0.06);
+  font-style: italic;
+  color: #48332c;
+  font-size: 12px;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Floating HUD Controls */
+.hud-tools {
+  position: fixed;
+  right: 24px;
+  top: 18px;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+}
+
+.hud-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border-ink);
+  background: rgba(238, 230, 218, 0.94);
+  color: var(--ink-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 12px var(--shadow-ink);
+  transition: all 0.15s;
+}
+
+.hud-btn:hover {
+  background: #fdfaf4;
+  transform: translateY(-2px);
+}
+
+.hud-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vintage-seal {
+  position: fixed;
+  right: 28px;
+  bottom: 24px;
+  pointer-events: none;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(153, 51, 40, 0.7);
+  writing-mode: vertical-rl;
+  border: 2px solid rgba(153, 51, 40, 0.6);
+  padding: 8px 4px;
+  letter-spacing: 5px;
+  border-radius: 4px;
+  background: rgba(245, 235, 220, 0.25);
+}
+
+@media (max-width: 860px) {
+  
+  .war-controls { left: 18px; top: 76px; }
+  aside#places-sidebar {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    height: 280px;
+    border-radius: 14px 14px 0 0;
+  }
+  #detail-card {
+    right: 12px;
+    left: 12px;
+    width: auto;
+    bottom: 290px;
+  }
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+<canvas id="map-canvas"></canvas>
+<div class="vintage-overlay"></div>
+
+<!-- Brand Header -->
+<header>
+  <div class="seal-icon">宋</div>
+  <div class="brand-text">
+    <h1>南宋襄樊 · 汉江古战图</h1>
+    <small>BATTLE OF XIANGYANG & HAN RIVER · 1267–1273</small>
+  </div>
+  <div class="era-badge">咸淳抗蒙烽火</div>
+</header>
+
+
+
+<!-- Tactical Layer Toggles -->
+<div class="war-controls" role="group" aria-label="战局图层">
+  <button id="toggle-walls" aria-pressed="true"><span class="indicator-dot"></span>城池堡垒</button>
+  <button id="toggle-fleet" aria-pressed="true"><span class="indicator-dot"></span>江防战船</button>
+  <button id="toggle-trebuchet" aria-pressed="true"><span class="indicator-dot"></span>攻城炮阵</button>
+</div>
+
+<!-- Floating Tool Buttons -->
+<div class="hud-tools">
+  <button id="btn-reset" class="hud-btn" title="重置全景视角">
+    <svg viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 1 7M3 4v6h6"/></svg>
+  </button>
+  <button id="btn-rotate" class="hud-btn" title="自动旋转漫游">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9h-3"/></svg>
+  </button>
+</div>
+
+<!-- Places Sidebar -->
+<aside id="places-sidebar">
+  <div class="sidebar-header">
+    <h2>城防与战阵要录</h2>
+    <span>点击飞越巡视</span>
+  </div>
+  <div class="places-list" id="places-container"></div>
+</aside>
+
+<!-- Detail Card -->
+<div id="detail-card" style="display:none;">
+  <div class="card-head">
+    <div class="card-title-group">
+      <h2 id="card-name">地标名称</h2>
+      <small id="card-en">ENGLISH TITLE</small>
+    </div>
+    <button class="close-btn" id="card-close">&times;</button>
+  </div>
+  <div class="card-body">
+    <div class="card-field">
+      <div class="card-label">历史战事与防御体系</div>
+      <div id="card-summary"></div>
+    </div>
+    <div class="card-field">
+      <div class="card-label">建置与地理形胜</div>
+      <div id="card-features"></div>
+    </div>
+    <div class="card-field">
+      <div class="card-label">存续沿革</div>
+      <div id="card-period"></div>
+    </div>
+    <div class="quote-box" id="card-quote"></div>
+  </div>
+</div>
+
+<div class="vintage-seal">襄陽制置司印</div>
+
+<script>
+// Raw Vector Geo Data from OpenStreetMap
+const GEO_DATA = {"walls":[[[-9.94,-124.54],[-9.87,-124.39],[-9.69,-123.87],[-13.71,-122.53],[-18.22,-122.4],[-19.42,-122.53],[-20.64,-123.1],[-22.27,-123.83],[-24.19,-124.1],[-26.2,-123.77],[-30.67,-121.8],[-33.84,-120.04],[-33.74,-119.68],[-35.62,-118.93],[-35.77,-119.61],[-37.17,-119.1],[-42.88,-118.12],[-47.39,-117.04],[-47.27,-116.45],[-49.76,-115.89],[-49.88,-116.55],[-52.44,-115.99],[-54.39,-115.64],[-54.28,-115.35],[-58.42,-113.58],[-59.51,-112.9],[-59.05,-112.18],[-58.78,-112.11],[-59.47,-111.96],[-61.78,-110.55],[-62.22,-109.81],[-62.32,-110.22],[-62.53,-110.6],[-68.95,-106.68],[-71.05,-105.4],[-70.87,-105.1],[-72.4,-104.25],[-72.55,-104.49],[-78.2,-101.06],[-84.22,-97.27],[-87.26,-94.39],[-88.06,-93.76],[-88.37,-93.51],[-89.91,-92.29],[-91.36,-94.09],[-90.09,-95.11],[-89.25,-94.15],[-84.67,-97.88],[-78.55,-101.67],[-70.66,-106.8],[-63.13,-111.69],[-63.67,-112.01],[-62.74,-112.09],[-60.47,-113.51],[-60.15,-114.0],[-59.98,-113.66],[-58.4,-114.65],[-56.1,-115.75],[-54.52,-115.95],[-52.49,-116.3],[-43.01,-118.52],[-38.71,-119.2],[-37.19,-119.5],[-35.93,-119.96],[-32.87,-121.38],[-28.09,-123.9],[-24.38,-125.21],[-23.93,-125.22],[-21.82,-124.73],[-18.07,-123.32],[-13.78,-123.26],[-10.46,-124.37],[-9.94,-124.54]],[[93.29,-3.86],[94.79,-1.78],[93.48,-0.96],[93.08,-1.91],[84.1,1.89],[84.2,2.12],[83.15,2.55],[83.06,2.32],[81.6,3.02],[77.32,4.95],[61.66,11.71],[60.53,11.89],[58.79,12.68],[57.51,13.29],[57.24,12.58],[58.74,11.88],[58.48,11.35],[69.98,6.44],[70.18,7.04],[78.37,3.78],[81.35,2.49],[82.85,1.78],[82.75,1.51],[83.74,1.12],[83.81,1.33],[90.22,-1.37],[90.6,-1.7],[90.52,-1.92],[92.78,-2.98],[91.64,-5.41],[90.17,-9.08],[90.95,-9.43],[93.29,-3.86]],[[-88.37,-93.51],[-87.32,-91.92],[-87.11,-91.59],[-85.65,-88.81],[-84.47,-85.46],[-83.4,-83.38],[-80.2,-77.62],[-76.54,-68.97],[-73.3,-62.4],[-70.93,-56.46],[-70.22,-54.69],[-68.53,-52.53],[-68.16,-52.06],[-67.88,-51.39],[-66.27,-47.55],[-64.34,-44.58],[-63.49,-41.62],[-60.36,-35.51],[-61.41,-33.25],[-62.84,-31.26],[-64.23,-30.13],[-64.52,-28.45],[-63.39,-25.5],[-62.04,-21.95],[-61.52,-18.01],[-61.52,-17.13],[-60.82,-16.04],[-59.84,-16.67],[-60.77,-18.14],[-61.04,-18.12],[-61.49,-22.01],[-63.65,-27.96],[-63.33,-29.52],[-60.92,-33.04],[-59.75,-35.65],[-62.95,-41.8],[-63.88,-44.82],[-65.72,-47.61],[-67.72,-52.39],[-68.39,-53.24],[-69.78,-55.04],[-69.94,-55.44],[-69.99,-55.57],[-70.38,-56.56],[-72.49,-61.89],[-72.81,-62.7],[-76.01,-69.21],[-79.67,-77.8],[-83.02,-83.49],[-84.13,-85.63],[-85.29,-88.95],[-86.81,-91.84],[-88.06,-93.76],[-88.37,-93.51]],[[-24.69,-143.9],[-25.33,-145.12],[-25.17,-145.27],[-26.21,-146.38],[-23.99,-148.43],[-23.14,-147.35],[-21.26,-149.69],[-20.86,-150.03],[-20.19,-150.47],[-19.5,-150.61],[-16.96,-152.89],[-16.8,-153.71],[-3.54,-163.96],[-0.85,-166.14],[10.42,-175.25],[13.47,-177.65],[19.97,-182.48],[20.97,-182.29],[24.16,-184.72],[24.41,-185.92],[26.74,-187.53],[27.31,-186.85],[25.14,-184.69],[21.43,-181.69],[20.8,-181.8],[19.96,-181.95],[17.11,-179.83],[16.63,-179.47],[16.28,-179.21],[16.02,-179.02],[13.68,-177.28],[13.93,-176.97],[12.12,-175.54],[11.97,-175.72],[9.49,-173.72],[9.12,-173.39],[8.65,-172.99],[8.36,-172.71],[-2.69,-163.76],[-2.95,-163.58],[-3.66,-163.06],[-4.12,-162.71],[-12.55,-156.03],[-12.77,-155.87],[-13.2,-155.54],[-13.42,-155.38],[-16.0,-153.38],[-16.18,-152.73],[-18.93,-150.3],[-20.73,-149.21],[-22.6,-146.95],[-22.22,-146.43],[-24.24,-144.41],[-24.55,-144.07],[-24.69,-143.9]],[[90.17,-9.08],[90.04,-9.39],[90.42,-9.57],[88.93,-13.59],[88.1,-16.37],[86.13,-21.06],[85.41,-22.82],[84.49,-25.07],[82.4,-30.55],[80.56,-35.43],[79.39,-38.33],[75.65,-46.89],[71.36,-56.44],[69.7,-60.93],[69.4,-60.82],[69.12,-61.57],[69.4,-61.69],[68.06,-65.45],[66.9,-67.89],[63.23,-74.4],[62.22,-76.7],[61.18,-80.55],[60.37,-80.11],[59.12,-82.17],[59.92,-82.59],[60.6,-81.07],[61.57,-81.5],[61.93,-80.54],[62.78,-76.89],[63.64,-74.69],[67.26,-68.18],[68.4,-65.7],[70.04,-61.25],[71.92,-56.59],[74.69,-50.52],[74.93,-49.94],[76.08,-47.13],[76.15,-46.98],[79.86,-38.51],[81.66,-33.97],[82.82,-30.7],[84.91,-25.21],[87.51,-18.87],[88.49,-16.47],[89.36,-13.77],[90.8,-9.83],[90.95,-9.43],[90.17,-9.08]],[[33.08,-188.47],[34.03,-188.93],[35.04,-188.79],[40.2,-191.85],[37.79,-194.98],[35.55,-194.54],[31.23,-191.6],[33.08,-188.47]],[[-57.37,-12.06],[-52.25,-2.7],[-49.34,2.28],[-45.42,9.69],[-44.11,14.22],[-42.01,22.96],[-41.08,26.7],[-39.48,26.4],[-39.19,27.65],[-40.75,28.01],[-40.53,28.77],[-39.76,31.32],[-39.07,33.62],[-38.91,34.17],[-38.45,36.51],[-37.95,39.13],[-37.86,39.58],[-37.57,41.5],[-37.21,43.93],[-38.77,43.92],[-38.52,39.63],[-39.49,34.25],[-41.33,28.1],[-42.54,22.99],[-44.62,14.32],[-46.14,9.87],[-50.02,2.68],[-52.82,-2.41],[-57.97,-11.68],[-57.37,-12.06]],[[37.33,-151.26],[33.82,-158.08],[33.17,-159.8],[32.34,-162.02],[31.31,-166.12],[30.85,-165.99],[31.91,-161.83],[33.25,-157.87],[36.39,-150.99],[36.59,-149.39],[34.21,-146.64],[33.69,-146.16],[35.1,-144.13],[34.65,-143.91],[35.41,-142.84],[35.68,-142.98],[36.57,-141.78],[37.09,-141.55],[39.16,-138.12],[40.26,-136.32],[41.84,-132.11],[43.04,-128.9],[44.18,-125.82],[45.66,-121.43],[47.34,-117.02],[50.61,-107.81],[52.81,-101.54],[53.58,-99.32],[54.48,-94.98],[55.58,-91.85],[55.21,-91.71],[55.98,-89.45],[57.4,-85.5],[58.04,-85.8],[57.1,-88.54],[56.11,-91.25],[54.79,-95.15],[54.34,-97.22],[53.86,-99.34],[53.08,-101.66],[47.6,-117.08],[44.51,-125.88],[43.33,-129.0],[42.71,-130.71],[42.01,-132.66],[40.66,-136.39],[41.56,-137.2],[41.25,-138.17],[39.43,-138.27],[36.28,-143.29],[36.63,-143.46],[35.97,-144.59],[35.57,-144.37],[34.48,-146.24],[37.49,-149.75],[37.33,-151.26]],[[5.95,38.24],[5.98,38.74],[6.04,39.32],[10.99,38.78],[15.44,37.44],[21.74,34.51],[22.11,35.38],[23.01,34.96],[22.65,34.09],[26.61,32.24],[29.03,30.64],[28.45,29.68],[26.61,31.1],[14.98,36.53],[10.84,37.67],[5.95,38.24]],[[57.24,12.58],[56.92,13.16],[57.49,14.57],[44.7,20.23],[45.12,21.01],[58.36,15.19],[57.51,13.29],[57.24,12.58]],[[5.95,38.24],[5.24,38.81],[4.73,38.82],[3.47,38.5],[2.68,38.16],[2.25,37.76],[1.61,36.05],[-2.91,38.07],[-7.35,39.8],[-7.39,39.66],[-8.11,39.97],[-8.16,39.82],[-8.78,40.05],[-8.74,40.2],[-9.44,40.47],[-9.38,40.64],[-22.87,46.13],[-28.48,48.42],[-31.34,47.68],[-33.11,47.23],[-36.29,46.42],[-36.35,46.91],[-28.57,48.92],[-25.74,47.9],[-11.33,42.01],[-8.74,40.94],[-8.49,41.57],[-7.27,41.07],[-7.5,40.46],[-2.74,38.56],[1.11,36.86],[1.55,37.91],[2.42,38.58],[3.37,39.04],[4.72,39.39],[6.04,39.32],[5.98,38.74],[5.95,38.24]],[[-10.46,-124.37],[-13.77,-128.7],[-16.51,-132.84],[-22.82,-140.84],[-23.42,-142.18],[-24.55,-144.07],[-24.24,-144.41],[-23.03,-142.29],[-22.43,-141.03],[-16.11,-133.07],[-13.33,-129.0],[-9.94,-124.54],[-10.46,-124.37]]],"moat":[[-6.0,50.06],[-4.11,55.06],[-7.58,56.55],[-12.75,58.76],[-16.82,60.51],[-18.88,60.67],[-19.19,60.23],[-20.12,58.9],[-21.41,59.23],[-28.45,61.03],[-29.17,61.21],[-30.56,61.57],[-33.67,62.54],[-36.03,62.83],[-38.45,62.47],[-40.78,61.73],[-42.31,60.84],[-43.44,57.52],[-45.4,49.15],[-48.32,39.13],[-48.61,37.98],[-49.03,36.87],[-49.63,35.73],[-50.46,34.17],[-51.64,31.89],[-54.67,24.95],[-59.87,15.57],[-60.96,13.6],[-61.98,11.77],[-62.76,10.35],[-63.88,8.33],[-66.1,3.57],[-67.69,2.53],[-70.91,0.81],[-71.3,0.09],[-71.8,-0.64],[-72.36,-1.66],[-72.66,-2.59],[-72.47,-4.26],[-72.97,-5.6],[-74.38,-6.92],[-74.84,-7.3],[-75.15,-7.34],[-75.85,-7.21],[-76.69,-7.79],[-77.26,-9.39],[-78.44,-11.14],[-78.68,-13.2],[-77.99,-16.05],[-79.1,-25.32],[-78.04,-31.34],[-79.79,-33.2],[-81.57,-37.1],[-88.97,-52.68],[-94.47,-60.09],[-100.49,-69.21],[-100.78,-69.8],[-100.91,-70.27],[-100.97,-71.06],[-100.91,-72.13],[-100.77,-73.6],[-100.62,-75.87],[-100.35,-76.84],[-99.86,-77.7],[-98.64,-78.98],[-97.66,-80.05],[-96.88,-81.25],[-96.38,-82.7],[-95.97,-83.04],[-95.31,-83.24],[-95.08,-83.63],[-95.38,-84.35],[-95.29,-84.76],[-94.39,-85.56],[-92.87,-86.96],[-90.07,-89.55],[-89.41,-89.75],[-88.91,-89.57],[-88.4,-89.08],[-87.14,-86.6],[-86.06,-84.28],[-84.66,-81.4],[-79.86,-70.19],[-76.83,-61.38],[-75.85,-61.65],[-73.43,-55.98],[-73.62,-55.49],[-74.24,-53.88],[-73.55,-52.48],[-72.47,-51.79],[-71.69,-49.77],[-69.87,-48.32],[-64.02,-36.77],[-64.35,-34.41],[-65.85,-30.54],[-65.8,-29.77],[-65.72,-28.59],[-65.62,-27.04],[-65.57,-26.64],[-65.56,-25.89],[-64.56,-18.91],[-64.51,-18.47],[-64.63,-18.0],[-65.18,-17.18],[-66.32,-15.45],[-66.46,-15.07],[-66.54,-14.61],[-66.41,-13.96],[-66.01,-12.9],[-65.78,-12.41],[-65.37,-12.2],[-64.98,-11.54],[-64.44,-10.64],[-64.2,-10.24],[-63.88,-9.7],[-63.56,-8.73],[-62.69,-8.02],[-62.03,-7.22],[-61.71,-6.74],[-60.98,-5.62],[-60.8,-5.06],[-57.27,-0.42],[-57.51,0.59],[-56.53,1.77],[-52.76,7.34],[-52.98,8.46],[-52.37,8.88],[-52.55,9.63],[-52.47,10.32],[-52.28,10.86],[-52.02,11.26],[-51.66,11.66],[-50.72,11.89],[-50.57,12.91],[-48.15,17.98],[-45.59,27.19],[-45.12,29.44],[-44.89,31.1],[-44.91,31.68],[-45.07,32.13],[-45.42,32.82],[-45.7,33.27],[-45.74,33.88],[-45.37,34.79],[-45.05,35.26],[-44.76,35.72],[-44.33,36.37],[-43.97,37.36],[-43.53,38.74],[-42.72,46.78],[-42.31,50.76],[-42.46,56.5],[-41.46,57.54],[-36.75,58.81],[-33.78,59.61],[-30.48,58.74],[-22.95,56.74],[-22.4,56.6],[-21.24,56.25],[-22.49,52.14],[-22.86,50.94],[-22.63,50.21],[-21.79,49.74],[-20.23,49.81],[-19.88,49.17],[-17.73,49.82],[-13.76,50.21],[-11.92,50.36],[-11.42,49.77],[-10.25,49.23],[-9.42,47.64],[-7.57,45.82],[-6.0,50.06]],"center":[112.148,32.015],"moats":[[[-6.0,50.06],[-4.11,55.06],[-7.58,56.55],[-12.75,58.76],[-16.82,60.51],[-18.88,60.67],[-19.19,60.23],[-20.12,58.9],[-21.41,59.23],[-28.45,61.03],[-29.17,61.21],[-30.56,61.57],[-33.67,62.54],[-36.03,62.83],[-38.45,62.47],[-40.78,61.73],[-42.31,60.84],[-43.44,57.52],[-45.4,49.15],[-48.32,39.13],[-48.61,37.98],[-49.03,36.87],[-49.63,35.73],[-50.46,34.17],[-51.64,31.89],[-54.67,24.95],[-59.87,15.57],[-60.96,13.6],[-61.98,11.77],[-62.76,10.35],[-63.88,8.33],[-66.1,3.57],[-67.69,2.53],[-70.91,0.81],[-71.3,0.09],[-71.8,-0.64],[-72.36,-1.66],[-72.66,-2.59],[-72.47,-4.26],[-72.97,-5.6],[-74.38,-6.92],[-74.84,-7.3],[-75.15,-7.34],[-75.43,-7.26],[-75.85,-7.21],[-76.69,-7.79],[-77.26,-9.39],[-78.44,-11.14],[-78.68,-13.2],[-78.62,-13.45],[-77.99,-16.05],[-79.1,-25.32],[-78.04,-31.34],[-79.79,-33.2],[-81.57,-37.1],[-88.97,-52.68],[-94.47,-60.09],[-100.49,-69.21],[-100.78,-69.8],[-100.91,-70.27],[-100.97,-71.06],[-100.91,-72.13],[-100.77,-73.6],[-100.62,-75.87],[-100.35,-76.84],[-99.86,-77.7],[-98.64,-78.98],[-97.66,-80.05],[-96.88,-81.25],[-96.38,-82.7],[-96.19,-82.95],[-95.97,-83.04],[-95.67,-83.16],[-95.31,-83.24],[-95.14,-83.29],[-95.06,-83.41],[-95.08,-83.63],[-95.38,-84.35],[-95.37,-84.58],[-95.29,-84.76],[-94.39,-85.56],[-92.87,-86.96],[-90.07,-89.55],[-89.8,-89.71],[-89.41,-89.75],[-88.91,-89.57],[-88.4,-89.08],[-87.14,-86.6],[-86.06,-84.28],[-84.66,-81.4],[-79.86,-70.19],[-76.83,-61.38],[-75.85,-61.65],[-73.43,-55.98],[-73.62,-55.49],[-74.24,-53.88],[-73.55,-52.48],[-72.47,-51.79],[-71.69,-49.77],[-69.87,-48.32],[-64.02,-36.77],[-64.35,-34.41],[-65.85,-30.54],[-65.8,-29.77],[-65.72,-28.59],[-65.62,-27.04],[-65.57,-26.64],[-65.56,-25.89],[-64.56,-18.91],[-64.51,-18.47],[-64.63,-18.0],[-65.18,-17.18],[-66.32,-15.45],[-66.46,-15.07],[-66.54,-14.61],[-66.41,-13.96],[-66.01,-12.9],[-65.91,-12.71],[-65.78,-12.41],[-65.37,-12.2],[-65.3,-12.08],[-64.98,-11.54],[-64.44,-10.64],[-64.2,-10.24],[-63.88,-9.7],[-63.56,-8.73],[-62.69,-8.02],[-62.03,-7.22],[-61.71,-6.74],[-60.98,-5.62],[-60.8,-5.06],[-57.27,-0.42],[-57.51,0.59],[-56.53,1.77],[-52.76,7.34],[-52.98,8.46],[-52.37,8.88],[-52.55,9.63],[-52.47,10.32],[-52.28,10.86],[-52.02,11.26],[-51.66,11.66],[-50.72,11.89],[-50.57,12.91],[-48.15,17.98],[-45.59,27.19],[-45.12,29.44],[-44.89,31.1],[-44.91,31.68],[-45.07,32.13],[-45.42,32.82],[-45.7,33.27],[-45.76,33.53],[-45.74,33.88],[-45.37,34.79],[-45.05,35.26],[-44.76,35.72],[-44.33,36.37],[-43.97,37.36],[-43.53,38.74],[-42.72,46.78],[-42.31,50.76],[-42.46,56.5],[-41.46,57.54],[-36.75,58.81],[-33.78,59.61],[-30.48,58.74],[-22.95,56.74],[-22.4,56.6],[-21.24,56.25],[-22.49,52.14],[-22.86,50.94],[-22.63,50.21],[-21.79,49.74],[-20.23,49.81],[-19.88,49.17],[-17.73,49.82],[-13.76,50.21],[-13.58,50.2],[-11.92,50.36],[-11.42,49.77],[-10.25,49.23],[-9.42,47.64],[-7.57,45.82],[-6.0,50.06]],[[75.48,-96.71],[77.91,-92.29],[79.73,-90.38],[81.12,-87.04],[81.67,-84.68],[80.8,-83.28],[79.93,-81.69],[80.12,-79.86],[80.79,-78.4],[83.36,-73.19],[84.47,-65.89],[85.41,-62.62],[87.34,-62.98],[87.69,-61.7],[89.87,-55.89],[91.13,-52.63],[91.24,-52.32],[94.51,-43.85],[96.03,-38.12],[97.98,-35.46],[99.81,-32.55],[101.39,-29.07],[102.97,-27.29],[104.77,-26.26],[106.16,-23.45],[107.82,-21.01],[108.65,-19.56],[110.36,-19.65],[111.6,-16.21],[113.38,-11.82],[115.16,-7.48],[117.12,-3.71],[117.82,2.0],[116.56,8.6],[111.3,17.46],[106.93,18.92],[104.06,20.11],[101.53,21.17],[98.53,21.26],[93.87,19.9],[90.2,18.28],[86.51,17.81],[82.88,18.64],[82.47,19.88],[78.83,20.97],[70.33,23.71],[63.65,27.2],[60.99,28.23],[60.11,28.57],[49.4,32.7],[46.77,33.15],[44.46,33.64],[42.17,35.21],[41.94,34.91],[38.37,34.91],[36.73,36.04],[33.37,37.85],[21.75,43.25],[12.94,46.93],[10.75,48.37],[8.11,49.43],[7.96,49.13],[7.59,48.2],[4.76,49.34],[4.86,49.59],[4.0,49.93],[3.76,49.34],[1.5,50.25],[1.41,50.04],[-0.02,50.61],[0.07,50.83],[-1.01,51.26],[-0.64,52.18],[-1.29,52.4],[-1.77,53.38],[-2.66,53.74],[-5.21,46.3],[-5.58,45.2],[1.11,44.01],[2.2,40.54],[5.85,40.91],[10.91,40.98],[19.21,38.23],[27.1,34.49],[28.93,33.79],[29.9,32.96],[30.12,32.78],[33.09,30.38],[36.9,29.66],[38.21,29.37],[38.28,27.81],[38.32,25.65],[39.06,24.7],[40.65,24.0],[58.68,16.03],[64.34,13.52],[72.54,9.9],[86.7,3.65],[94.01,0.43],[96.55,-0.69],[96.76,-2.09],[96.0,-3.44],[93.9,-8.32],[91.16,-14.68],[86.96,-24.45],[84.32,-30.6],[80.77,-38.83],[79.28,-42.32],[77.06,-47.47],[76.51,-48.75],[75.81,-50.39],[75.58,-50.91],[74.69,-53.22],[75.08,-53.7],[72.55,-59.18],[72.16,-59.02],[71.79,-59.85],[69.92,-64.07],[67.07,-70.7],[64.29,-77.17],[63.8,-79.38],[64.26,-79.78],[64.25,-80.08],[64.6,-80.37],[64.95,-80.71],[65.11,-80.99],[65.32,-81.66],[65.58,-81.61],[66.12,-82.69],[65.57,-82.98],[66.31,-83.59],[66.98,-84.45],[67.13,-85.38],[66.7,-86.42],[66.16,-87.37],[65.87,-87.87],[64.92,-89.55],[64.61,-90.09],[64.24,-90.74],[61.94,-90.75],[60.76,-90.76],[59.79,-90.34],[59.6,-90.56],[58.99,-90.89],[58.45,-90.94],[57.97,-90.85],[51.83,-110.9],[46.67,-127.73],[46.59,-128.01],[45.08,-133.04],[49.44,-134.31],[49.75,-134.4],[52.28,-135.13],[55.59,-136.0],[58.29,-136.7],[75.51,-100.67],[75.48,-96.71]]]};
+const LOCATIONS = [{"id": "overview", "name": "\u8944\u6a0a\u53e4\u6218\u56fe \u00b7 \u6c49\u6c5f\u5168\u666f", "en": "Battlefield & Han River Overview", "target": [0, 5, -120], "camera": [220, 240, 320], "summary": "\u5357\u5b8b\u54b8\u6df3\u5e74\u95f4\uff0c\u5b8b\u8499\u4e89\u593a\u5929\u4e0b\u7684\u6838\u5fc3\u4e3b\u6218\u573a\u3002\u5343\u53e4\u6c49\u6c5f\u7a7f\u57ce\u800c\u8fc7\uff0c\u78a7\u6ce2\u4e07\u9877\uff1b\u5357\u6709\u94c1\u6253\u8944\u9633\u4e0e\u4e24\u767e\u7c73\u5929\u5811\u62a4\u57ce\u6cb3\uff0c\u5317\u6709\u9669\u5cfb\u6a0a\u57ce\uff0c\u4e8c\u57ce\u6d6e\u6865\u76f8\u901a\uff0c\u4f9d\u5c71\u5e26\u6c34\uff0c\u6c14\u8c61\u96c4\u9614\u3002", "period": "\u5357\u5b8b\u54b8\u6df3\u4e09\u5e74\u81f3\u4e5d\u5e74 (1267\u20131273)", "features": "\u6c49\u6c34\u7a7f\u57ce\u3001\u4e07\u5c71\u5982\u9501\u3001\u5c98\u5c71\u96c4\u5cd9\u3001\u5927\u62a4\u57ce\u6cb3\u3001\u53cc\u57ce\u6d6e\u6865", "quote": "\u201c\u8944\u9633\u53e4\u51b2\u8981\uff0c\u5c71\u8272\u7167\u6f84\u6c5f\u3002\u4e07\u91cc\u4e2d\u539f\u671b\uff0c\u5b64\u57ce\u767d\u65e5\u957f\u3002\u201d", "tag": "\u5b8f\u5927\u5168\u666f"}, {"id": "linhan", "name": "\u4e34\u6c49\u95e8 (\u5317\u95e8\u6e21\u53e3)", "en": "Linhan Gate & Port", "target": [0, 11, -190], "camera": [0, 65, -80], "summary": "\u8944\u9633\u57ce\u5317\u6b63\u95e8\uff0c\u76f4\u9762\u6d69\u6d69\u6c49\u6c5f\u6c34\u6ce2\u3002\u95e8\u5916\u5efa\u6709\u53cc\u91cd\u534a\u5706\u5f62\u6c34\u95e8\u74ee\u57ce\u4e0e\u9632\u6c5f\u6c34\u95f8\uff0c\u63a7\u627c\u6c49\u6c5f\u4e0a\u4e0b\u6e38\u821f\u696b\uff0c\u4e43\u5357\u5b8b\u6c34\u519b\u5de1\u54e8\u4e0e\u7cae\u8349\u96c6\u6563\u4e4b\u547d\u8109\u6240\u5728\u3002", "period": "\u4e1c\u6c49\u5efa\u7f6e\uff0c\u5b8b\u54b8\u6df3\u52a0\u56fa\u53cc\u74ee\u57ce", "features": "\u6c49\u6c5f\u6e21\u53e3\u3001\u91cd\u6a90\u57ce\u697c\u3001\u4e34\u6c5f\u7801\u5934\u3001\u9632\u6c5f\u6697\u5821", "quote": "\u201c\u4e34\u6c49\u63a7\u5df4\u8700\u4e4b\u6e38\uff0c\u62f1\u8fb0\u969c\u534e\u5937\u4e4b\u754c\u3002\u201d", "tag": "\u6838\u5fc3\u57ce\u95e8"}, {"id": "furen", "name": "\u592b\u4eba\u57ce (\u897f\u5317\u5b50\u57ce)", "en": "Lady City (Northwest Bastion)", "target": [-85, 12, -188], "camera": [-50, 55, -115], "summary": "\u4f4d\u4e8e\u8944\u9633\u57ce\u897f\u5317\u9685\u57ce\u57a3\u4e4b\u4e0a\u3002\u4e1c\u664b\u6881\u5dde\u523a\u53f2\u6731\u5e8f\u4e4b\u6bcd\u97e9\u592b\u4eba\u767b\u57ce\u5de1\u67e5\uff0c\u65ad\u5b9a\u897f\u5317\u89d2\u57ce\u8584\u5fc5\u53d7\u654c\u653b\uff0c\u4eb2\u7387\u57ce\u4e2d\u5987\u5973\u767e\u4eba\u7b51\u6b64\u5b50\u57ce\u3002\u5357\u5b8b\u6297\u8499\u5b88\u57ce\u516d\u8f7d\uff0c\u6b64\u5730\u5c61\u51fb\u9000\u654c\u519b\u7cbe\u9a91\u767b\u68af\u3002", "period": "\u4e1c\u664b\u59cb\u7b51\uff0c\u5386\u4ee3\u91cd\u4fee\u52a0\u56fa", "features": "\u6218\u5907\u5b50\u57ce\u3001\u9ad8\u5cfb\u579b\u53e3\u3001\u767b\u57ce\u9a6c\u9053\u3001\u5f3a\u5f29\u5c04\u53e3", "quote": "\u201c\u5973\u4e2d\u8c6a\u6770\u7b51\u575a\u5889\uff0c\u5343\u8f7d\u8944\u9633\u501a\u4ee4\u540d\u3002\u201d", "tag": "\u9632\u5fa1\u5821\u5792"}, {"id": "zhaoming", "name": "\u662d\u660e\u53f0 (\u5e05\u5e9c\u4e2d\u67a2)", "en": "Zhaoming Terrace (City Hub)", "target": [0, 15, -60], "camera": [55, 75, 20], "summary": "\u5dcd\u5c45\u8944\u9633\u57ce\u5341\u5b57\u8857\u5fc3\uff0c\u7eaa\u5ff5\u5357\u6881\u662d\u660e\u592a\u5b50\u8427\u7edf\u7f16\u7e82\u300a\u662d\u660e\u6587\u9009\u300b\u800c\u5efa\u3002\u9ad8\u53f0\u901a\u9ad8\u903e\u4e09\u4e08\uff0c\u91cd\u6a90\u6b47\u5c71\u9876\u5927\u9f13\u697c\uff0c\u5357\u5b8b\u5b88\u5c06\u5415\u6587\u7115\u5750\u9547\u53f7\u4ee4\u5168\u519b\u3001\u51fb\u9f13\u62a5\u8b66\u4e4b\u6838\u5fc3\u5e05\u5e9c\u4e2d\u67a2\u3002", "period": "\u5357\u6881\u5f00\u521b\uff0c\u5b8b\u4ee3\u91cd\u6784\u9ad8\u53f0\u8c2f\u697c", "features": "\u6a2a\u8de8\u5341\u5b57\u8857\u3001\u5de8\u578b\u592f\u571f\u53f0\u57fa\u3001\u949f\u9f13\u8b66\u8baf\u3001\u5b88\u5c06\u5e05\u65d7", "quote": "\u201c\u6587\u7ae0\u4e07\u9009\u662d\u660e\u6708\uff0c\u9f13\u89d2\u5343\u95e8\u8b66\u4e71\u70df\u3002\u201d", "tag": "\u57ce\u592e\u5e05\u5e9c"}, {"id": "zhongxuan", "name": "\u4ef2\u5ba3\u697c (\u4e1c\u5357\u89d2\u697c)", "en": "Zhongxuan Tower (SE Corner)", "target": [90, 14, 15], "camera": [145, 65, 75], "summary": "\u4e1c\u5357\u57ce\u9685\u9ad8\u53f0\u4e4b\u4e0a\uff0c\u5efa\u5b89\u4e03\u5b50\u738b\u7cb2\u907f\u4e71\u8346\u5dde\u4f5c\u300a\u767b\u697c\u8d4b\u300b\u4e8e\u6b64\u3002\u5b8b\u7406\u5b97\u7aef\u5e73\u5e74\u95f4\u91cd\u4fee\u6210\u96c4\u4f1f\u4e09\u5c42\u89d2\u697c\u3002\u54b8\u6df3\u4e5d\u5e74\u5143\u519b\u96c6\u4e2d\u56de\u56de\u5de8\u70ae\u663c\u591c\u731b\u8f70\u4e1c\u5357\u89d2\uff0c\u57ce\u581e\u4e0e\u697c\u4ff1\u9893\uff0c\u89c1\u8bc1\u4e86\u6700\u540e\u70c8\u6218\u3002", "period": "\u5efa\u5b89\u521d\u5e74\u3001\u5b8b\u7406\u5b97\u7aef\u5e73\u5e74\u95f4\u91cd\u4fee", "features": "\u89d2\u53f0\u91cd\u697c\u3001\u773a\u671b\u9e7f\u95e8\u5c71\u4e0e\u5c98\u5c71\u3001\u56de\u56de\u5de8\u70ae\u51b3\u6218\u6545\u5730", "quote": "\u201c\u767b\u5179\u697c\u4ee5\u56db\u671b\u516e\uff0c\u804a\u6687\u65e5\u4ee5\u9500\u5fe7\u3002\u6b65\u6816\u8fdf\u4ee5\u65f7\u89c8\u516e\uff0c\u89c2\u5143\u5316\u4e4b\u6240\u7531\u3002\u201d", "tag": "\u6587\u5316\u80dc\u8ff9"}, {"id": "pontoon", "name": "\u6c49\u6c5f\u6d6e\u6865\u4e0e\u78a7\u6ce2\u94c1\u7d22", "en": "Han River Pontoon & Chain", "target": [20, 2, -265], "camera": [115, 60, -205], "summary": "\u6a2a\u8de8\u5343\u53e4\u6c49\u6c5f\u78a7\u6ce2\u3001\u8fde\u63a5\u8944\u9633\u4e0e\u6a0a\u57ce\u7684\u751f\u547d\u7ebd\u5e26\u3002\u4e24\u57ce\u4ee5\u6570\u5341\u8258\u6218\u8239\u4e3a\u58a9\u3001\u94fa\u8bbe\u6728\u677f\u4e3a\u6d6e\u6865\uff0c\u5de6\u53f3\u5bc6\u5e03\u7c97\u5de8\u62e6\u6c5f\u94c1\u7d22\u4e0e\u6c34\u6805\uff0c\u4f7f\u8944\u6a0a\u4e24\u57ce\u5175\u7cae\u4e92\u6d4e\uff0c\u56fa\u82e5\u91d1\u6c64\u8fbe\u4e94\u5e74\u4e4b\u4e45\u3002", "period": "\u5357\u5b8b\u54b8\u6df3\u521d\u5e74\u6784\u5efa", "features": "\u6218\u8239\u6d6e\u6865\u3001\u6a2a\u6c5f\u94c1\u7d22\u3001\u5de1\u6c5f\u6c34\u6805\u3001\u70fd\u71e7\u7bad\u697c", "quote": "\u201c\u8944\u6a0a\u9f7f\u5507\u5e76\uff0c\u6c5f\u6d41\u9501\u94c1\u7ef3\u3002\u4e00\u671d\u94c1\u7d22\u65ad\uff0c\u53cc\u58c1\u4ff1\u6f02\u96f6\u3002\u201d", "tag": "\u6c5f\u9632\u751f\u547d\u7ebf"}, {"id": "fancheng", "name": "\u6a0a\u57ce\u8981\u585e (\u5317\u5cb8\u70fd\u706b)", "en": "Fancheng Fortress", "target": [20, 6, -370], "camera": [-80, 110, -270], "summary": "\u6c49\u6c5f\u5317\u5cb8\u519b\u4e8b\u91cd\u9547\uff0c\u8944\u9633\u7684\u5317\u9762\u575a\u76fe\u3002\u5143\u519b\u963f\u91cc\u6d77\u7259\u3001\u963f\u672f\u5148\u5207\u65ad\u6c49\u6c34\u6d6e\u6865\uff0c\u4ee5\u91cd\u5175\u5408\u56f4\u6a0a\u57ce\u3002\u54b8\u6df3\u4e5d\u5e74\u5143\u519b\u7834\u6a0a\u57ce\u5916\u57ce\u5e76\u7528\u5de8\u70ae\u6467\u6bc1\u5185\u57ce\uff0c\u6a0a\u57ce\u5b8b\u519b\u6218\u81f3\u6700\u540e\u4e00\u4eba\u3002", "period": "\u5468\u5ba3\u738b\u5c01\u4ef2\u5c71\u752b\u59cb\u7b51\uff0c\u5357\u5b8b\u519b\u4e8b\u91cd\u9547", "features": "\u5317\u5cb8\u592f\u571f\u57ce\u5be8\u3001\u53e4\u57ce\u95e8\u3001\u671b\u6c5f\u53f0\u3001\u53e4\u6c34\u9a7f", "quote": "\u201c\u6a0a\u57ce\u8840\u5c3d\u6c49\u6c5f\u8d64\uff0c\u5929\u5730\u82cd\u832b\u6218\u9aa8\u5bd2\u3002\u201d", "tag": "\u53e4\u6218\u8981\u51b2"}, {"id": "moat", "name": "\u8944\u9633\u5927\u62a4\u57ce\u6cb3 (\u6fe0\u6c34\u78a7\u6ce2)", "en": "Xiangyang Great Moat (Haoshui)", "target": [-75, 1, 0], "camera": [-170, 85, 70], "summary": "\u201c\u534e\u590f\u7b2c\u4e00\u57ce\u6c60\u201d\uff0c\u5bbd\u8fbe180\u7c73\u81f3250\u7c73\uff0c\u5f15\u6c49\u6c5f\u4e0e\u8944\u6c34\u4e4b\u6d41\u73af\u62b1\u8944\u9633\u4e09\u9762\uff0c\u6c34\u8272\u6f84\u78a7\u6df1\u9083\uff0c\u6d69\u6e3a\u5982\u6e56\u3002\u654c\u519b\u5927\u5175\u81f3\u6b64\u83ab\u4e0d\u671b\u6cb3\u5174\u53f9\uff0c\u4e43\u51b7\u5175\u5668\u65f6\u4ee3\u57ce\u9632\u58d5\u5811\u4e4b\u65f7\u53e4\u7edd\u4f5c\u3002", "period": "\u4e09\u56fd\u521d\u8f9f\uff0c\u5b8b\u4ee3\u5927\u5e45\u6d5a\u6df1\u62d3\u5bbd", "features": "\u5bbd\u903e\u4e8c\u767e\u7c73\u3001\u4e09\u9762\u73af\u57ce\u3001\u5f15\u6c5f\u5165\u6fe0\u3001\u78a7\u6c34\u6df1\u6f6d", "quote": "\u201c\u8944\u6c34\u73af\u7ed5\u82e5\u5e26\u8426\uff0c\u57ce\u9ad8\u58d5\u9614\u9b3c\u795e\u60ca\u3002\u201d", "tag": "\u5929\u5811\u58d5\u5811"}, {"id": "wanshan", "name": "\u4e07\u5c71 \u00b7 \u6c34\u519b\u53cc\u58c1\u7834\u56f4\u5904", "en": "Mount Wan & Navy Breakout", "target": [-360, 35, -230], "camera": [-260, 110, -110], "summary": "\u57ce\u897f\u5341\u91cc\u4e07\u5c71\u5ce1\u53e3\uff0c\u6c49\u6c34\u7a7f\u5ce1\u6fc0\u8361\u3002\u54b8\u6df3\u516b\u5e74\u4e94\u6708\uff0c\u5747\u5dde\u90fd\u7edf\u5f20\u987a\u3001\u5f20\u8d35\u4ee5\u767e\u8258\u8f7b\u6377\u8f6e\u8239\u8f7d\u8863\u76d0\u7cae\u7532\uff0c\u6eaf\u6c5f\u4e58\u98ce\u7834\u6d6a\u76f4\u51b2\u5143\u519b\u9501\u6c5f\u91cd\u56f4\uff0c\u8840\u6218\u6c49\u6c5f\u76f4\u5165\u8944\u9633\uff0c\u53f2\u79f0\u201c\u53cc\u58c1\u7834\u56f4\u201d\u3002", "period": "\u54b8\u6df3\u516b\u5e74 (1272\u5e74)", "features": "\u4e07\u5c71\u5ce1\u6c5f\u3001\u6c49\u6c34\u5954\u6d41\u3001\u5b8b\u519b\u8f6e\u8239\u8239\u961f\u3001\u5f20\u987a\u5f20\u8d35\u7acb\u5e99\u5904", "quote": "\u201c\u751f\u4e3a\u5b8b\u81e3\uff0c\u6b7b\u4e3a\u5b8b\u9b3c\uff01\u8eab\u9677\u91cd\u56f4\uff0c\u9b42\u5165\u8944\u9633\uff01\u201d", "tag": "\u5fe0\u70c8\u53f2\u8bd7"}, {"id": "trebuchet", "name": "\u56de\u56de\u5de8\u70ae\u9635\u5730 (\u8944\u9633\u5de8\u70ae)", "en": "Counterweight Trebuchets", "target": [150, 4, -300], "camera": [230, 65, -220], "summary": "\u5143\u4e16\u7956\u5ffd\u5fc5\u70c8\u4ee4\u897f\u57df\u5de5\u5320\u963f\u8001\u74e6\u4e01\u7814\u5236\u7684\u914d\u91cd\u5f0f\u5de8\u578b\u6295\u77f3\u673a\u3002\u77f3\u5f39\u91cd\u8fbe\u4e00\u767e\u4e94\u5341\u65a4\uff0c\u51fa\u673a\u9707\u5929\u52a8\u5730\uff0c\u843d\u5730\u6df1\u9677\u6570\u5c3a\uff0c\u662f\u8f70\u7834\u6a0a\u57ce\u3001\u903c\u964d\u8944\u9633\u5b88\u519b\u7684\u6218\u672f\u51b3\u5b9a\u6027\u91cd\u5668\u3002", "period": "\u54b8\u6df3\u516b\u5e74\u5165\u9635 (1272\u20131273)", "features": "\u5de8\u578b\u914d\u91cd\u6728\u67b6\u6295\u77f3\u673a\u3001\u77f3\u5f39\u5f39\u5751\u5806\u3001\u7763\u6218\u5c06\u53f0", "quote": "\u201c\u673a\u5236\u82e5\u5954\u96f7\uff0c\u70ae\u53d1\u5982\u96f7\u9706\u3002\u57ce\u697c\u788e\u4f5c\u783e\uff0c\u5929\u5730\u5c3d\u8f70\u9e23\u3002\u201d", "tag": "\u519b\u6b66\u9635\u5730"}, {"id": "xianshan", "name": "\u5c98\u5c71\u7fa4\u5cf0 \u00b7 \u7f8a\u795c\u5815\u6cea\u7891", "en": "Mount Xian & Yang Hu Stele", "target": [0, 55, 260], "camera": [150, 160, 390], "summary": "\u8944\u9633\u57ce\u5357\u96c4\u4f1f\u4e3b\u5cf0\uff0c\u7fa4\u5ce6\u73af\u53e0\uff0c\u4fef\u77b0\u6c49\u6c5f\u5982\u7ec3\u3001\u53e4\u57ce\u5982\u78d0\u3002\u897f\u664b\u540d\u5c06\u7f8a\u795c\u9547\u8944\u9633\u65f6\u5e38\u767b\u6b64\u5c71\u611f\u53f9\u6c5f\u5c71\u4e4b\u76db\u3002\u5b8b\u519b\u4e8e\u5c98\u5c71\u8bf8\u5cf0\u7acb\u5be8\u70fd\u71e7\uff0c\u4e3a\u57ce\u5357\u5c4f\u969c\u8981\u585e\u3002", "period": "\u897f\u664b\u9057\u8ff9\uff0c\u5b8b\u4ee3\u7fa4\u5c71\u9632\u5fa1\u5c4f\u969c", "features": "\u4e3b\u5cf0\u53e0\u5d82\u3001\u5815\u6cea\u7891\u4ead\u3001\u53e4\u677e\u63a9\u6620\u3001\u6781\u76ee\u6c49\u6c34", "quote": "\u201c\u6c5f\u5c71\u7559\u80dc\u8ff9\uff0c\u6211\u8f88\u590d\u767b\u4e34\u3002\u6c34\u843d\u9c7c\u6881\u6d45\uff0c\u5929\u5bd2\u68a6\u6cfd\u6df1\u3002\u201d", "tag": "\u5343\u53e4\u540d\u80dc"}];
+
+// Scene, Camera, Renderer Setup
+const canvas = document.getElementById('map-canvas');
+const scene = new THREE.Scene();
+
+// Atmosphere / Warm Ochre & Morning River Mist
+const fogColor = new THREE.Color(0xd2c3ab);
+scene.background = fogColor;
+scene.fog = new THREE.FogExp2(0xd2c3ab, 0.00045);
+
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 5000);
+camera.position.set(340, 480, 560);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+// Orbit Controls with expanded range
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.055;
+controls.maxPolarAngle = Math.PI / 2 - 0.03;
+controls.minDistance = 30;
+controls.maxDistance = 2200;
+controls.target.set(0, 0, -40);
+
+// Lighting setup for depth and glistening water reflections
+const ambientLight = new THREE.HemisphereLight(0xfff5e6, 0x54473a, 0.85);
+scene.add(ambientLight);
+
+const sunLight = new THREE.DirectionalLight(0xfffaee, 1.45);
+sunLight.position.set(450, 600, 350);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 2048;
+sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.camera.near = 100;
+sunLight.shadow.camera.far = 2000;
+const d = 550;
+sunLight.shadow.camera.left = -d;
+sunLight.shadow.camera.right = d;
+sunLight.shadow.camera.top = d;
+sunLight.shadow.camera.bottom = -d;
+scene.add(sunLight);
+
+// Sky Fill light
+const fillLight = new THREE.DirectionalLight(0xa5bcbb, 0.55);
+fillLight.position.set(-350, 350, -400);
+scene.add(fillLight);
+
+// -------------------------------------------------------------
+// Shader & Palette Customization: Song Dynasty Ink-Wash Engine
+// -------------------------------------------------------------
+function applyInkWashShader(material) {
+  material.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <dithering_fragment>',
+      `#include <dithering_fragment>
+      // Classical Ink-Wash Quantization
+      float lum = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+      float inkTone = 1.0;
+      if (lum < 0.24) inkTone = 0.48;
+      else if (lum < 0.46) inkTone = 0.72;
+      else if (lum < 0.72) inkTone = 0.90;
+      
+      vec3 parchmentTint = vec3(0.87, 0.80, 0.70);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb * inkTone, gl_FragColor.rgb * parchmentTint, 0.22);
+      `
+    );
+  };
+}
+
+// Materials Palette
+const matWall = new THREE.MeshStandardMaterial({
+  color: 0x3d3833,
+  roughness: 0.95,
+  metalness: 0.05
+});
+applyInkWashShader(matWall);
+
+const matGateWood = new THREE.MeshStandardMaterial({
+  color: 0x8d382c,
+  roughness: 0.86,
+  metalness: 0.02
+});
+applyInkWashShader(matGateWood);
+
+const matRoof = new THREE.MeshStandardMaterial({
+  color: 0x2b2927,
+  roughness: 0.78,
+  metalness: 0.08
+});
+applyInkWashShader(matRoof);
+
+// -------------------------------------------------------------
+// Grand Expansive Terrain & Mountain Ranges (岘山、万山、鹿门山)
+// -------------------------------------------------------------
+// Han River bank curves: x from -1000 to 1000
+function getRiverBounds(x) {
+  const t = Math.max(0.0, Math.min(1.0, (x + 1000.0) / 2000.0));
+  const zSouth = -240.0 + 50.0 * t + 40.0 * (t * t);
+  const zNorth = -390.0 + 70.0 * t + 50.0 * (t * t);
+  return { south: zSouth, north: zNorth };
+}
+
+// Expansive Mountain peaks across the Southern, Western, and Eastern horizon
+const mountainRanges = [
+  // [x, z, amplitude, sigmaX, sigmaZ]
+  // 岘山核心群峰 (South)
+  [0, 320, 95, 170, 130],      // 岘山主峰
+  [-220, 380, 88, 160, 140],   // 扁山
+  [240, 360, 92, 160, 130],    // 岘首山
+  [-110, 230, 65, 120, 95],    // 砚山 / 真武山
+  // 南面崇山峻岭远脉 (Far South Horizon)
+  [-450, 560, 120, 240, 190],
+  [0, 620, 135, 280, 210],
+  [450, 540, 115, 250, 190],
+  [-750, 480, 110, 260, 200],
+  [750, 460, 105, 250, 200],
+
+  // 万山天险与西面群峰 (West)
+  [-360, -220, 85, 140, 110],  // 万山峡口
+  [-580, -160, 105, 200, 160], // 西部连峦
+  [-750, 110, 95, 210, 180],
+  [-880, -260, 115, 240, 190],
+
+  // 鹿门山与东部群峦 (East & Southeast)
+  [420, 190, 88, 160, 140],    // 鹿门山
+  [620, 320, 105, 210, 170],
+  [780, 140, 95, 220, 180],
+
+  // 樊城以北缓坡岗丘 (North)
+  [-260, -620, 55, 220, 150],
+  [220, -590, 50, 200, 140],
+  [0, -750, 80, 300, 180]
+];
+
+function getTerrainHeight(x, z) {
+  const rb = getRiverBounds(x);
+  // If point is in Han River channel, depress into riverbed (-1.5 to 0.0)
+  if (z >= rb.north - 15.0 && z <= rb.south + 15.0) {
+    const center = (rb.north + rb.south) * 0.5;
+    const halfW = (rb.south - rb.north) * 0.5;
+    const dist = Math.abs(z - center) / halfW;
+    if (dist < 1.0) {
+      return -1.6 * Math.cos(dist * Math.PI * 0.5); // Concave riverbed
+    }
+  }
+
+  // Inside Xiangyang Ancient City walls: flat historical foundation
+  if (x > -95 && x < 95 && z > -190 && z < 25) return 2.2;
+
+  let h = 2.0;
+  for (let [hx, hz, amp, sx, sz] of mountainRanges) {
+    let dx = (x - hx) / sx;
+    let dz = (z - hz) / sz;
+    h += amp * Math.exp(-(dx * dx + dz * dz));
+  }
+  return h;
+}
+
+// Expansive Terrain Mesh: 1900 x 1900 units
+const terrainWidth = 1900;
+const terrainDepth = 1900;
+const terrainSegs = 180;
+const terrainGeo = new THREE.PlaneGeometry(terrainWidth, terrainDepth, terrainSegs, terrainSegs);
+terrainGeo.rotateX(-Math.PI / 2);
+
+const posAttr = terrainGeo.attributes.position;
+const terrainColors = [];
+const colParchment = new THREE.Color(0xdcc8ab); // Lowland ancient parchment
+const colHill = new THREE.Color(0x828a68);      // Mid hill moss & ochre
+const colMountain = new THREE.Color(0x383e35);  // High peak pine ink
+const tempColor = new THREE.Color();
+
+for (let i = 0; i < posAttr.count; i++) {
+  const x = posAttr.getX(i);
+  const z = posAttr.getZ(i);
+  const y = getTerrainHeight(x, z);
+  posAttr.setY(i, y);
+
+  if (y < 4.0) {
+    tempColor.copy(colParchment);
+  } else if (y < 40.0) {
+    let t = (y - 4.0) / 36.0;
+    tempColor.copy(colParchment).lerp(colHill, t);
+  } else {
+    let t = Math.min(1.0, (y - 40.0) / 60.0);
+    tempColor.copy(colHill).lerp(colMountain, t);
+  }
+  terrainColors.push(tempColor.r, tempColor.g, tempColor.b);
+}
+terrainGeo.setAttribute('color', new THREE.Float32BufferAttribute(terrainColors, 3));
+terrainGeo.computeVertexNormals();
+
+const terrainMat = new THREE.MeshStandardMaterial({
+  vertexColors: true,
+  roughness: 0.96,
+  metalness: 0.04,
+  flatShading: true
+});
+applyInkWashShader(terrainMat);
+
+const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
+terrainMesh.receiveShadow = true;
+scene.add(terrainMesh);
+
+// -------------------------------------------------------------
+// Han River (汉江) & Moat (濠水) Custom Cyan-Green Water
+// -------------------------------------------------------------
+// Rich cyan-green / azure-blue water with Fresnel liquid shine (青碧蔚蓝波光)
+const waterMaterial = new THREE.MeshStandardMaterial({
+  color: 0x0f8296,       // Deep vibrant turquoise cyan-blue (碧水澄潭)
+  roughness: 0.08,       // Silky liquid gloss
+  metalness: 0.38,       // Strong specular sunlight glints
+  transparent: true,
+  opacity: 0.94
+});
+
+// Inject Fresnel reflection and water depth shimmer
+waterMaterial.onBeforeCompile = (shader) => {
+  shader.fragmentShader = shader.fragmentShader.replace(
+    '#include <dithering_fragment>',
+    `#include <dithering_fragment>
+    // Fresnel Reflection for Liquid Water (波光与天光反射)
+    vec3 viewDir = normalize(vViewPosition);
+    float fresnel = pow(1.0 - max(0.0, dot(viewDir, normal)), 3.0);
+    
+    vec3 skyReflect = vec3(1.0, 0.96, 0.88); // Sun glint reflection
+    vec3 deepCyan = vec3(0.06, 0.48, 0.58);   // Pure river cyan-blue
+    gl_FragColor.rgb = mix(deepCyan, skyReflect, fresnel * 0.72);
+    gl_FragColor.rgb += vec3(0.02, 0.12, 0.15); // Vibrant oceanic depth
+    `
+  );
+};
+
+// Generate Parametric River Grid Ribbon across whole horizon (x: -950 to +950)
+const riverNx = 160;
+const riverNz = 28;
+const riverGeo = new THREE.BufferGeometry();
+const riverPositions = [];
+const riverIndices = [];
+
+for (let i = 0; i <= riverNx; i++) {
+  const u = i / riverNx;
+  const rx = -950.0 + u * 1900.0;
+  const rb = getRiverBounds(rx);
+
+  for (let j = 0; j <= riverNz; j++) {
+    const v = j / riverNz;
+    const rz = rb.south + v * (rb.north - rb.south);
+    riverPositions.push(rx, 1.4, rz);
+  }
+}
+
+for (let i = 0; i < riverNx; i++) {
+  for (let j = 0; j < riverNz; j++) {
+    const a = i * (riverNz + 1) + j;
+    const b = (i + 1) * (riverNz + 1) + j;
+    const c = (i + 1) * (riverNz + 1) + (j + 1);
+    const d = i * (riverNz + 1) + (j + 1);
+    riverIndices.push(a, b, d);
+    riverIndices.push(b, c, d);
+  }
+}
+
+riverGeo.setAttribute('position', new THREE.Float32BufferAttribute(riverPositions, 3));
+riverGeo.setIndex(riverIndices);
+riverGeo.computeVertexNormals();
+
+const riverMesh = new THREE.Mesh(riverGeo, waterMaterial);
+riverMesh.receiveShadow = true;
+scene.add(riverMesh);
+
+// Xiangyang Great Moat (濠水 · 华夏第一宽护城河)
+if (GEO_DATA.moats && GEO_DATA.moats.length > 0) {
+  GEO_DATA.moats.forEach((mPts) => {
+    if (mPts.length < 4) return;
+    const moatShape = new THREE.Shape();
+    moatShape.moveTo(mPts[0][0], -mPts[0][1]);
+    for (let i = 1; i < mPts.length; i++) {
+      moatShape.lineTo(mPts[i][0], -mPts[i][1]);
+    }
+    moatShape.closePath();
+    const mGeo = new THREE.ShapeGeometry(moatShape);
+    mGeo.rotateX(-Math.PI / 2);
+    const mMesh = new THREE.Mesh(mGeo, waterMaterial);
+    mMesh.position.y = 2.45;
+    mMesh.receiveShadow = true;
+    scene.add(mMesh);
+  });
+}
+
+// -------------------------------------------------------------
+// City Walls: Extruded from OSM Polygons
+// -------------------------------------------------------------
+const wallsGroup = new THREE.Group();
+const wallHeight = 11.0;
+
+GEO_DATA.walls.forEach((poly) => {
+  if (poly.length < 3) return;
+  const shape = new THREE.Shape();
+  shape.moveTo(poly[0][0], -poly[0][1]);
+  for (let i = 1; i < poly.length; i++) {
+    shape.lineTo(poly[i][0], -poly[i][1]);
+  }
+  shape.closePath();
+
+  const extrudeSettings = {
+    depth: wallHeight,
+    bevelEnabled: true,
+    bevelSegments: 1,
+    steps: 1,
+    bevelSize: 0.35,
+    bevelThickness: 0.35
+  };
+
+  const wallGeo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  wallGeo.rotateX(-Math.PI / 2);
+  const mesh = new THREE.Mesh(wallGeo, matWall);
+  mesh.position.y = 2.0;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  wallsGroup.add(mesh);
+});
+scene.add(wallsGroup);
+
+// Internal Cross Avenues (十字街)
+const roadMat = new THREE.MeshBasicMaterial({ color: 0xc4b297, side: THREE.DoubleSide });
+const aveNS = new THREE.Mesh(new THREE.PlaneGeometry(8, 210), roadMat);
+aveNS.rotateX(-Math.PI / 2);
+aveNS.position.set(0, 2.3, -80);
+scene.add(aveNS);
+
+const aveEW = new THREE.Mesh(new THREE.PlaneGeometry(160, 8), roadMat);
+aveEW.rotateX(-Math.PI / 2);
+aveEW.position.set(0, 2.3, -60);
+scene.add(aveEW);
+
+// -------------------------------------------------------------
+// Procedural Historic Landmarks (Song Architecture)
+// -------------------------------------------------------------
+function createSongRoof(w, l, h) {
+  const geo = new THREE.ConeGeometry(Math.hypot(w, l) * 0.55, h, 4);
+  geo.rotateY(Math.PI / 4);
+  return new THREE.Mesh(geo, matRoof);
+}
+
+// 1. Linhan Gate (临汉门 · 北门)
+const linhanGroup = new THREE.Group();
+const wengBase = new THREE.Mesh(new THREE.CylinderGeometry(18, 20, 10, 16, 1, false, 0, Math.PI), matWall);
+wengBase.position.set(0, 5, -196);
+wengBase.castShadow = true;
+linhanGroup.add(wengBase);
+
+const gateBase = new THREE.Mesh(new THREE.BoxGeometry(26, 12, 14), matWall);
+gateBase.position.set(0, 6, -188);
+gateBase.castShadow = true;
+linhanGroup.add(gateBase);
+
+const archHole = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 14.5, 16), new THREE.MeshBasicMaterial({ color: 0x1a1715 }));
+archHole.rotateX(Math.PI / 2);
+archHole.position.set(0, 4, -188);
+linhanGroup.add(archHole);
+
+const tier1 = new THREE.Mesh(new THREE.BoxGeometry(20, 6, 10), matGateWood);
+tier1.position.set(0, 15, -188);
+linhanGroup.add(tier1);
+const roof1 = createSongRoof(24, 14, 4.5);
+roof1.position.set(0, 18.5, -188);
+linhanGroup.add(roof1);
+
+const tier2 = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 8), matGateWood);
+tier2.position.set(0, 22, -188);
+linhanGroup.add(tier2);
+const roof2 = createSongRoof(18, 12, 4.5);
+roof2.position.set(0, 25.5, -188);
+linhanGroup.add(roof2);
+
+linhanGroup.position.y = 2.0;
+scene.add(linhanGroup);
+
+// 2. Lady City (夫人城 · 西北子城)
+const furenGroup = new THREE.Group();
+const furenPlatform = new THREE.Mesh(new THREE.BoxGeometry(22, 13, 20), matWall);
+furenPlatform.position.set(-86, 6.5, -186);
+furenPlatform.castShadow = true;
+furenGroup.add(furenPlatform);
+
+const furenTower = new THREE.Mesh(new THREE.BoxGeometry(12, 6, 10), matGateWood);
+furenTower.position.set(-86, 16, -186);
+furenGroup.add(furenTower);
+const furenRoof = createSongRoof(16, 14, 4);
+furenRoof.position.set(-86, 20, -186);
+furenGroup.add(furenRoof);
+
+const flagPole = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 10), matRoof);
+flagPole.position.set(-90, 20, -180);
+furenGroup.add(flagPole);
+const flagBanner = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.2), new THREE.MeshBasicMaterial({ color: 0x993328, side: THREE.DoubleSide }));
+flagBanner.position.set(-88.2, 23.5, -180);
+furenGroup.add(flagBanner);
+
+furenGroup.position.y = 2.0;
+scene.add(furenGroup);
+
+// 3. Zhaoming Terrace (昭明台 · 帅府中枢)
+const zhaomingGroup = new THREE.Group();
+const zhaoBase = new THREE.Mesh(new THREE.BoxGeometry(32, 15, 26), matWall);
+zhaoBase.position.set(0, 7.5, -60);
+zhaoBase.castShadow = true;
+zhaomingGroup.add(zhaoBase);
+
+const zhaoArch = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.5, 28, 16), new THREE.MeshBasicMaterial({ color: 0x1a1715 }));
+zhaoArch.rotateX(Math.PI / 2);
+zhaoArch.position.set(0, 4.5, -60);
+zhaomingGroup.add(zhaoArch);
+
+const zhaoPav1 = new THREE.Mesh(new THREE.BoxGeometry(24, 7, 18), matGateWood);
+zhaoPav1.position.set(0, 18.5, -60);
+zhaomingGroup.add(zhaoPav1);
+const zhaoRoof1 = createSongRoof(28, 22, 5);
+zhaoRoof1.position.set(0, 23.5, -60);
+zhaomingGroup.add(zhaoRoof1);
+
+const zhaoPav2 = new THREE.Mesh(new THREE.BoxGeometry(16, 6, 12), matGateWood);
+zhaoPav2.position.set(0, 28, -60);
+zhaomingGroup.add(zhaoPav2);
+const zhaoRoof2 = createSongRoof(20, 16, 5);
+zhaoRoof2.position.set(0, 32.5, -60);
+zhaomingGroup.add(zhaoRoof2);
+
+zhaomingGroup.position.y = 2.0;
+scene.add(zhaomingGroup);
+
+// 4. Zhongxuan Tower (仲宣楼 · 东南角楼)
+const zhongxuanGroup = new THREE.Group();
+const zxBase = new THREE.Mesh(new THREE.BoxGeometry(24, 14, 24), matWall);
+zxBase.position.set(90, 7, 15);
+zxBase.castShadow = true;
+zhongxuanGroup.add(zxBase);
+
+const zxPav1 = new THREE.Mesh(new THREE.BoxGeometry(18, 7, 18), matGateWood);
+zxPav1.position.set(90, 17.5, 15);
+zhongxuanGroup.add(zxPav1);
+const zxRoof1 = createSongRoof(22, 22, 4.5);
+zxRoof1.position.set(90, 22, 15);
+zhongxuanGroup.add(zxRoof1);
+
+const zxPav2 = new THREE.Mesh(new THREE.BoxGeometry(12, 6, 12), matGateWood);
+zxPav2.position.set(90, 26, 15);
+zhongxuanGroup.add(zxPav2);
+const zxRoof2 = createSongRoof(16, 16, 4.5);
+zxRoof2.position.set(90, 30.5, 15);
+zhongxuanGroup.add(zxRoof2);
+
+zhongxuanGroup.position.y = 2.0;
+scene.add(zhongxuanGroup);
+
+// 5. Fancheng Fortress (樊城要塞) on North Bank
+const fanchengGroup = new THREE.Group();
+const fcWall1 = new THREE.Mesh(new THREE.BoxGeometry(140, 9, 8), matWall);
+fcWall1.position.set(20, 4.5, -360);
+fanchengGroup.add(fcWall1);
+const fcWall2 = new THREE.Mesh(new THREE.BoxGeometry(8, 9, 80), matWall);
+fcWall2.position.set(-50, 4.5, -400);
+fanchengGroup.add(fcWall2);
+const fcWall3 = new THREE.Mesh(new THREE.BoxGeometry(8, 9, 80), matWall);
+fcWall3.position.set(90, 4.5, -400);
+fanchengGroup.add(fcWall3);
+
+const fcTower = new THREE.Mesh(new THREE.BoxGeometry(18, 12, 12), matGateWood);
+fcTower.position.set(20, 11, -360);
+fanchengGroup.add(fcTower);
+const fcRoof = createSongRoof(22, 16, 4.5);
+fcRoof.position.set(20, 18, -360);
+fanchengGroup.add(fcRoof);
+
+fanchengGroup.position.y = 1.0;
+scene.add(fanchengGroup);
+
+// 6. Pontoon Bridge across Han River (汉江浮桥与铁索)
+const pontoonGroup = new THREE.Group();
+const boatCount = 15;
+const pStartX = 5;
+const pStartZ = -205;
+const pEndX = 18;
+const pEndZ = -350;
+
+for (let i = 0; i < boatCount; i++) {
+  const t = i / (boatCount - 1);
+  const bx = pStartX + (pEndX - pStartX) * t;
+  const bz = pStartZ + (pEndZ - pStartZ) * t;
+
+  const boat = new THREE.Mesh(new THREE.BoxGeometry(5.5, 2.2, 12), matGateWood);
+  boat.position.set(bx, 1.8, bz);
+  boat.rotateY(Math.PI / 2);
+  pontoonGroup.add(boat);
+
+  const plank = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.4, 14), new THREE.MeshStandardMaterial({ color: 0x8a7255, roughness: 0.9 }));
+  plank.position.set(bx, 3.1, bz);
+  pontoonGroup.add(plank);
+}
+
+const chainMat = new THREE.LineBasicMaterial({ color: 0x222220, linewidth: 2 });
+const chainGeo = new THREE.BufferGeometry().setFromPoints([
+  new THREE.Vector3(pStartX - 12, 3.5, pStartZ),
+  new THREE.Vector3(pEndX - 12, 2.2, pEndZ)
+]);
+pontoonGroup.add(new THREE.Line(chainGeo, chainMat));
+scene.add(pontoonGroup);
+
+// 7. Song Warships Fleet (南宋水军船队 · 车船与艨艟)
+const fleetGroup = new THREE.Group();
+function createWarship(x, z, angle, scale = 1.0) {
+  const ship = new THREE.Group();
+  const hull = new THREE.Mesh(new THREE.BoxGeometry(7 * scale, 3.5 * scale, 22 * scale), matGateWood);
+  hull.position.y = 1.8 * scale;
+  ship.add(hull);
+
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(5 * scale, 3.8 * scale, 10 * scale), matRoof);
+  deck.position.set(0, 4.5 * scale, -1 * scale);
+  ship.add(deck);
+
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.25 * scale, 0.25 * scale, 12 * scale), matWall);
+  mast.position.set(0, 9 * scale, 2 * scale);
+  ship.add(mast);
+
+  const sail = new THREE.Mesh(new THREE.PlaneGeometry(5 * scale, 7 * scale), new THREE.MeshBasicMaterial({ color: 0xdfd4c2, side: THREE.DoubleSide }));
+  sail.position.set(0, 9.5 * scale, 2 * scale);
+  sail.rotateY(Math.PI / 6);
+  ship.add(sail);
+
+  ship.position.set(x, 1.4, z);
+  ship.rotateY(angle);
+  return ship;
+}
+
+fleetGroup.add(createWarship(-90, -250, 0.35, 1.1));
+fleetGroup.add(createWarship(-150, -235, 0.30, 1.0));
+fleetGroup.add(createWarship(110, -240, -0.3, 1.05));
+fleetGroup.add(createWarship(180, -215, -0.45, 0.95));
+fleetGroup.add(createWarship(-320, -230, 0.4, 1.15)); // 万山巡防舰
+scene.add(fleetGroup);
+
+// 8. Counterweight Trebuchets (回回巨炮阵地)
+const trebuchetGroup = new THREE.Group();
+function createTrebuchet(x, z, angle) {
+  const treb = new THREE.Group();
+  const aFrame1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 10, 1.2), matGateWood);
+  aFrame1.position.set(-2, 5, 0);
+  aFrame1.rotateZ(0.2);
+  treb.add(aFrame1);
+  const aFrame2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 10, 1.2), matGateWood);
+  aFrame2.position.set(2, 5, 0);
+  aFrame2.rotateZ(-0.2);
+  treb.add(aFrame2);
+
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(7, 1.2, 1.2), matGateWood);
+  beam.position.set(0, 8.5, 0);
+  treb.add(beam);
+
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(1.2, 18, 1.2), matRoof);
+  arm.position.set(0, 9, 2);
+  arm.rotateX(0.7);
+  treb.add(arm);
+
+  const weight = new THREE.Mesh(new THREE.BoxGeometry(3.5, 3.5, 3.5), matWall);
+  weight.position.set(0, 5, -3);
+  treb.add(weight);
+
+  const base = new THREE.Mesh(new THREE.BoxGeometry(9, 1, 9), matGateWood);
+  base.position.set(0, 0.5, 0);
+  treb.add(base);
+
+  treb.position.set(x, 2.0, z);
+  treb.rotateY(angle);
+  return treb;
+}
+
+trebuchetGroup.add(createTrebuchet(130, -310, -0.6));
+trebuchetGroup.add(createTrebuchet(160, -300, -0.75));
+trebuchetGroup.add(createTrebuchet(185, -280, -0.9));
+scene.add(trebuchetGroup);
+
+// 9. Mount Xian Pavilion (岘山 · 羊祜堕泪碑亭)
+const xianshanGroup = new THREE.Group();
+const xhBase = new THREE.Mesh(new THREE.CylinderGeometry(8, 9, 3, 16), matWall);
+xhBase.position.set(0, 95, 320);
+xianshanGroup.add(xhBase);
+
+const xhPav = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 5.5, 6, 8), matGateWood);
+xhPav.position.set(0, 99.5, 320);
+xianshanGroup.add(xhPav);
+
+const xhRoof = createSongRoof(14, 14, 5);
+xhRoof.position.set(0, 104.5, 320);
+xianshanGroup.add(xhRoof);
+scene.add(xianshanGroup);
+
+// -------------------------------------------------------------
+// Interactive Navigation, Flying Camera & UI
+// -------------------------------------------------------------
+const placesContainer = document.getElementById('places-container');
+const detailCard = document.getElementById('detail-card');
+const cardName = document.getElementById('card-name');
+const cardEn = document.getElementById('card-en');
+const cardSummary = document.getElementById('card-summary');
+const cardFeatures = document.getElementById('card-features');
+const cardPeriod = document.getElementById('card-period');
+const cardQuote = document.getElementById('card-quote');
+const cardClose = document.getElementById('card-close');
+
+let currentActiveItem = null;
+let isFlying = false;
+let flyStartCam = new THREE.Vector3();
+let flyEndCam = new THREE.Vector3();
+let flyStartTar = new THREE.Vector3();
+let flyEndTar = new THREE.Vector3();
+let flyProgress = 0;
+let flyDuration = 60;
+
+function flyTo(targetPos, cameraPos) {
+  flyStartCam.copy(camera.position);
+  flyEndCam.set(...cameraPos);
+  flyStartTar.copy(controls.target);
+  flyEndTar.set(...targetPos);
+  flyProgress = 0;
+  isFlying = true;
+}
+
+// Generate POI Items
+LOCATIONS.forEach((loc, index) => {
+  const item = document.createElement('div');
+  item.className = 'place-item';
+  if (index === 0) item.classList.add('active');
+
+  item.innerHTML = `
+    <div class="place-item-top">
+      <span class="place-name">${loc.name}</span>
+      <span class="place-tag">${loc.tag}</span>
+    </div>
+    <div class="place-snippet">${loc.summary}</div>
+  `;
+
+  item.onclick = () => {
+    selectLocation(loc, item);
+  };
+  placesContainer.appendChild(item);
+});
+
+function selectLocation(loc, elem) {
+  if (currentActiveItem) currentActiveItem.classList.remove('active');
+  elem.classList.add('active');
+  currentActiveItem = elem;
+
+  flyTo(loc.target, loc.camera);
+
+  // Update Detail Card
+  cardName.textContent = loc.name;
+  cardEn.textContent = loc.en;
+  cardSummary.textContent = loc.summary;
+  cardFeatures.textContent = loc.features;
+  cardPeriod.textContent = loc.period;
+  cardQuote.textContent = loc.quote;
+  detailCard.style.display = 'flex';
+}
+
+cardClose.onclick = () => {
+  detailCard.style.display = 'none';
+};
+
+// HUD Controls
+document.getElementById('btn-reset').onclick = () => {
+  const defaultLoc = LOCATIONS[0];
+  const firstElem = placesContainer.firstElementChild;
+  selectLocation(defaultLoc, firstElem);
+};
+
+let autoRotate = false;
+const rotateBtn = document.getElementById('btn-rotate');
+rotateBtn.onclick = () => {
+  autoRotate = !autoRotate;
+  controls.autoRotate = autoRotate;
+  controls.autoRotateSpeed = 0.6;
+  rotateBtn.style.color = autoRotate ? '#b83d31' : '';
+};
+
+// Layer Toggles
+const btnWalls = document.getElementById('toggle-walls');
+btnWalls.onclick = () => {
+  const on = btnWalls.getAttribute('aria-pressed') === 'true';
+  btnWalls.setAttribute('aria-pressed', String(!on));
+  wallsGroup.visible = !on;
+  linhanGroup.visible = !on;
+  furenGroup.visible = !on;
+  zhaomingGroup.visible = !on;
+  zhongxuanGroup.visible = !on;
+  fanchengGroup.visible = !on;
+};
+
+const btnFleet = document.getElementById('toggle-fleet');
+btnFleet.onclick = () => {
+  const on = btnFleet.getAttribute('aria-pressed') === 'true';
+  btnFleet.setAttribute('aria-pressed', String(!on));
+  fleetGroup.visible = !on;
+  pontoonGroup.visible = !on;
+};
+
+const btnTreb = document.getElementById('toggle-trebuchet');
+btnTreb.onclick = () => {
+  const on = btnTreb.getAttribute('aria-pressed') === 'true';
+  btnTreb.setAttribute('aria-pressed', String(!on));
+  trebuchetGroup.visible = !on;
+};
+
+// Window Resize Handling
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Render Loop with Real-Time Fluid River Wave Simulation
+let clock = new THREE.Clock();
+const riverPos = riverGeo.attributes.position;
+const baseRiverY = new Float32Array(riverPos.count);
+for (let i = 0; i < riverPos.count; i++) {
+  baseRiverY[i] = riverPos.getY(i);
+}
+
+let frameCount = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const delta = clock.getDelta();
+  const time = clock.getElapsedTime();
+  frameCount++;
+
+  // 1. Dynamic Rolling River Waves (真实波光与江水流动)
+  for (let i = 0; i < riverPos.count; i++) {
+    const rx = riverPos.getX(i);
+    const rz = riverPos.getZ(i);
+    // Compound sinusoidal wave flowing eastward along the Han River
+    const wave = Math.sin(rx * 0.04 - time * 2.5 + rz * 0.05) * 0.65
+               + Math.cos(rz * 0.07 + time * 1.8 + rx * 0.03) * 0.40
+               + Math.sin((rx + rz) * 0.05 - time * 3.0) * 0.15;
+    riverPos.setY(i, baseRiverY[i] + wave);
+  }
+  riverPos.needsUpdate = true;
+
+  // Recompute normals every 2 frames for glistening specular wave glints
+  if (frameCount % 2 === 0) {
+    riverGeo.computeVertexNormals();
+  }
+
+  // 2. Warships gently bobbing and rocking on the waves
+  fleetGroup.children.forEach((ship, idx) => {
+    ship.position.y = 1.4 + Math.sin(time * 2.2 + idx * 1.2) * 0.18;
+    ship.rotation.z = Math.sin(time * 1.8 + idx) * 0.03;
+    ship.rotation.x = Math.cos(time * 1.4 + idx) * 0.02;
+  });
+
+  // 3. Camera Fly Transition
+  if (isFlying) {
+    flyProgress++;
+    let t = flyProgress / flyDuration;
+    let ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    camera.position.lerpVectors(flyStartCam, flyEndCam, ease);
+    controls.target.lerpVectors(flyStartTar, flyEndTar, ease);
+
+    if (flyProgress >= flyDuration) {
+      isFlying = false;
+    }
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+animate();
+setTimeout(() => {
+  selectLocation(LOCATIONS[0], placesContainer.firstElementChild);
+}, 200);
+
+</script>
+</body>
+</html>

@@ -66,14 +66,18 @@
     /* Tab 导航 */
     .tabs-nav {
       display: flex;
+      flex-direction: column;
       gap: 10px;
       border-bottom: 1px solid var(--border-color);
-      padding-bottom: 14px;
+      padding-bottom: 16px;
       margin-bottom: 28px;
-      overflow-x: auto;
-      scrollbar-width: none;
     }
-    .tabs-nav::-webkit-scrollbar { display: none; }
+    .tabs-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
     .tab-btn {
       background: #0F172A;
       border: 1px solid #1E293B;
@@ -181,6 +185,100 @@
     }
     ul.fact-list li { margin-bottom: 8px; line-height: 1.6; }
     strong { color: #F1F5F9; }
+
+    /* 逆向溯源面板专属样式 */
+    .reverse-filter-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .filter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .filter-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .filter-groups {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .group-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .group-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      width: 68px;
+      flex-shrink: 0;
+      letter-spacing: 0.04em;
+    }
+    .group-buttons {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .rev-btn {
+      background: #0B132B;
+      border: 1px solid #1E293B;
+      color: var(--text-secondary);
+      padding: 5px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .rev-btn:hover {
+      background: #1E293B;
+      color: #FFF;
+      border-color: #475569;
+    }
+    .rev-btn.active {
+      background: #1E293B;
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+    .rev-btn .ipa {
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--text-muted);
+    }
+    .rev-btn.active .ipa {
+      color: var(--accent-cyan);
+      opacity: 0.8;
+    }
+    .rev-btn.overview-btn {
+      background: linear-gradient(135deg, #1E1B4B, #0F172A);
+      border-color: #4338CA;
+      color: #A5B4FC;
+    }
+    .rev-btn.overview-btn.active {
+      border-color: #818CF8;
+      color: #FFF;
+      box-shadow: 0 0 14px rgba(129, 140, 248, 0.35);
+    }
   </style>
 </head>
 <body>
@@ -192,14 +290,19 @@
     <p class="subtitle">全面展现三千年语音大分化与大合流：上古复辅音解体、中古尖团知庄章鼎立、近代北方官话清化合并规则全景。</p>
   </header>
 
-  <!-- 导航 Tabs -->
+  <!-- 导航 Tabs (两行响应式布局，方便扩展) -->
   <div class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab(0)">00. 宏观演变演化树概览</button>
-    <button class="tab-btn" onclick="switchTab(1)">01. 尖团合流 (j, q, x)</button>
-    <button class="tab-btn" onclick="switchTab(2)">02. 卷舌四合一 (zh, ch, sh, r)</button>
-    <button class="tab-btn" onclick="switchTab(3)">03. 全浊清化 (平送仄不送)</button>
-    <button class="tab-btn" onclick="switchTab(4)">04. 轻唇化诞生 (f)</button>
-    <button class="tab-btn" onclick="switchTab(5)">05. 喉鼻弱化 (零声母与 h)</button>
+    <div class="tabs-row">
+      <button class="tab-btn active" onclick="switchTab(0)">00. 宏观演变演化树概览</button>
+      <button class="tab-btn" onclick="switchTab(1)">01. 尖团合流 (j, q, x)</button>
+      <button class="tab-btn" onclick="switchTab(2)">02. 卷舌四合一 (zh, ch, sh, r)</button>
+      <button class="tab-btn" onclick="switchTab(3)">03. 全浊清化 (平送仄不送)</button>
+    </div>
+    <div class="tabs-row">
+      <button class="tab-btn" onclick="switchTab(4)">04. 轻唇化诞生 (f)</button>
+      <button class="tab-btn" onclick="switchTab(5)">05. 喉鼻弱化 (零声母与 h)</button>
+      <button class="tab-btn" onclick="switchTab(6)">06. 现代声母逆向溯源 (Reverse Trace)</button>
+    </div>
   </div>
 
   <!-- ================= TAB 0: 全局总览 (宽幅重构大图) ================= -->
@@ -1178,6 +1281,93 @@
     </div>
   </div>
 
+
+  <!-- ================= TAB 6: 现代声母逆向溯源图 (Modern → Ancient) ================= -->
+  <div class="tab-pane" id="pane-6">
+    <!-- 顶部交互选择栏 -->
+    <div class="reverse-filter-bar">
+      <div class="filter-header">
+        <div class="filter-title">
+          <span style="color:var(--accent-cyan); font-size: 18px;">◈</span>
+          <span>现代 21 声母逆向音变溯源检索系统 (Reverse Consonant Origin Explorer)</span>
+        </div>
+        <button class="rev-btn overview-btn" id="btn-rev-all" onclick="selectReverseInitial('all')">
+          <span>🌟 全景逆向总谱 (All 21 Overview)</span>
+        </button>
+      </div>
+
+      <div class="filter-groups">
+        <div class="group-row">
+          <span class="group-label">双唇/唇齿</span>
+          <div class="group-buttons">
+            <button class="rev-btn" id="btn-rev-b" onclick="selectReverseInitial('b')">b <span class="ipa">[p]</span></button>
+            <button class="rev-btn" id="btn-rev-p" onclick="selectReverseInitial('p')">p <span class="ipa">[pʰ]</span></button>
+            <button class="rev-btn" id="btn-rev-m" onclick="selectReverseInitial('m')">m <span class="ipa">[m]</span></button>
+            <button class="rev-btn" id="btn-rev-f" onclick="selectReverseInitial('f')">f <span class="ipa">[f]</span></button>
+          </div>
+        </div>
+
+        <div class="group-row">
+          <span class="group-label">舌尖中音</span>
+          <div class="group-buttons">
+            <button class="rev-btn" id="btn-rev-d" onclick="selectReverseInitial('d')">d <span class="ipa">[t]</span></button>
+            <button class="rev-btn" id="btn-rev-t" onclick="selectReverseInitial('t')">t <span class="ipa">[tʰ]</span></button>
+            <button class="rev-btn" id="btn-rev-n" onclick="selectReverseInitial('n')">n <span class="ipa">[n]</span></button>
+            <button class="rev-btn" id="btn-rev-l" onclick="selectReverseInitial('l')">l <span class="ipa">[l]</span></button>
+          </div>
+        </div>
+
+        <div class="group-row">
+          <span class="group-label">舌根音</span>
+          <div class="group-buttons">
+            <button class="rev-btn" id="btn-rev-g" onclick="selectReverseInitial('g')">g <span class="ipa">[k]</span></button>
+            <button class="rev-btn" id="btn-rev-k" onclick="selectReverseInitial('k')">k <span class="ipa">[kʰ]</span></button>
+            <button class="rev-btn" id="btn-rev-h" onclick="selectReverseInitial('h')">h <span class="ipa">[x]</span></button>
+          </div>
+        </div>
+
+        <div class="group-row">
+          <span class="group-label">舌面音</span>
+          <div class="group-buttons">
+            <button class="rev-btn active" id="btn-rev-j" onclick="selectReverseInitial('j')">j <span class="ipa">[tɕ]</span></button>
+            <button class="rev-btn" id="btn-rev-q" onclick="selectReverseInitial('q')">q <span class="ipa">[tɕʰ]</span></button>
+            <button class="rev-btn" id="btn-rev-x" onclick="selectReverseInitial('x')">x <span class="ipa">[ɕ]</span></button>
+          </div>
+        </div>
+
+        <div class="group-row">
+          <span class="group-label">翘舌音</span>
+          <div class="group-buttons">
+            <button class="rev-btn" id="btn-rev-zh" onclick="selectReverseInitial('zh')">zh <span class="ipa">[tʂ]</span></button>
+            <button class="rev-btn" id="btn-rev-ch" onclick="selectReverseInitial('ch')">ch <span class="ipa">[tʂʰ]</span></button>
+            <button class="rev-btn" id="btn-rev-sh" onclick="selectReverseInitial('sh')">sh <span class="ipa">[ʂ]</span></button>
+            <button class="rev-btn" id="btn-rev-r" onclick="selectReverseInitial('r')">r <span class="ipa">[ʐ]</span></button>
+          </div>
+        </div>
+
+        <div class="group-row">
+          <span class="group-label">平舌音</span>
+          <div class="group-buttons">
+            <button class="rev-btn" id="btn-rev-z" onclick="selectReverseInitial('z')">z <span class="ipa">[ts]</span></button>
+            <button class="rev-btn" id="btn-rev-c" onclick="selectReverseInitial('c')">c <span class="ipa">[tsʰ]</span></button>
+            <button class="rev-btn" id="btn-rev-s" onclick="selectReverseInitial('s')">s <span class="ipa">[s]</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主展示区：SVG 逆向溯源图 + 历史分析卡片 -->
+    <div class="grid-2col">
+      <div class="svg-wrapper" id="rev-svg-wrapper">
+        <!-- 由 JavaScript 动态渲染高精度 SVG 拓扑图 -->
+      </div>
+
+      <div class="info-panel" id="rev-info-panel">
+        <!-- 由 JavaScript 动态渲染三千年音变拆解卡片 -->
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1194,7 +1384,1504 @@
         panes[i].classList.remove('active');
       }
     });
+
+    if (index === 6) {
+      selectReverseInitial(currentRevInitial || 'j');
+    }
   }
+
+
+  // ================= 现代声母逆向溯源系统逻辑 =================
+  const REV_PHONOLOGY_DATA = {
+  "j": {
+    "pinyin": "j",
+    "ipa": "[tɕ]",
+    "name": "舌面不送气清塞擦音",
+    "ruleTags": [
+      "尖团合流",
+      "全浊清化·仄不送气",
+      "古无舌面音"
+    ],
+    "modernDesc": "现代普通话中仅能拼齐齿呼（i介音）和撮口呼（ü介音），严禁拼开口呼与合口呼。",
+    "hubTitle": "清代中叶【尖团合流】与元代【全浊仄不送气】",
+    "hubDesc": "受前高元音 [i/y] 强烈前引，舌根软腭音前移、舌尖牙龈音后退，在硬腭前部合流为舌面音。",
+    "streams": [
+      {
+        "name": "团音源流（见组细音颚化）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "见母 [k] (全清)",
+            "cond": "三四等细音（齐齿/撮口呼）",
+            "words": "鸡、吉、京、交、今、居、家、九"
+          },
+          {
+            "mother": "群母 [ɡ] (全浊)",
+            "cond": "三四等细音 · 仄声（仄不送气）",
+            "words": "巨、件、技、剧、倦、拒、跪"
+          }
+        ],
+        "oldSource": "上古舌根塞音 *k- / *ɡ-。齐齿撮口介音拉引软腭向前颚化。"
+      },
+      {
+        "name": "尖音源流（精组细音颚化）",
+        "color": "#FBBF24",
+        "midSources": [
+          {
+            "mother": "精母 [ts] (全清)",
+            "cond": "三四等细音（齐齿/撮口呼）",
+            "words": "尖、节、挤、焦、精、酒、借、箭"
+          },
+          {
+            "mother": "从母 [dz] (全浊)",
+            "cond": "三四等细音 · 仄声（仄不送气）",
+            "words": "净、截、绝、捷、践、匠、自(部分)"
+          }
+        ],
+        "oldSource": "上古齿头塞擦音 *ts- / *dz-。受高前元音影响牙龈后移。"
+      }
+    ],
+    "oldLaw": "钱大昕/王力【古无舌面音】；字证：“鸡”从“奚”（匣母，古舌根音）；“尖”从“小”（心母，古齿音）；“借”从“昔”（心母）。",
+    "dialectNote": "传统京剧韵白严格分尖团：“剑 (团)” ≠ “箭 (尖)”。闽南语完整保留舌根原音：“家”读 ke，“九”读 kau。"
+  },
+  "q": {
+    "pinyin": "q",
+    "ipa": "[tɕʰ]",
+    "name": "舌面送气清塞擦音",
+    "ruleTags": [
+      "尖团合流",
+      "全浊清化·平送气",
+      "古无舌面音"
+    ],
+    "modernDesc": "发音部位与 j 完全相同，除阻时伴随强烈气流，仅拼齐齿呼与撮口呼。",
+    "hubTitle": "【尖团合流】与【全浊平声送气】",
+    "hubDesc": "溪母细音与清母细音天然送气；群母平声与从母平声在全浊清化中被强迫送气，合为 q。",
+    "streams": [
+      {
+        "name": "团音源流（溪母细音/群母平声）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "溪母 [kʰ] (次清)",
+            "cond": "三四等细音（齐齿/撮口呼）",
+            "words": "欺、牵、缺、去、乞、气、轻、区"
+          },
+          {
+            "mother": "群母 [ɡ] (全浊)",
+            "cond": "三四等细音 · 平声（平送气阳平）",
+            "words": "桥、穷、求、奇、琴、棋、群"
+          }
+        ],
+        "oldSource": "上古软腭送气塞音 *kʰ- 及 *ɡ- (平声)。"
+      },
+      {
+        "name": "尖音源流（清母细音/从母平声）",
+        "color": "#FBBF24",
+        "midSources": [
+          {
+            "mother": "清母 [tsʰ] (次清)",
+            "cond": "三四等细音（齐齿/撮口呼）",
+            "words": "千、秋、亲、切、七、趣、青、妻"
+          },
+          {
+            "mother": "从母 [dz] (全浊)",
+            "cond": "三四等细音 · 平声（平送气阳平）",
+            "words": "前、全、齐、情、秦、潜、慈(部分)"
+          }
+        ],
+        "oldSource": "上古齿头送气塞擦音 *tsʰ- 及 *dz- (平声)。"
+      }
+    ],
+    "oldLaw": "钱大昕【古无舌面音】；字证：“桥”从“乔”（从母/群母），闽南语读 kio；“千”从“人”，古代与“身”通。",
+    "dialectNote": "京剧韵白中“欺 (团)”不等于“妻 (尖)”。闽南语保留古软腭音：“客”读 khe，“去”读 khi。"
+  },
+  "x": {
+    "pinyin": "x",
+    "ipa": "[ɕ]",
+    "name": "舌面清擦音",
+    "ruleTags": [
+      "尖团合流",
+      "喉牙颚化",
+      "古无舌面音"
+    ],
+    "modernDesc": "舌面硬腭狭缝摩擦而出，声带不振动。仅能拼齐齿呼与撮口呼。",
+    "hubTitle": "【尖团合流】与【晓匣/心邪颚化】",
+    "hubDesc": "中古喉牙清/浊擦音（晓匣）细音与舌尖齿擦音（心邪）细音在齐齿呼前共同颚化为 x。",
+    "streams": [
+      {
+        "name": "团音源流（晓匣喉牙擦音）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "晓母 [x] (全清)",
+            "cond": "三四等细音",
+            "words": "休、香、虚、凶、喜、希、显、向"
+          },
+          {
+            "mother": "匣母 [ɣ] (全浊)",
+            "cond": "三四等细音 · 全浊清化",
+            "words": "鞋、下、峡、现、形、学、黠、限"
+          }
+        ],
+        "oldSource": "上古喉牙擦音 *x-, *ɣ- / *ɢ-。"
+      },
+      {
+        "name": "尖音源流（心邪舌尖擦音）",
+        "color": "#FBBF24",
+        "midSources": [
+          {
+            "mother": "心母 [s] (全清)",
+            "cond": "三四等细音",
+            "words": "心、星、西、仙、小、修、洗、新、写"
+          },
+          {
+            "mother": "邪母 [z] (全浊)",
+            "cond": "三四等细音 · 全浊清化",
+            "words": "谢、席、习、详、巡、徐、夕、象"
+          }
+        ],
+        "oldSource": "上古舌尖齿擦音 *s-, *z-。"
+      }
+    ],
+    "oldLaw": "钱大昕【古无舌面音】；字证：“鞋”从“圭”（见母k-）；“下”古通“户”（匣母ɣ-）；“星”从“生”（心母）。",
+    "dialectNote": "京剧韵白严格区分“欣 (团)” ≠ “心 (尖)”。粤语见系字不颚化：“希”读 hei，“下”读 ha。"
+  },
+  "zh": {
+    "pinyin": "zh",
+    "ipa": "[tʂ]",
+    "name": "翘舌不送气清塞擦音",
+    "ruleTags": [
+      "卷舌四合一",
+      "知庄章合流",
+      "古无舌上音",
+      "全浊仄不送气"
+    ],
+    "modernDesc": "现代卷舌声母主力，舌尖上翘接触硬腭前部，形成阻碍后微开缝隙，不送气。",
+    "hubTitle": "明清【知庄章合流】与元代【全浊仄不送气】",
+    "hubDesc": "中古知组（舌上音）、庄组（照二）、章组（照三）及澄崇浊音在北方话中卷舌化合并为 zh。",
+    "streams": [
+      {
+        "name": "舌上音流（知组）",
+        "color": "#34D399",
+        "midSources": [
+          {
+            "mother": "知母 [ʈ] (全清)",
+            "cond": "二三等字（古舌上音）",
+            "words": "智、中、知、竹、猪、朝、张、珍"
+          },
+          {
+            "mother": "澄母 [ɖ] (全浊)",
+            "cond": "二三等 · 仄声（仄不送气）",
+            "words": "重(去)、直、住、丈、阵、召、宅"
+          }
+        ],
+        "oldSource": "钱大昕【古无舌上音】：上古归端母、定母（舌尖塞音 *t-, *d-）。"
+      },
+      {
+        "name": "正齿/齿头流（庄章崇组）",
+        "color": "#FB923C",
+        "midSources": [
+          {
+            "mother": "庄母 [tʂ] (全清)",
+            "cond": "照二等字",
+            "words": "庄、抓、爪、捉、争、邹、斋"
+          },
+          {
+            "mother": "章母 [tɕ] (全清)",
+            "cond": "照三等字",
+            "words": "招、正、真、章、专、主、终、周"
+          },
+          {
+            "mother": "崇母 [dʐ] (全浊)",
+            "cond": "照二 · 仄声（仄不送气）",
+            "words": "助、栈、骤、窄、酌"
+          }
+        ],
+        "oldSource": "黄侃【照二归精，照三归端】；白一平复辅音 *tr-, *kr- 卷舌化。"
+      }
+    ],
+    "oldLaw": "钱大昕【古无舌上音】、黄侃【照二归精照三归端】；字证：“竹”(zhú) 从“笃”(dǔ) 省声；“重”(zhòng) 与“童”(tóng) 同源。",
+    "dialectNote": "闽南语保留上古舌尖塞音：“猪”读 di，“茶”读 de，“直”读 dit。南方多方言平翘不分合读 z。"
+  },
+  "ch": {
+    "pinyin": "ch",
+    "ipa": "[tʂʰ]",
+    "name": "翘舌送气清塞擦音",
+    "ruleTags": [
+      "卷舌四合一",
+      "全浊清化·平送气",
+      "古无舌上音"
+    ],
+    "modernDesc": "发音部位与 zh 相同，除阻时强气流喷涌，现代普通话主要卷舌送气塞擦音。",
+    "hubTitle": "【卷舌四合一】与【全浊平声送气】",
+    "hubDesc": "中古彻母、初母、昌母及澄崇平声浊音字清化后统一并入翘舌送气音 ch。",
+    "streams": [
+      {
+        "name": "舌上音流（彻澄平）",
+        "color": "#34D399",
+        "midSources": [
+          {
+            "mother": "彻母 [ʈʰ] (次清)",
+            "cond": "二三等舌上音",
+            "words": "尺、抽、超、出、春、丑、秤"
+          },
+          {
+            "mother": "澄母 [ɖ] (全浊)",
+            "cond": "平声（全浊平送气阳平）",
+            "words": "池、长、晨、虫、茶、迟、潮、重(阳平)"
+          }
+        ],
+        "oldSource": "钱大昕【古无舌上音】：彻母上古归透母 *tʰ-，澄母平声归定母 *d-。"
+      },
+      {
+        "name": "正齿/齿头流（初昌崇平）",
+        "color": "#FB923C",
+        "midSources": [
+          {
+            "mother": "初母 [tʂʰ] (次清)",
+            "cond": "照二等字",
+            "words": "初、插、差、策、抄、楚、创"
+          },
+          {
+            "mother": "昌母 [tɕʰ] (次清)",
+            "cond": "照三等字",
+            "words": "昌、充、唱、车、吹、穿、齿"
+          },
+          {
+            "mother": "崇母 [dʐ] (全浊)",
+            "cond": "平声（全浊平送气阳平）",
+            "words": "柴、查、成、床、崇、愁"
+          }
+        ],
+        "oldSource": "初母归清母 *tsʰ-，昌母归透母 *tʰ-；上古复辅音 *tʰr-, *dzr- 解体。"
+      }
+    ],
+    "oldLaw": "字证：“长”平声读 cháng (送气)，去声读 zhàng/zhǎng (不送气)；“茶”在福建话读 te，客家话读 tsa。",
+    "dialectNote": "客家话与粤语部分字读 c [tsʰ]；闽南语中澄母平声字多读 t- / th-。"
+  },
+  "sh": {
+    "pinyin": "sh",
+    "ipa": "[ʂ]",
+    "name": "翘舌清擦音",
+    "ruleTags": [
+      "卷舌四合一",
+      "照二照三合流",
+      "全浊清化"
+    ],
+    "modernDesc": "舌尖上翘逼近硬腭前部形成窄缝，气流摩擦而出，声带不振动。",
+    "hubTitle": "【卷舌四合一】与【正齿浊音清化】",
+    "hubDesc": "中古生母（照二）、书母（照三）及船母、禅母浊音清化后合并为 sh。",
+    "streams": [
+      {
+        "name": "照二照三清擦音",
+        "color": "#34D399",
+        "midSources": [
+          {
+            "mother": "生母 [ʂ] (全清)",
+            "cond": "照二等擦音",
+            "words": "生、沙、师、双、数、山、省、色"
+          },
+          {
+            "mother": "书母 [ɕ] (全清)",
+            "cond": "照三等擦音",
+            "words": "书、水、诗、手、世、少、赏、深"
+          }
+        ],
+        "oldSource": "黄侃【照二归精，照三归端】；生母上古源自齿擦音 *s-。"
+      },
+      {
+        "name": "正齿浊擦音/塞擦音",
+        "color": "#FB923C",
+        "midSources": [
+          {
+            "mother": "船母 [ʑ] (全浊)",
+            "cond": "照三等（清化归 sh）",
+            "words": "船、唇、成、韶、石、十、熟、乘"
+          },
+          {
+            "mother": "禅母 [dʑ] (全浊)",
+            "cond": "照三等（清化归 sh）",
+            "words": "善、是、常、社、谁、时、顺、市"
+          }
+        ],
+        "oldSource": "上古透/定/心组复辅音 *st-, *sl-, *l̥- 等弱化。"
+      }
+    ],
+    "oldLaw": "钱大昕、黄侃古音说；字证：“谁”古音读同“推”；“社”古音从“土”（定母t-）；“蛇”古音通“它”。",
+    "dialectNote": "南方方言（闽、粤、吴）普遍无翘舌音，sh 多数读为 s [s] 或 ɕ [x]。"
+  },
+  "r": {
+    "pinyin": "r",
+    "ipa": "[ʐ]",
+    "name": "翘舌浊擦音",
+    "ruleTags": [
+      "日母演进",
+      "娘日归泥",
+      "次浊擦音化"
+    ],
+    "modernDesc": "普通话唯一的卷舌浊擦音，声带振动，发音部位与 sh 对应。",
+    "hubTitle": "近古【日母硬腭鼻音向卷舌浊擦音演进】",
+    "hubDesc": "中古日母 [ȵʑ/ɲ] 鼻音成分脱落剥离，向卷舌浊擦音 [ʐ] 演进，极细音字转零声母儿化。",
+    "streams": [
+      {
+        "name": "日母主流演变",
+        "color": "#C084FC",
+        "midSources": [
+          {
+            "mother": "日母 [ȵʑ / ɲ] (次浊)",
+            "cond": "非细音儿化的大部分字",
+            "words": "日、热、肉、让、如、人、然、若、软、容、润"
+          }
+        ],
+        "oldSource": "钱大昕【娘日归泥】：日母上古源自舌尖鼻音 *n- 或带介音的 *nj- / *n-r-。"
+      },
+      {
+        "name": "日母儿化分流（对照）",
+        "color": "#64748B",
+        "midSources": [
+          {
+            "mother": "日母极细音字",
+            "cond": "北方话向零声母/卷舌元音分流",
+            "words": "儿、耳、二、尔、饵、贰"
+          }
+        ],
+        "oldSource": "声母辅音完全脱落，元音央化卷舌成 er。"
+      }
+    ],
+    "oldLaw": "钱大昕【娘日归泥】；字证：“如”与“女”同源；“然”从“犬”；“若”古通“匿/诺”；“儿”古读 ni。",
+    "dialectNote": "吴语读 ȵ-（如“日”读 nyiq）；客家话读 ng-；闽南语读 j- 或 l-（如“人”读 lang/jin）。"
+  },
+  "b": {
+    "pinyin": "b",
+    "ipa": "[p]",
+    "name": "双唇清不送气塞音",
+    "ruleTags": [
+      "帮母全清",
+      "全浊清化·仄不送气",
+      "古无轻唇音"
+    ],
+    "modernDesc": "发音时双唇闭塞，软腭上升，气流到达双唇后瞬间爆破，声带不振动，不送气。",
+    "hubTitle": "【帮母传承】与【并母仄声清化】",
+    "hubDesc": "中古帮母开合口非轻唇字古今稳定传承；并母仄声字（上、去、入声）清化为不送气 b。",
+    "streams": [
+      {
+        "name": "帮母原生流（全清）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "帮母 [p] (全清)",
+            "cond": "一二四等开合口大部分",
+            "words": "包、保、奔、表、笔、波、布、百、北、班"
+          }
+        ],
+        "oldSource": "上古帮母 *p-，稳定传承两千年。"
+      },
+      {
+        "name": "并母仄声流（全浊）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "并母 [b] (全浊)",
+            "cond": "上声/去声/入声（仄不送气）",
+            "words": "病、步、白、被、倍、败、薄、拔、辩、暴"
+          }
+        ],
+        "oldSource": "上古并母 *b-，元代《中原音韵》清化转入 b。"
+      }
+    ],
+    "oldLaw": "钱大昕【古无轻唇音】；形声分流：同声符“包”(帮母b-)与“胞”(滂母p-)、“庖”(并母páo)；“白”古入声故归仄不送气。",
+    "dialectNote": "吴语（苏沪温）至今保留并母真正带声浊音 [b]；闽南语保留古双唇塞音。"
+  },
+  "p": {
+    "pinyin": "p",
+    "ipa": "[pʰ]",
+    "name": "双唇清送气塞音",
+    "ruleTags": [
+      "滂母次清",
+      "全浊清化·平送气",
+      "古无轻唇音"
+    ],
+    "modernDesc": "发音部位与 b 完全相同，但除阻时有强气流喷出。",
+    "hubTitle": "【滂母传承】与【并母平声清化送气】",
+    "hubDesc": "中古次清滂母天生送气；并母平声字在清化中为补偿声调基频，气流喷涌特征被放大留存为 p。",
+    "streams": [
+      {
+        "name": "滂母原生流（次清）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "滂母 [pʰ] (次清)",
+            "cond": "非轻唇化字",
+            "words": "普、排、盼、旁、判、品、破、批、偏、片"
+          }
+        ],
+        "oldSource": "上古滂母 *pʰ-。"
+      },
+      {
+        "name": "并母平声流（全浊）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "并母 [b] (全浊)",
+            "cond": "平声（平送气 · 阳平第二声）",
+            "words": "平、爬、朋、庞、皮、瓶、旁、盘、牌、婆"
+          }
+        ],
+        "oldSource": "上古并母 *b- (平声字)。"
+      }
+    ],
+    "oldLaw": "字证：“皮”(pí，并母) 与“波”(bō，帮母)；“平”(píng，并母) 与“病”(bìng，并母仄声)；送气状态由声调决定。",
+    "dialectNote": "吴语保留并母浊音 [b]；客家话、粤语亦严格遵循平送仄不送规律。"
+  },
+  "m": {
+    "pinyin": "m",
+    "ipa": "[m]",
+    "name": "双唇鼻音浊音",
+    "ruleTags": [
+      "明母次浊",
+      "古今稳定",
+      "轻唇化分化对照"
+    ],
+    "modernDesc": "双唇闭合，软腭下垂，气流由鼻腔透出，声带振动。三千年来稳定性极强。",
+    "hubTitle": "【明母三千年超强稳定性传承】",
+    "hubDesc": "绝大部分汉字直接继承中古明母；仅三等合口字在唐末轻唇化中分化为微母 [ɱ/v]，后转零声母。",
+    "streams": [
+      {
+        "name": "明母主流传承",
+        "color": "#34D399",
+        "midSources": [
+          {
+            "mother": "明母 [m] (次浊)",
+            "cond": "非三等合口绝大部分字",
+            "words": "妈、麻、马、门、免、买、慢、明、木、满、密、暮"
+          }
+        ],
+        "oldSource": "先秦上古明母 *m-。中国语音史上最稳定的声母之一。"
+      },
+      {
+        "name": "微母分化分支（对照）",
+        "color": "#64748B",
+        "midSources": [
+          {
+            "mother": "明母三等合口字",
+            "cond": "唐宋轻唇化转微母，后归零声母 w",
+            "words": "问、晚、万、文、物、望、无、武"
+          }
+        ],
+        "oldSource": "原本属于重唇 m，因后接圆唇元音分化。"
+      }
+    ],
+    "oldLaw": "字证：“问、晚、万”古代均读 m；闽南语中“问”读 mng，“望”读 mang；现代日语音读中“万”读 ban/man。",
+    "dialectNote": "全国各大方言对明母保留高度一致，几乎无任何异议。"
+  },
+  "f": {
+    "pinyin": "f",
+    "ipa": "[f]",
+    "name": "唇齿清擦音",
+    "ruleTags": [
+      "轻唇化诞生",
+      "古无轻唇音",
+      "三母合一"
+    ],
+    "modernDesc": "上齿轻触下唇形成狭缝，气流摩擦而出。是汉语历史音变中产生最晚的声类之一。",
+    "hubTitle": "唐末宋初【轻重唇分化（轻唇化）】",
+    "hubDesc": "中古重唇音（帮滂并母）三等合口字，受紧喉圆唇介音诱发，双唇闭塞软化为唇齿摩擦，合为 f。",
+    "streams": [
+      {
+        "name": "帮母三等轻唇化（非母）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "非母 [f] (全清)",
+            "cond": "帮母三等合口字",
+            "words": "飞、反、分、方、放、夫、法、风、发"
+          }
+        ],
+        "oldSource": "上古帮母 *p-。钱大昕“古无轻唇音”。"
+      },
+      {
+        "name": "滂并母三等轻唇化（敷/奉母）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "敷母 [fʰ] (次清)",
+            "cond": "滂母三等合口字",
+            "words": "丰、芳、肺、蜂、泛、妃"
+          },
+          {
+            "mother": "奉母 [v] (全浊)",
+            "cond": "并母三等合口字 · 全浊清化",
+            "words": "房、浮、凡、附、服、佛、犯、父、辅"
+          }
+        ],
+        "oldSource": "上古滂母 *pʰ- 与并母 *b-。"
+      }
+    ],
+    "oldLaw": "钱大昕【古无轻唇音】；字证：“朋”(péng) 与“凤”(fèng) 同声符；“分”(fēn) 与“盆”(pén) 同声符；“番”(fān) 与“潘”(pān)/“播”(bō) 通假。",
+    "dialectNote": "闽南语为中古前活化石，无 f 声母：“分”读 pun，“飞”读 bue，“饭”读 png。"
+  },
+  "d": {
+    "pinyin": "d",
+    "ipa": "[t]",
+    "name": "舌尖中清不送气塞音",
+    "ruleTags": [
+      "端母全清",
+      "全浊清化·仄不送气",
+      "古无舌上音"
+    ],
+    "modernDesc": "舌尖紧贴上齿龈形成阻塞，瞬间除阻爆破，不送气，声带不振动。",
+    "hubTitle": "【端母传承】与【定母仄声清化】",
+    "hubDesc": "端母一四等古今稳定传承；定母在仄声（上、去、入声）中清化为不送气 d。",
+    "streams": [
+      {
+        "name": "端母原生流（全清）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "端母 [t] (全清)",
+            "cond": "一四等开合口绝大多数字",
+            "words": "刀、代、当、东、德、低、等、单、都、点"
+          }
+        ],
+        "oldSource": "上古端母 *t-，两千年正统舌尖塞音。"
+      },
+      {
+        "name": "定母仄声流（全浊）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "定母 [d] (全浊)",
+            "cond": "仄声（上声、去声、入声）",
+            "words": "道、地、代、读、洞、大、段、电、荡、度"
+          }
+        ],
+        "oldSource": "上古定母 *d-。"
+      }
+    ],
+    "oldLaw": "字证：“同”(定母平声tóng，送气) 与从同得声的“洞”(定母去声dòng，不送气)；钱大昕“古无舌上音”上古知组亦源于端组。",
+    "dialectNote": "吴语完整保留定母真正浊音 [d]（如上海、苏州话“地、大、读”）。"
+  },
+  "t": {
+    "pinyin": "t",
+    "ipa": "[tʰ]",
+    "name": "舌尖中清送气塞音",
+    "ruleTags": [
+      "透母次清",
+      "全浊清化·平送气"
+    ],
+    "modernDesc": "发音部位与 d 相同，除阻时气流强烈喷射。",
+    "hubTitle": "【透母传承】与【定母平声清化送气】",
+    "hubDesc": "透母天生送气；定母平声字在全浊清化中转化为强送气音 t，归入阳平第二声。",
+    "streams": [
+      {
+        "name": "透母原生流（次清）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "透母 [tʰ] (次清)",
+            "cond": "一四等字",
+            "words": "天、汤、听、通、退、铁、梯、推、贪、体"
+          }
+        ],
+        "oldSource": "上古透母 *tʰ-。"
+      },
+      {
+        "name": "定母平声流（全浊）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "定母 [d] (全浊)",
+            "cond": "平声（全浊平送气阳平）",
+            "words": "头、堂、徒、同、唐、桃、停、提、田、图"
+          }
+        ],
+        "oldSource": "上古定母 *d- (平声字)。"
+      }
+    ],
+    "oldLaw": "字证：“堂、徒、同、桃”均为古浊音，现代全部读阳平第二声；形声字“登”(端母d-)与“橙”(澄母ch-)、“橙”古音亦源于此。",
+    "dialectNote": "吴语保留定母浊音 [d]；闽南语中“头”读 thau，“同”读 tong。"
+  },
+  "n": {
+    "pinyin": "n",
+    "ipa": "[n]",
+    "name": "舌尖中鼻音浊音",
+    "ruleTags": [
+      "泥母次浊",
+      "娘日归泥",
+      "洪细合流"
+    ],
+    "modernDesc": "舌尖抵齿龈，软腭下垂，气流经鼻腔流出，声带振动。",
+    "hubTitle": "【泥母传承】与【娘母合流】",
+    "hubDesc": "中古泥母（一四等）传承；中古娘母（二等）在北方官话洪细合流中并入泥母；少数字吸收疑母细音。",
+    "streams": [
+      {
+        "name": "泥母原生流（次浊）",
+        "color": "#34D399",
+        "midSources": [
+          {
+            "mother": "泥母 [n] (次浊)",
+            "cond": "一四等字",
+            "words": "男、难、脑、南、内、能、奴、年、泥、鸟"
+          }
+        ],
+        "oldSource": "上古泥母 *n-。"
+      },
+      {
+        "name": "娘母及疑母合流",
+        "color": "#C084FC",
+        "midSources": [
+          {
+            "mother": "娘母 [ȵ] (次浊)",
+            "cond": "中古二等字合入泥母",
+            "words": "拿、闹、女、娘、钮、浓"
+          },
+          {
+            "mother": "疑母 [ŋ] 细音部分",
+            "cond": "偶合流同化",
+            "words": "拟、碾、虐"
+          }
+        ],
+        "oldSource": "钱大昕【娘日归泥】：上古无娘母，统归于泥母 *n-。"
+      }
+    ],
+    "oldLaw": "钱大昕【古无舌上音/娘日归泥】；字证：“女”与“汝”古音相通；“诺”与“若”同源；“匿”与“若”古谐声。",
+    "dialectNote": "南方方言西南官话、南京话等存在“泥来不分”（n/l混淆）；但中古音系与上古音系中界限分明。"
+  },
+  "l": {
+    "pinyin": "l",
+    "ipa": "[l]",
+    "name": "舌尖中边音浊音",
+    "ruleTags": [
+      "来母次浊",
+      "古今稳定",
+      "上古复辅音解体"
+    ],
+    "modernDesc": "舌尖抵齿龈，气流由舌两侧流出，声带振动。",
+    "hubTitle": "【来母三千年稳定传承】",
+    "hubDesc": "直接继承中古来母；上古复辅音解体后保留的流音/边音成分。",
+    "streams": [
+      {
+        "name": "来母原生流（次浊）",
+        "color": "#34D399",
+        "midSources": [
+          {
+            "mother": "来母 [l] (次浊)",
+            "cond": "各等绝大多数汉字",
+            "words": "来、老、路、冷、六、流、林、蓝、力、乐、龙、绿"
+          }
+        ],
+        "oldSource": "上古来母 *r- 或 *l-，或先秦复辅音 *C-l-, *C-r- 简缩后残留。"
+      }
+    ],
+    "oldLaw": "白一平/郑张尚芳上古复辅音说；字证：“各”(见母k-)与“路/洛”(来母l-)同谐声；“庞”(并母p-)与“龙”(来母l-)古代音近。",
+    "dialectNote": "闽南语、粤语、客家话中来母保持率极高，均为 l。"
+  },
+  "g": {
+    "pinyin": "g",
+    "ipa": "[k]",
+    "name": "舌根清不送气塞音",
+    "ruleTags": [
+      "见母洪音",
+      "群母仄声洪音",
+      "未颚化保留"
+    ],
+    "modernDesc": "舌面后部隆起贴紧软腭，形成阻碍后突然释放，不送气。仅拼开口呼与合口呼（洪音）。",
+    "hubTitle": "【见组洪音传承】与【群母仄声清化】",
+    "hubDesc": "见母一二等字因后接非齐齿呼元音未发生颚化，保留舌根原音；群母仄声洪音清化归 g。",
+    "streams": [
+      {
+        "name": "见母洪音流（全清）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "见母 [k] (全清)",
+            "cond": "一二等洪音（开合口）",
+            "words": "高、古、公、干、歌、光、格、改、国、贵、工"
+          }
+        ],
+        "oldSource": "上古见母 *k-。未受前高元音影响的保留态。"
+      },
+      {
+        "name": "群母仄声洪音流（全浊）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "群母 [ɡ] (全浊)",
+            "cond": "仄声洪音（仄不送气）",
+            "words": "共、惯、跪、柜"
+          }
+        ],
+        "oldSource": "上古群母 *ɡ- (仄声洪音字)。"
+      }
+    ],
+    "oldLaw": "对照见母细音（三四等）演变为 j；字证：“公”(gōng，一等) 与“弓/京”(jīng，三等) 同从见母分化。",
+    "dialectNote": "闽南语、粤语对见母一至四等基本全部读 k-，完全没有发生颚化（如“鸡”读 gai/ke）。"
+  },
+  "k": {
+    "pinyin": "k",
+    "ipa": "[kʰ]",
+    "name": "舌根清送气塞音",
+    "ruleTags": [
+      "溪母洪音",
+      "群母平声洪音",
+      "平送仄不送"
+    ],
+    "modernDesc": "发音部位与 g 相同，除阻时伴随强烈气流，仅拼洪音（开口呼/合口呼）。",
+    "hubTitle": "【溪母洪音传承】与【群母平声清化送气】",
+    "hubDesc": "溪母洪音字未发生颚化保留送气舌根塞音；群母平声洪音字清化为强送气 k。",
+    "streams": [
+      {
+        "name": "溪母洪音流（次清）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "溪母 [kʰ] (次清)",
+            "cond": "一二等洪音",
+            "words": "开、看、口、苦、空、快、宽、康、客、考、课"
+          }
+        ],
+        "oldSource": "上古溪母 *kʰ-。"
+      },
+      {
+        "name": "群母平声洪音流（全浊）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "群母 [ɡ] (全浊)",
+            "cond": "平声洪音（全浊平送气阳平）",
+            "words": "葵、狂、逵"
+          }
+        ],
+        "oldSource": "上古群母 *ɡ- (平声洪音字)。"
+      }
+    ],
+    "oldLaw": "对照溪母细音演变为 q；字证：“苦”(kǔ，一等) 与“去/乞”(q-，三等) 同出溪母。",
+    "dialectNote": "部分南方方言溪母洪音有擦化倾向转 h（如“开”读 hoi），但普通话完整保留送气塞音。"
+  },
+  "h": {
+    "pinyin": "h",
+    "ipa": "[x]",
+    "name": "舌根清擦音",
+    "ruleTags": [
+      "晓母洪音",
+      "匣母全浊清化",
+      "喻三归匣"
+    ],
+    "modernDesc": "舌面后部贴近软腭形成缝隙，气流摩擦而出，声带不振动。仅拼洪音。",
+    "hubTitle": "【晓母洪音传承】与【匣母全浊清化】",
+    "hubDesc": "中古晓母洪音保留擦音；中古全浊匣母 [ɣ] 清化后完全合并入 h。",
+    "streams": [
+      {
+        "name": "晓母洪音流（全清）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "晓母 [x] (全清)",
+            "cond": "一二等洪音",
+            "words": "好、海、汉、黑、火、花、欢、婚、化、荒"
+          }
+        ],
+        "oldSource": "上古晓母 *x- 或小舌音 *qʰ-。"
+      },
+      {
+        "name": "匣母洪音流（全浊）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "匣母 [ɣ] (全浊)",
+            "cond": "全浊清化（平仄皆归 h）",
+            "words": "黄、红、何、后、厚、滑、活、寒、河、话、换"
+          }
+        ],
+        "oldSource": "上古匣母 *ɣ- / *ɢ-；曾运乾【喻三归匣】。"
+      }
+    ],
+    "oldLaw": "曾运乾【喻三归匣】；字证：“黄”(匣母huáng) 与“广”(见母guǎng) 同声符；“何”(匣母hé) 与“可”(溪母kě) 同声符。",
+    "dialectNote": "吴语至今保留匣母浊擦音 [ɦ]（如“红、河”）；粤语匣母常读 w 或 h。"
+  },
+  "z": {
+    "pinyin": "z",
+    "ipa": "[ts]",
+    "name": "平舌不送气清塞擦音",
+    "ruleTags": [
+      "精母洪音",
+      "从母仄声清化",
+      "照二归精"
+    ],
+    "modernDesc": "舌尖抵住下齿背，舌面前部紧贴上齿龈，除阻后形成微小缝隙透气，不送气。仅拼洪音。",
+    "hubTitle": "【精母洪音传承】与【从母仄声清化】",
+    "hubDesc": "精母一二等字因后接非齐齿呼元音未发生尖团颚化，保留平舌原音；从母仄声洪音清化归 z。",
+    "streams": [
+      {
+        "name": "精母洪音流（全清）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "精母 [ts] (全清)",
+            "cond": "一二等洪音",
+            "words": "早、走、总、作、子、灾、租、尊、宗、祖"
+          }
+        ],
+        "oldSource": "上古精母 *ts-。黄侃“照二归精”。"
+      },
+      {
+        "name": "从母仄声洪音流（全浊）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "从母 [dz] (全浊)",
+            "cond": "仄声洪音（仄不送气）",
+            "words": "坐、在、罪、座、造、贼、昨、杂"
+          }
+        ],
+        "oldSource": "上古从母 *dz- (仄声洪音字)。"
+      }
+    ],
+    "oldLaw": "对照精母细音（三四等）演变为 j；字证：“子/作”(z-，一等) 与“焦/节”(j-，三等) 同出精母。",
+    "dialectNote": "吴语保留从母浊塞擦音 [dz]；南方很多方言（闽粤）无翘舌音，zh/z 合并读 z。"
+  },
+  "c": {
+    "pinyin": "c",
+    "ipa": "[tsʰ]",
+    "name": "平舌清送气塞擦音",
+    "ruleTags": [
+      "清母洪音",
+      "从母平声清化送气",
+      "平送仄不送"
+    ],
+    "modernDesc": "发音部位与 z 相同，除阻时伴随强烈气流，仅拼洪音。",
+    "hubTitle": "【清母洪音传承】与【从母平声清化送气】",
+    "hubDesc": "清母洪音未颚化字完整保留；从母平声洪音在全浊清化中化为强送气音 c，归入阳平。",
+    "streams": [
+      {
+        "name": "清母洪音流（次清）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "清母 [tsʰ] (次清)",
+            "cond": "一二等洪音",
+            "words": "草、猜、村、错、粗、参、仓、操、策、采"
+          }
+        ],
+        "oldSource": "上古清母 *tsʰ-。"
+      },
+      {
+        "name": "从母平声洪音流（全浊）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "从母 [dz] (全浊)",
+            "cond": "平声洪音（全浊平送气阳平）",
+            "words": "残、才、存、词、曹、财、慈、丛"
+          }
+        ],
+        "oldSource": "上古从母 *dz- (平声洪音字)。"
+      }
+    ],
+    "oldLaw": "对照清母细音演变为 q；字证：“仓”(cāng，一等) 与“枪”(qiāng，三等) 同声符；“才”(cái，平声送气) 与“在”(zài，去声不送气) 同出从母。",
+    "dialectNote": "吴语保留从母浊音；北方方言平送仄不送在此字群中体现得淋漓尽致。"
+  },
+  "s": {
+    "pinyin": "s",
+    "ipa": "[s]",
+    "name": "平舌清擦音",
+    "ruleTags": [
+      "心母洪音",
+      "邪母全浊清化",
+      "未颚化保留"
+    ],
+    "modernDesc": "舌尖靠近上齿背形成狭缝，气流摩擦而出，不送气，声带不振动。仅拼洪音。",
+    "hubTitle": "【心母洪音传承】与【邪母全浊清化】",
+    "hubDesc": "心母一二等字保留平舌清擦音；邪母洪音字清化后并入 s。",
+    "streams": [
+      {
+        "name": "心母洪音流（全清）",
+        "color": "#38BDF8",
+        "midSources": [
+          {
+            "mother": "心母 [s] (全清)",
+            "cond": "一二等洪音",
+            "words": "三、四、岁、苏、思、桑、锁、色、孙、散"
+          }
+        ],
+        "oldSource": "上古心母 *s-。古今稳定性强。"
+      },
+      {
+        "name": "邪母洪音流（全浊）",
+        "color": "#FB7185",
+        "midSources": [
+          {
+            "mother": "邪母 [z] (全浊)",
+            "cond": "全浊清化（洪音归 s）",
+            "words": "随、俗、词(部分)、虽、遂、寺、隋、颂"
+          }
+        ],
+        "oldSource": "上古邪母 *z-。"
+      }
+    ],
+    "oldLaw": "对照心母细音演变为 x；字证：“三”(sān，一等) 与“仙”(xiān，三等) 同出心母；“随”(suí) 与“惰”(duò) 同声旁。",
+    "dialectNote": "吴语保留邪母浊擦音 [z]（如上海话“俗、隋”）；大部分南方无翘舌方言中 sh 亦并入 s。"
+  }
+};
+  let currentRevInitial = 'j';
+
+  function generateSingleInitialSvg(item) {
+    const isDoubleStream = item.streams.length > 1;
+    
+    let defs = `
+      <defs>
+        <linearGradient id="r-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#0F172A"/><stop offset="100%" stop-color="#020617"/>
+        </linearGradient>
+        <linearGradient id="r-card" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1E293B"/><stop offset="100%" stop-color="#0F172A"/>
+        </linearGradient>
+        <linearGradient id="r-hero" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#0369A1"/><stop offset="50%" stop-color="#4F46E5"/><stop offset="100%" stop-color="#9333EA"/>
+        </linearGradient>
+        <marker id="r-arr-cyan" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,1 L7,4 L0,7 Z" fill="#38BDF8"/>
+        </marker>
+        <marker id="r-arr-amber" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,1 L7,4 L0,7 Z" fill="#FBBF24"/>
+        </marker>
+        <marker id="r-arr-rose" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,1 L7,4 L0,7 Z" fill="#FB7185"/>
+        </marker>
+        <marker id="r-arr-slate" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,1 L7,4 L0,7 Z" fill="#64748B"/>
+        </marker>
+        <filter id="r-sh" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.5"/>
+        </filter>
+      </defs>
+    `;
+
+    let header = `
+      <rect width="760" height="1060" rx="24" fill="url(#r-bg)"/>
+      <g transform="translate(48, 40)">
+        <rect x="0" y="0" width="165" height="24" rx="12" fill="#334155"/>
+        <text x="82" y="16" fill="#38BDF8" font-size="11" font-weight="bold" text-anchor="middle" letter-spacing="1">REVERSE TRACING MAP</text>
+        <text x="0" y="52" fill="#F8FAFC" font-size="24" font-weight="800">现代声母 [${item.pinyin}] ${item.ipa} 逆向音变源流图</text>
+        <text x="0" y="74" fill="#94A3B8" font-size="13">${item.name} · 三千年历时归因反向推演</text>
+      </g>
+    `;
+
+    let tier1 = `
+      <g transform="translate(48, 125)">
+        <rect width="664" height="92" rx="16" fill="url(#r-hero)" filter="url(#r-sh)"/>
+        <rect x="20" y="18" width="62" height="56" rx="10" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5"/>
+        <text x="51" y="56" fill="#38BDF8" font-size="28" font-family="monospace" font-weight="900" text-anchor="middle">${item.pinyin}</text>
+        <text x="98" y="42" fill="#F8FAFC" font-size="18" font-weight="bold">现代终态：${item.name} ${item.ipa}</text>
+        <text x="98" y="65" fill="#E2E8F0" font-size="12">${item.modernDesc}</text>
+      </g>
+    `;
+
+    let conn1 = `
+      <g>
+        <line x1="380" y1="250" x2="380" y2="223" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#r-arr-cyan)"/>
+        <rect x="330" y="228" width="100" height="16" rx="4" fill="#0F172A" stroke="#334155"/>
+        <text x="380" y="240" fill="#38BDF8" font-size="10" font-weight="bold" text-anchor="middle">▲ 最终汇入现代音</text>
+      </g>
+    `;
+
+    let tier2 = `
+      <g transform="translate(48, 250)">
+        <rect width="664" height="106" rx="16" fill="url(#r-card)" stroke="#6366F1" stroke-width="1.5" filter="url(#r-sh)"/>
+        <rect x="20" y="16" width="135" height="22" rx="6" fill="#312E81"/>
+        <text x="87" y="31" fill="#C7D2FE" font-size="11" font-weight="bold" text-anchor="middle">历史音变关键枢纽</text>
+        <text x="168" y="32" fill="#A5B4FC" font-size="15" font-weight="bold">${item.hubTitle}</text>
+        <text x="20" y="62" fill="#CBD5E1" font-size="13">${item.hubDesc}</text>
+        <g transform="translate(20, 76)">
+          ${item.ruleTags.map((t, idx) => `
+            <g transform="translate(${idx * 165}, 0)">
+              <rect width="150" height="20" rx="4" fill="#0F172A" stroke="#334155"/>
+              <text x="75" y="14" fill="#FBBF24" font-size="11" text-anchor="middle">✦ ${t}</text>
+            </g>
+          `).join('')}
+        </g>
+      </g>
+    `;
+
+    let conn2 = '';
+    if (isDoubleStream) {
+      conn2 = `
+        <g>
+          <path d="M 210 392 L 350 362" fill="none" stroke="${item.streams[0].color}" stroke-width="2.5" marker-end="url(#r-arr-cyan)"/>
+          <path d="M 550 392 L 410 362" fill="none" stroke="${item.streams[1].color}" stroke-width="2.5" marker-end="url(#r-arr-amber)"/>
+          <rect x="330" y="370" width="100" height="16" rx="4" fill="#0F172A" stroke="#334155"/>
+          <text x="380" y="382" fill="#A5B4FC" font-size="10" font-weight="bold" text-anchor="middle">▲ 经音变法则汇合</text>
+        </g>
+      `;
+    } else {
+      conn2 = `
+        <g>
+          <line x1="380" y1="392" x2="380" y2="362" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#r-arr-cyan)"/>
+          <rect x="330" y="370" width="100" height="16" rx="4" fill="#0F172A" stroke="#334155"/>
+          <text x="380" y="382" fill="#A5B4FC" font-size="10" font-weight="bold" text-anchor="middle">▲ 经音变法则汇合</text>
+        </g>
+      `;
+    }
+
+    let tier3 = '';
+    if (isDoubleStream) {
+      tier3 = `
+        <g transform="translate(48, 392)">
+          <!-- 分支 1 卡片 (左) -->
+          <g transform="translate(0, 0)">
+            <rect width="320" height="320" rx="16" fill="url(#r-card)" stroke="${item.streams[0].color}" stroke-width="1.5" filter="url(#r-sh)"/>
+            <rect x="16" y="16" width="160" height="24" rx="6" fill="#0F172A" stroke="${item.streams[0].color}"/>
+            <text x="96" y="32" fill="${item.streams[0].color}" font-size="12" font-weight="bold" text-anchor="middle">${item.streams[0].name}</text>
+            
+            ${item.streams[0].midSources.map((s, idx) => {
+              const count = item.streams[0].midSources.length;
+              const is3 = count >= 3;
+              const h = is3 ? 74 : 102;
+              const step = is3 ? 80 : 115;
+              return `
+                <g transform="translate(16, ${50 + idx * step})">
+                  <rect width="288" height="${h}" rx="8" fill="#0F172A" stroke="#334155"/>
+                  <text x="14" y="20" fill="#F8FAFC" font-size="${is3 ? 13 : 14}" font-weight="bold">${s.mother}</text>
+                  <text x="14" y="${is3 ? 36 : 44}" fill="#94A3B8" font-size="${is3 ? 10 : 11}">条件：${s.cond}</text>
+                  <line x1="14" y1="${is3 ? 44 : 54}" x2="274" y2="${is3 ? 44 : 54}" stroke="#1E293B"/>
+                  <text x="14" y="${is3 ? 60 : 72}" fill="#E2E8F0" font-size="${is3 ? 10 : 11}">代表字群：<tspan fill="#FBBF24" font-weight="bold">${s.words}</tspan></text>
+                </g>
+              `;
+            }).join('')}
+            <text x="16" y="304" fill="#94A3B8" font-size="10.5">${item.streams[0].oldSource}</text>
+          </g>
+
+          <!-- 分支 2 卡片 (右) -->
+          <g transform="translate(344, 0)">
+            <rect width="320" height="320" rx="16" fill="url(#r-card)" stroke="${item.streams[1].color}" stroke-width="1.5" filter="url(#r-sh)"/>
+            <rect x="16" y="16" width="160" height="24" rx="6" fill="#0F172A" stroke="${item.streams[1].color}"/>
+            <text x="96" y="32" fill="${item.streams[1].color}" font-size="12" font-weight="bold" text-anchor="middle">${item.streams[1].name}</text>
+
+            ${item.streams[1].midSources.map((s, idx) => {
+              const count = item.streams[1].midSources.length;
+              const is3 = count >= 3;
+              const h = is3 ? 74 : 102;
+              const step = is3 ? 80 : 115;
+              return `
+                <g transform="translate(16, ${50 + idx * step})">
+                  <rect width="288" height="${h}" rx="8" fill="#0F172A" stroke="#334155"/>
+                  <text x="14" y="20" fill="#F8FAFC" font-size="${is3 ? 13 : 14}" font-weight="bold">${s.mother}</text>
+                  <text x="14" y="${is3 ? 36 : 44}" fill="#94A3B8" font-size="${is3 ? 10 : 11}">条件：${s.cond}</text>
+                  <line x1="14" y1="${is3 ? 44 : 54}" x2="274" y2="${is3 ? 44 : 54}" stroke="#1E293B"/>
+                  <text x="14" y="${is3 ? 60 : 72}" fill="#E2E8F0" font-size="${is3 ? 10 : 11}">代表字群：<tspan fill="#FBBF24" font-weight="bold">${s.words}</tspan></text>
+                </g>
+              `;
+            }).join('')}
+            <text x="16" y="304" fill="#94A3B8" font-size="10.5">${item.streams[1].oldSource}</text>
+          </g>
+        </g>
+      `;
+    } else {
+      tier3 = `
+        <g transform="translate(48, 392)">
+          <rect width="664" height="320" rx="16" fill="url(#r-card)" stroke="${item.streams[0].color}" stroke-width="1.5" filter="url(#r-sh)"/>
+          <rect x="20" y="16" width="190" height="24" rx="6" fill="#0F172A" stroke="${item.streams[0].color}"/>
+          <text x="115" y="32" fill="${item.streams[0].color}" font-size="12" font-weight="bold" text-anchor="middle">${item.streams[0].name}</text>
+          
+          <g transform="translate(20, 52)">
+            ${item.streams[0].midSources.map((s, idx) => `
+              <g transform="translate(${idx * 315}, 0)">
+                <rect width="300" height="200" rx="10" fill="#0F172A" stroke="#334155"/>
+                <text x="16" y="30" fill="#F8FAFC" font-size="15" font-weight="bold">${s.mother}</text>
+                <text x="16" y="55" fill="#94A3B8" font-size="12">演变条件：${s.cond}</text>
+                <line x1="16" y1="70" x2="284" y2="70" stroke="#1E293B"/>
+                <text x="16" y="98" fill="#E2E8F0" font-size="12">典型代表汉字群：</text>
+                <text x="16" y="126" fill="#FBBF24" font-size="13.5" font-weight="bold">${s.words}</text>
+                <text x="16" y="165" fill="#64748B" font-size="11">音类地位：中古正统传承基石</text>
+              </g>
+            `).join('')}
+          </g>
+          <text x="20" y="295" fill="#CBD5E1" font-size="12">源流特征：${item.streams[0].oldSource}</text>
+        </g>
+      `;
+    }
+
+    let conn3 = '';
+    if (isDoubleStream) {
+      conn3 = `
+        <g>
+          <path d="M 380 748 L 210 718" fill="none" stroke="${item.streams[0].color}" stroke-width="2.5" marker-end="url(#r-arr-cyan)"/>
+          <path d="M 380 748 L 550 718" fill="none" stroke="${item.streams[1].color}" stroke-width="2.5" marker-end="url(#r-arr-amber)"/>
+          <rect x="330" y="725" width="100" height="16" rx="4" fill="#0F172A" stroke="#334155"/>
+          <text x="380" y="737" fill="#38BDF8" font-size="10" font-weight="bold" text-anchor="middle">▲ 先秦至中古传承</text>
+        </g>
+      `;
+    } else {
+      conn3 = `
+        <g>
+          <line x1="380" y1="748" x2="380" y2="718" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#r-arr-cyan)"/>
+          <rect x="330" y="725" width="100" height="16" rx="4" fill="#0F172A" stroke="#334155"/>
+          <text x="380" y="737" fill="#38BDF8" font-size="10" font-weight="bold" text-anchor="middle">▲ 先秦至中古传承</text>
+        </g>
+      `;
+    }
+
+    let tier4 = `
+      <g transform="translate(48, 748)">
+        <rect width="664" height="275" rx="18" fill="#0B132B" stroke="#0284C7" stroke-width="1.5" filter="url(#r-sh)"/>
+        <rect x="20" y="18" width="175" height="24" rx="6" fill="#0369A1"/>
+        <text x="107" y="34" fill="#E0F2FE" font-size="12" font-weight="bold" text-anchor="middle">先秦上古音源与经典考订</text>
+        <text x="210" y="35" fill="#38BDF8" font-size="14.5" font-weight="bold">周秦古音根基（公元前 1000 年～公元 200 年）</text>
+
+        <g transform="translate(20, 55)">
+          <rect width="624" height="95" rx="10" fill="#0F172A" stroke="#334155"/>
+          <text x="16" y="25" fill="#FBBF24" font-size="13" font-weight="bold">【上古声母定理与经典谐声字证】</text>
+          <text x="16" y="52" fill="#F8FAFC" font-size="12">${item.oldLaw.substring(0, 48)}</text>
+          <text x="16" y="75" fill="#CBD5E1" font-size="12">${item.oldLaw.substring(48)}</text>
+        </g>
+
+        <g transform="translate(20, 162)">
+          <rect width="624" height="95" rx="10" fill="#0F172A" stroke="#334155"/>
+          <text x="16" y="25" fill="#34D399" font-size="13" font-weight="bold">【南方现代方言存古对照（活化石证据）】</text>
+          <text x="16" y="52" fill="#E2E8F0" font-size="12">${item.dialectNote.substring(0, 50)}</text>
+          <text x="16" y="75" fill="#94A3B8" font-size="12">${item.dialectNote.substring(50)}</text>
+        </g>
+      </g>
+    `;
+
+    return `<svg viewBox="0 0 760 1060" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      ${defs}
+      ${header}
+      ${tier1}
+      ${conn1}
+      ${tier2}
+      ${conn2}
+      ${tier3}
+      ${conn3}
+      ${tier4}
+    </svg>`;
+  }
+
+  function generateOverviewSvg() {
+    return `<svg viewBox="0 0 760 1060" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ro-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#0F172A"/><stop offset="100%" stop-color="#020617"/>
+        </linearGradient>
+        <linearGradient id="ro-card" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1E293B"/><stop offset="100%" stop-color="#0F172A"/>
+        </linearGradient>
+        <marker id="ro-arr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+          <path d="M0,1 L6,3.5 L0,6 Z" fill="#64748B"/>
+        </marker>
+        <filter id="ro-sh" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.5"/>
+        </filter>
+      </defs>
+
+      <rect width="760" height="1060" rx="24" fill="url(#ro-bg)"/>
+
+      <!-- 标题 -->
+      <g transform="translate(48, 40)">
+        <rect x="0" y="0" width="180" height="24" rx="12" fill="#312E81"/>
+        <text x="90" y="16" fill="#A5B4FC" font-size="11" font-weight="bold" text-anchor="middle">MACRO REVERSE MAP</text>
+        <text x="0" y="52" fill="#F8FAFC" font-size="24" font-weight="800">现代 21 声母全景溯源总谱</text>
+        <text x="0" y="74" fill="#94A3B8" font-size="13">中古三十六字母 ──▶ 五大历史音变中枢 ──▶ 现代普通话 21 声母终态</text>
+      </g>
+
+      <!-- 左侧列：中古三十六字母对应源头 (起点) -->
+      <g transform="translate(48, 125)">
+        <text x="0" y="0" fill="#A5B4FC" font-size="13" font-weight="bold">【① 中古三十六字母母源】</text>
+
+        <g transform="translate(0, 15)">
+          <rect width="170" height="110" rx="10" fill="url(#ro-card)" stroke="#334155"/>
+          <text x="12" y="24" fill="#F8FAFC" font-size="12" font-weight="bold">唇音母源</text>
+          <text x="12" y="48" fill="#94A3B8" font-size="11">帮母 [p] 全清</text>
+          <text x="12" y="68" fill="#94A3B8" font-size="11">滂母 [pʰ] 次清</text>
+          <text x="12" y="88" fill="#94A3B8" font-size="11">并母 [b] 全浊</text>
+          <path d="M 170 55 L 210 55" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#ro-arr)"/>
+        </g>
+
+        <g transform="translate(0, 140)">
+          <rect width="170" height="110" rx="10" fill="url(#ro-card)" stroke="#334155"/>
+          <text x="12" y="24" fill="#F8FAFC" font-size="12" font-weight="bold">舌音母源</text>
+          <text x="12" y="48" fill="#94A3B8" font-size="11">端 [t] / 透 [tʰ]</text>
+          <text x="12" y="68" fill="#94A3B8" font-size="11">定 [d] / 泥 [n]</text>
+          <text x="12" y="88" fill="#94A3B8" font-size="11">来 [l] 边音</text>
+          <path d="M 170 55 L 210 55" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#ro-arr)"/>
+        </g>
+
+        <g transform="translate(0, 265)">
+          <rect width="170" height="110" rx="10" fill="url(#ro-card)" stroke="#334155"/>
+          <text x="12" y="24" fill="#F8FAFC" font-size="12" font-weight="bold">见系母源</text>
+          <text x="12" y="48" fill="#94A3B8" font-size="11">见 [k] / 溪 [kʰ]</text>
+          <text x="12" y="68" fill="#94A3B8" font-size="11">群 [ɡ] / 疑 [ŋ]</text>
+          <text x="12" y="88" fill="#94A3B8" font-size="11">晓 [x] / 匣 [ɣ]</text>
+          <path d="M 170 55 L 210 55" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#ro-arr)"/>
+        </g>
+
+        <g transform="translate(0, 390)">
+          <rect width="170" height="110" rx="10" fill="url(#ro-card)" stroke="#334155"/>
+          <text x="12" y="24" fill="#F8FAFC" font-size="12" font-weight="bold">齿音母源</text>
+          <text x="12" y="48" fill="#94A3B8" font-size="11">知组 ʈ, ʈʰ, ɖ, ȵ</text>
+          <text x="12" y="68" fill="#94A3B8" font-size="11">庄组 tʂ, tʂʰ, dʐ, ʂ</text>
+          <text x="12" y="88" fill="#94A3B8" font-size="11">章组 tɕ, tɕʰ, ʑ, ɕ</text>
+          <path d="M 170 55 L 210 55" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#ro-arr)"/>
+        </g>
+
+        <g transform="translate(0, 515)">
+          <rect width="170" height="110" rx="10" fill="url(#ro-card)" stroke="#334155"/>
+          <text x="12" y="24" fill="#F8FAFC" font-size="12" font-weight="bold">精系母源</text>
+          <text x="12" y="48" fill="#94A3B8" font-size="11">精 [ts] / 清 [tsʰ]</text>
+          <text x="12" y="68" fill="#94A3B8" font-size="11">从 [dz] 全浊</text>
+          <text x="12" y="88" fill="#94A3B8" font-size="11">心 [s] / 邪 [z]</text>
+          <path d="M 170 55 L 210 55" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#ro-arr)"/>
+        </g>
+      </g>
+
+      <!-- 中间列：历史音变五大中枢通道 (演变中枢) -->
+      <g transform="translate(260, 125)">
+        <text x="0" y="0" fill="#FBBF24" font-size="13" font-weight="bold">【② 历代音变演化中枢】</text>
+
+        <g transform="translate(0, 15)">
+          <rect width="185" height="110" rx="10" fill="#0F172A" stroke="#475569" filter="url(#ro-sh)"/>
+          <text x="12" y="24" fill="#FB7185" font-size="12" font-weight="bold">① 唐宋·轻唇化分化</text>
+          <text x="12" y="46" fill="#94A3B8" font-size="10.5">三等合口重唇软化</text>
+          <text x="12" y="66" fill="#E2E8F0" font-size="10.5">帮滂并 → 非敷奉 (f)</text>
+          <text x="12" y="86" fill="#64748B" font-size="10.5">微母 (ɱ) → 零声母 w-</text>
+          <path d="M 185 55 L 225 55" fill="none" stroke="#FB7185" stroke-width="2" marker-end="url(#ro-arr)"/>
+        </g>
+
+        <g transform="translate(0, 140)">
+          <rect width="185" height="110" rx="10" fill="#0F172A" stroke="#475569" filter="url(#ro-sh)"/>
+          <text x="12" y="24" fill="#F43F5E" font-size="12" font-weight="bold">② 元代·全浊清化律</text>
+          <text x="12" y="46" fill="#94A3B8" font-size="10.5">平送仄不送：</text>
+          <text x="12" y="66" fill="#F43F5E" font-size="10.5">全浊平声 → 送气清音</text>
+          <text x="12" y="86" fill="#38BDF8" font-size="10.5">全浊仄声 → 不送气清音</text>
+          <path d="M 185 55 L 225 55" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#ro-arr)"/>
+        </g>
+
+        <g transform="translate(0, 265)">
+          <rect width="185" height="110" rx="10" fill="#0F172A" stroke="#475569" filter="url(#ro-sh)"/>
+          <text x="12" y="24" fill="#C084FC" font-size="12" font-weight="bold">③ 清代·尖团大合流</text>
+          <text x="12" y="46" fill="#94A3B8" font-size="10.5">齐齿撮口呼前拉引：</text>
+          <text x="12" y="66" fill="#E2E8F0" font-size="10.5">团音（见组）软腭前移</text>
+          <text x="12" y="86" fill="#E2E8F0" font-size="10.5">尖音（精组）齿头后退</text>
+          <path d="M 185 55 L 225 55" fill="none" stroke="#C084FC" stroke-width="2" marker-end="url(#ro-arr)"/>
+        </g>
+
+        <g transform="translate(0, 390)">
+          <rect width="185" height="110" rx="10" fill="#0F172A" stroke="#475569" filter="url(#ro-sh)"/>
+          <text x="12" y="24" fill="#F59E0B" font-size="12" font-weight="bold">④ 明清·卷舌四合一</text>
+          <text x="12" y="46" fill="#94A3B8" font-size="10.5">知庄章合流：</text>
+          <text x="12" y="66" fill="#E2E8F0" font-size="10.5">知组、庄组、章组</text>
+          <text x="12" y="86" fill="#F59E0B" font-size="10.5">在北方音中全归翘舌</text>
+          <path d="M 185 55 L 225 55" fill="none" stroke="#F59E0B" stroke-width="2" marker-end="url(#ro-arr)"/>
+        </g>
+
+        <g transform="translate(0, 515)">
+          <rect width="185" height="110" rx="10" fill="#0F172A" stroke="#475569" filter="url(#ro-sh)"/>
+          <text x="12" y="24" fill="#34D399" font-size="12" font-weight="bold">⑤ 洪细二分音变约束</text>
+          <text x="12" y="46" fill="#94A3B8" font-size="10.5">洪音（非齐撮）保留原态</text>
+          <text x="12" y="66" fill="#E2E8F0" font-size="10.5">见组保留 g, k, h</text>
+          <text x="12" y="86" fill="#E2E8F0" font-size="10.5">精组保留 z, c, s</text>
+          <path d="M 185 55 L 225 55" fill="none" stroke="#34D399" stroke-width="2" marker-end="url(#ro-arr)"/>
+        </g>
+      </g>
+
+      <!-- 右侧列：现代 6 大发音部位 21 声母 (终态) -->
+      <g transform="translate(490, 125)">
+        <text x="0" y="0" fill="#38BDF8" font-size="13" font-weight="bold">【③ 现代普通话 21 声母】</text>
+
+        <!-- 唇音 -->
+        <g transform="translate(0, 15)">
+          <rect width="220" height="110" rx="10" fill="url(#ro-card)" stroke="#FB7185" stroke-width="1.5" filter="url(#ro-sh)"/>
+          <text x="14" y="24" fill="#FB7185" font-size="13" font-weight="bold">双唇与唇齿音 (b, p, m, f)</text>
+          <text x="14" y="46" fill="#CBD5E1" font-size="11">• b [p] / p [pʰ]：源于帮滂并母</text>
+          <text x="14" y="66" fill="#CBD5E1" font-size="11">• m [m]：源于明母 (古今超稳定)</text>
+          <text x="14" y="86" fill="#FB7185" font-size="11">• f [f]：晚唐轻唇化 (非敷奉)</text>
+        </g>
+
+        <!-- 舌尖中音 -->
+        <g transform="translate(0, 140)">
+          <rect width="220" height="110" rx="10" fill="url(#ro-card)" stroke="#38BDF8" stroke-width="1.5" filter="url(#ro-sh)"/>
+          <text x="14" y="24" fill="#38BDF8" font-size="13" font-weight="bold">舌尖中音 (d, t, n, l)</text>
+          <text x="14" y="46" fill="#CBD5E1" font-size="11">• d [t] / t [tʰ]：源于端透定母</text>
+          <text x="14" y="66" fill="#CBD5E1" font-size="11">• n [n]：泥母 + 娘母合流</text>
+          <text x="14" y="86" fill="#CBD5E1" font-size="11">• l [l]：来母 (古复辅音遗留)</text>
+        </g>
+
+        <!-- 舌面音 -->
+        <g transform="translate(0, 265)">
+          <rect width="220" height="110" rx="10" fill="url(#ro-card)" stroke="#C084FC" stroke-width="1.5" filter="url(#ro-sh)"/>
+          <text x="14" y="24" fill="#C084FC" font-size="13" font-weight="bold">舌面音 (j, q, x)</text>
+          <text x="14" y="46" fill="#FBBF24" font-size="11">• 尖音源：精清从心邪 细音</text>
+          <text x="14" y="66" fill="#38BDF8" font-size="11">• 团音源：见溪群疑晓匣 细音</text>
+          <text x="14" y="86" fill="#C084FC" font-size="11">• 清中叶尖团合流最终成形</text>
+        </g>
+
+        <!-- 翘舌音 -->
+        <g transform="translate(0, 390)">
+          <rect width="220" height="110" rx="10" fill="url(#ro-card)" stroke="#F59E0B" stroke-width="1.5" filter="url(#ro-sh)"/>
+          <text x="14" y="24" fill="#F59E0B" font-size="13" font-weight="bold">翘舌音 (zh, ch, sh, r)</text>
+          <text x="14" y="46" fill="#34D399" font-size="11">• 知组 (ʈ-)：古无舌上音归端</text>
+          <text x="14" y="66" fill="#FB923C" font-size="11">• 庄组 (照二) + 章组 (照三)</text>
+          <text x="14" y="86" fill="#F59E0B" font-size="11">• 明清卷舌四合一合流</text>
+        </g>
+
+        <!-- 舌根音与平舌音 -->
+        <g transform="translate(0, 515)">
+          <rect width="220" height="110" rx="10" fill="url(#ro-card)" stroke="#34D399" stroke-width="1.5" filter="url(#ro-sh)"/>
+          <text x="14" y="24" fill="#34D399" font-size="13" font-weight="bold">舌根 (g,k,h) 与平舌 (z,c,s)</text>
+          <text x="14" y="46" fill="#CBD5E1" font-size="11">• g, k, h：见溪群晓匣 洪音保留</text>
+          <text x="14" y="66" fill="#CBD5E1" font-size="11">• z, c, s：精清从心邪 洪音保留</text>
+          <text x="14" y="86" fill="#34D399" font-size="11">• 未遇高前元音，未发生颚化</text>
+        </g>
+      </g>
+
+      <!-- 底部大卡片：先秦上古音四大基石定理 -->
+      <g transform="translate(48, 775)">
+        <rect width="664" height="245" rx="18" fill="#0B132B" stroke="#6366F1" stroke-width="1.5" filter="url(#ro-sh)"/>
+        <text x="24" y="32" fill="#C7D2FE" font-size="15" font-weight="800">先秦上古汉语音系三大考据定理（清代乾嘉学者经典结论）</text>
+
+        <g transform="translate(24, 48)">
+          <rect width="200" height="165" rx="10" fill="#0F172A" stroke="#334155"/>
+          <text x="14" y="28" fill="#FB7185" font-size="13" font-weight="bold">① 钱大昕：古无轻唇音</text>
+          <text x="14" y="52" fill="#CBD5E1" font-size="11.5">• 先秦汉魏无 f 声母</text>
+          <text x="14" y="74" fill="#CBD5E1" font-size="11.5">• 现代读 f 的字上古全部读</text>
+          <text x="14" y="96" fill="#CBD5E1" font-size="11.5">  双唇塞音 *p, *pʰ, *b</text>
+          <text x="14" y="122" fill="#FBBF24" font-size="11">字证：“分”与“盆”同声旁</text>
+          <text x="14" y="144" fill="#94A3B8" font-size="11">闽南语：“飞”读 bue</text>
+        </g>
+
+        <g transform="translate(232, 48)">
+          <rect width="200" height="165" rx="10" fill="#0F172A" stroke="#334155"/>
+          <text x="14" y="28" fill="#38BDF8" font-size="13" font-weight="bold">② 钱大昕：古无舌上音</text>
+          <text x="14" y="52" fill="#CBD5E1" font-size="11.5">• 先秦无知组（ʈ- 卷舌）</text>
+          <text x="14" y="74" fill="#CBD5E1" font-size="11.5">• 知彻澄上古全部归入</text>
+          <text x="14" y="96" fill="#CBD5E1" font-size="11.5">  端透定（舌尖塞音 *t, *d）</text>
+          <text x="14" y="122" fill="#FBBF24" font-size="11">字证：“竹”从“笃”省声</text>
+          <text x="14" y="144" fill="#94A3B8" font-size="11">闽南语：“茶”读 de</text>
+        </g>
+
+        <g transform="translate(440, 48)">
+          <rect width="200" height="165" rx="10" fill="#0F172A" stroke="#334155"/>
+          <text x="14" y="28" fill="#34D399" font-size="13" font-weight="bold">③ 照二归精，照三归端</text>
+          <text x="14" y="52" fill="#CBD5E1" font-size="11.5">• 黄侃经典考据定理</text>
+          <text x="14" y="74" fill="#CBD5E1" font-size="11.5">• 庄组（照二）源自精组 *ts</text>
+          <text x="14" y="96" fill="#CBD5E1" font-size="11.5">• 章组（照三）源自端组 *t</text>
+          <text x="14" y="122" fill="#FBBF24" font-size="11">字证：“章”与“端”同源</text>
+          <text x="14" y="144" fill="#94A3B8" font-size="11">白一平：上古介音 *r 促变</text>
+        </g>
+      </g>
+    </svg>`;
+  }
+
+  function generateInfoPanelHtml(item) {
+    if (!item) return '';
+
+    return `
+      <div class="card">
+        <h3>
+          <span style="color:var(--accent-cyan);">◈</span>
+          <span>现代声母 【${item.pinyin}】 ${item.ipa} 溯源剖析</span>
+        </h3>
+        <p><span class="tag-rule">${item.name} · 现代音位特征</span></p>
+        <p>${item.modernDesc}</p>
+        <div style="display:flex; flex-wrap:wrap; gap:6px; margin: 10px 0;">
+          ${item.ruleTags.map(t => `<span class="tag-rule" style="background:#1E293B; color:#38BDF8; border-color:#0284C7;"># ${t}</span>`).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>中古音源分支及字证</h3>
+        <p>从隋唐《切韵》到现代北方官话，该声母由以下中古声纽条件合并演进而来：</p>
+        <ul class="fact-list">
+          ${item.streams.map(st => `
+            <li>
+              <strong style="color:${st.color};">${st.name}</strong>：
+              ${st.midSources.map(m => `
+                <div style="margin: 4px 0 4px 12px; font-size:13px;">
+                  • <strong>${m.mother}</strong>（${m.cond}）：例如 <code>${m.words}</code>
+                </div>
+              `).join('')}
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>先秦上古音源与方言活化石</h3>
+        <p><strong>【上古考据结论】</strong></p>
+        <p style="color:#CBD5E1; font-size:13px; line-height:1.6;">${item.oldLaw}</p>
+        <p><strong>【现代南方方言存古对照】</strong></p>
+        <p style="color:#94A3B8; font-size:13px; line-height:1.6;">${item.dialectNote}</p>
+      </div>
+    `;
+  }
+
+  function generateOverviewInfoHtml() {
+    return `
+      <div class="card">
+        <h3>
+          <span style="color:var(--accent-cyan);">◈</span>
+          <span>现代 21 声母全景溯源总览</span>
+        </h3>
+        <p><span class="tag-rule">三千年声母演进：由繁化简、分化合流</span></p>
+        <p>普通话的 21 个辅音声母并非凭空产生，而是先秦上古音在经历魏晋南北朝四等音韵分化、隋唐《切韵》三十六字母鼎立、元代北方清化以及明清北京音系尖团合流之后的终极产物。</p>
+      </div>
+
+      <div class="card">
+        <h3>决定现代声母格局的五大音变铁律</h3>
+        <ul class="fact-list">
+          <li><strong>古无轻唇音（钱大昕）</strong>：上古只有重唇（p, pʰ, b, m），唐末宋初因遇圆唇前元音轻唇化诞生 f。</li>
+          <li><strong>古无舌上音（钱大昕）</strong>：上古没有翘舌塞音知组（ʈ-），全部归入端组舌尖塞音（t, d）。</li>
+          <li><strong>全浊清化·平送仄不送</strong>：北方官话最严密的规律。中古全浊声母平声变送气清音，仄声变不送气清音。</li>
+          <li><strong>尖团合流</strong>：清中叶见系细音（团）与精系细音（尖）在齐齿撮口前合并为 j, q, x。</li>
+          <li><strong>知庄章卷舌四合一</strong>：中古知组、庄组、章组与日母在北方话演变中合流为卷舌翘舌音 zh, ch, sh, r。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>如何使用逆向溯源工具</h3>
+        <p style="color:#CBD5E1; font-size:13.5px; line-height:1.7;">
+          点击上方工具栏中的任意现代声母（例如 <code>j</code>, <code>zh</code>, <code>f</code>, <code>b</code> 等），左侧 SVG 拓扑图将实时高精度生成该声母的三千年逆向溯源树，右侧面板将展示详实的音纽条件与例字字证。
+        </p>
+      </div>
+    `;
+  }
+
+  function selectReverseInitial(key) {
+    currentRevInitial = key;
+    
+    // 更新按钮高亮
+    document.querySelectorAll('.reverse-filter-bar .rev-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    const activeBtn = document.getElementById(`btn-rev-${key}`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    const svgWrapper = document.getElementById('rev-svg-wrapper');
+    const infoPanel = document.getElementById('rev-info-panel');
+    if (!svgWrapper || !infoPanel) return;
+
+    if (key === 'all') {
+      svgWrapper.innerHTML = generateOverviewSvg();
+      infoPanel.innerHTML = generateOverviewInfoHtml();
+    } else {
+      const item = REV_PHONOLOGY_DATA[key];
+      if (item) {
+        svgWrapper.innerHTML = generateSingleInitialSvg(item);
+        infoPanel.innerHTML = generateInfoPanelHtml(item);
+      }
+    }
+  }
+
+
+  // 页面初始加载时预渲染 Tab 6
+  document.addEventListener('DOMContentLoaded', () => {
+    selectReverseInitial('j');
+  });
+  // 立即尝试执行一次，确保首屏 DOM 存在内容
+  try {
+    selectReverseInitial('j');
+  } catch(e) {}
+
 </script>
 
 </body>

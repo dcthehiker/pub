@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中古汉语《切韵》拼音转写速查表 (Cheat Sheet)</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-alt: #f8fafc;
+      --bg-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --border-dark: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --accent: #0284c7;
+      --tag-voiceless: #e0f2fe; /* 清 */
+      --tag-voiceless-t: #0369a1;
+      --tag-aspirated: #ede9fe; /* 次清 */
+      --tag-aspirated-t: #5b21b6;
+      --tag-voiced: #fef3c7; /* 浊 */
+      --tag-voiced-t: #92400e;
+      --tag-nasal: #dcfce7; /* 次浊/鼻流 */
+      --tag-nasal-t: #166534;
+      --tag-special: #f3e8ff; /* 喉/特殊 */
+      --tag-special-t: #6b21a8;
+      --tone-ping: #3b82f6;
+      --tone-shang: #10b981;
+      --tone-qu: #f59e0b;
+      --tone-ru: #ef4444;
+      --tone-ciru: #8b5cf6;
+      --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Sticky Bar */
+    header.sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Tabs */
+    .tab-group {
+      display: flex;
+      background: #f1f5f9;
+      padding: 2px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
+    .tab-btn {
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .tab-btn.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 11.5px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .nav-links a:hover {
+      background: var(--bg-hover);
+      color: var(--primary);
+    }
+
+    .search-box {
+      position: relative;
+      min-width: 180px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 4px 8px 4px 26px;
+      font-size: 11.5px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      outline: none;
+      background: var(--bg-alt);
+    }
+    .search-box input:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+    .search-box svg {
+      position: absolute;
+      left: 7px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 13px;
+      height: 13px;
+      fill: var(--text-muted);
+    }
+
+    .btn-action {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      cursor: pointer;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-action:hover {
+      border-color: var(--border-dark);
+      background: var(--bg-hover);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1460px;
+      margin: 0 auto;
+      padding: 10px 14px 30px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ========================================================
+       SHARED COMPONENT STYLES
+       ======================================================== */
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .card-header {
+      background: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-header .badge {
+      font-size: 9.5px;
+      font-weight: normal;
+      background: #e2e8f0;
+      color: #475569;
+      padding: 1px 5px;
+      border-radius: 8px;
+    }
+    .card-body {
+      padding: 6px 8px;
+    }
+
+    .compact-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+      text-align: left;
+    }
+    .compact-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .compact-table td {
+      padding: 3.5px 6px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    .compact-table tr:last-child td {
+      border-bottom: none;
+    }
+    .compact-table tr:hover td {
+      background: var(--bg-hover);
+    }
+
+    .py {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #1e3a8a;
+      background: #f1f5f9;
+      padding: 1px 4px;
+      border-radius: 3px;
+      display: inline-block;
+      font-size: 11.5px;
+    }
+    .hz {
+      font-weight: 600;
+      color: var(--text);
+      margin-right: 2px;
+    }
+
+    /* Chips */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin: 1px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    .chip-q { background: var(--tag-voiceless); color: var(--tag-voiceless-t); border: 1px solid #bae6fd; }
+    .chip-cq { background: var(--tag-aspirated); color: var(--tag-aspirated-t); border: 1px solid #ddd6fe; }
+    .chip-z { background: var(--tag-voiced); color: var(--tag-voiced-t); border: 1px solid #fde68a; }
+    .chip-cz { background: var(--tag-nasal); color: var(--tag-nasal-t); border: 1px solid #bbf7d0; }
+    .chip-spec { background: var(--tag-special); color: var(--tag-special-t); border: 1px solid #e9d5ff; }
+
+    .t-ping { color: var(--tone-ping); font-weight: 700; }
+    .t-shang { color: var(--tone-shang); font-weight: 700; }
+    .t-qu { color: var(--tone-qu); font-weight: 700; }
+    .t-ru { color: var(--tone-ru); font-weight: 700; }
+    .t-ciru { color: var(--tone-ciru); font-weight: 700; }
+
+    .callout {
+      background: #f8fafc;
+      border-left: 3px solid var(--accent);
+      padding: 5px 8px;
+      font-size: 11px;
+      color: #334155;
+      border-radius: 0 4px 4px 0;
+      margin-top: 6px;
+    }
+
+    /* ========================================================
+       TAB 0: SINGLE-SCREEN ULTRA-DENSE VIEW (一屏全览)
+       ======================================================== */
+    .tab-content.single-view {
+      display: none;
+    }
+    .tab-content.single-view.active {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .single-view .top-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1.32fr 0.82fr 0.98fr;
+      gap: 5px;
+    }
+    .single-view .bottom-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+    .single-card {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #fff;
+      padding: 3px 5px;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .single-card:hover {
+      border-color: #94a3b8;
+    }
+    .single-card-header {
+      font-weight: 700;
+      font-size: 11px;
+      color: #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 2px;
+      margin-bottom: 3px;
+    }
+    .single-card-header .badge {
+      font-size: 9px;
+      padding: 0 4px;
+      background: #f1f5f9;
+      color: #475569;
+      border-radius: 4px;
+      font-weight: normal;
+    }
+    .single-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .single-table td, .single-table th {
+      padding: 1px 3px;
+      border-bottom: 1px solid #f8fafc;
+      vertical-align: middle;
+    }
+    .single-table tr:last-child td {
+      border-bottom: none;
+    }
+    .single-she-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5px 0;
+      font-size: 10.5px;
+      line-height: 1.3;
+    }
+
+    /* ========================================================
+       TAB 1: ULTRA-COMPACT 2-SCREEN VIEW
+       ======================================================== */
+    .compact-view .grid-top {
+      display: grid;
+      grid-template-columns: 1.32fr 0.82fr 0.96fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .compact-view .she-4col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+    .compact-view .she-item-box {
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: #fff;
+      padding: 5px 7px;
+      transition: border-color 0.15s;
+    }
+    .compact-view .she-item-box:hover {
+      border-color: #94a3b8;
+    }
+    .compact-view .she-item-header {
+      font-weight: 700;
+      font-size: 11.5px;
+      color: #1e293b;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 3px;
+      margin-bottom: 4px;
+    }
+    .compact-view .she-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      padding: 1.5px 0;
+      line-height: 1.35;
+    }
+    .compact-view .mini-tip {
+      font-size: 10px;
+      color: #64748b;
+      line-height: 1.25;
+      margin-top: 3px;
+      padding-top: 2px;
+      border-top: 1px dashed #f1f5f9;
+    }
+
+    /* ========================================================
+       TAB 2: DETAILED REFERENCE VIEW
+       ======================================================== */
+    .detailed-view .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; }
+    .detailed-view .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+    .detailed-view .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 12px; }
+    .detailed-view .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px; }
+    
+    .formula-banner {
+      background: linear-gradient(to right, #eff6ff, #f8fafc);
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .formula-title { font-size: 12px; font-weight: 700; color: #1e40af; text-transform: uppercase; }
+    .formula-expr { font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .formula-pill { background: #fff; border: 1px solid #cbd5e1; padding: 2px 7px; border-radius: 4px; }
+    .formula-pill span.sub { color: var(--text-muted); font-size: 9.5px; font-family: var(--font-sans); margin-left: 3px; }
+
+    .she-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 10px;
+    }
+    .she-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      padding: 8px 10px;
+    }
+    .she-title {
+      font-weight: 700;
+      font-size: 12px;
+      color: #1e293b;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 4px;
+      margin-bottom: 5px;
+    }
+    .she-rhyme-item {
+      font-size: 11.5px;
+      margin-bottom: 3px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .she-note {
+      font-size: 10.5px;
+      color: #64748b;
+      margin-top: 5px;
+      padding-top: 4px;
+      border-top: 1px solid #f1f5f9;
+      line-height: 1.35;
+    }
+
+    .poem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 8px;
+    }
+    .poem-line {
+      background: #fafafa;
+      border: 1px solid #f1f5f9;
+      border-radius: 6px;
+      padding: 6px 8px;
+    }
+    .poem-hz { font-size: 13px; font-weight: 600; color: #0f172a; letter-spacing: 0.5px; }
+    .poem-py { font-family: var(--font-mono); font-size: 11.5px; color: #2563eb; margin-top: 2px; }
+
+    .tester-container {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .tester-input {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 4px 7px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      width: 140px;
+    }
+
+    .kbd {
+      display: inline-block;
+      padding: 1px 4px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
+      color: #334155;
+    }
+
+    /* Print settings */
+    @media print {
+      header.sticky-header, .no-print { display: none !important; }
+      body { font-size: 9.5px; background: #fff; color: #000; }
+      .container { max-width: 100%; padding: 0; }
+      .tab-content { display: none !important; }
+      .tab-content.active { display: block !important; }
+      .card { border: 1px solid #999; box-shadow: none; break-inside: avoid; margin-bottom: 6px; }
+      .compact-view .she-4col { grid-template-columns: repeat(4, 1fr) !important; gap: 4px !important; }
+      .compact-view .grid-top { grid-template-columns: repeat(3, 1fr) !important; gap: 4px !important; }
+    }
+
+    @media (max-width: 1024px) {
+      .single-view .top-grid { grid-template-columns: 1fr; }
+      .single-view .bottom-grid { grid-template-columns: repeat(2, 1fr); }
+      .compact-view .grid-top { grid-template-columns: 1fr; }
+      .compact-view .she-4col { grid-template-columns: repeat(2, 1fr); }
+      .detailed-view .grid-2, .detailed-view .grid-3, .detailed-view .grid-1-2, .detailed-view .grid-2-1 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Top Header -->
+  <header class="sticky-header">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div class="brand-title">
+        中古汉语《切韵》拼音速查
+      </div>
+
+      <!-- Tab Switcher (3 Tabs) -->
+      <div class="tab-group">
+        <button class="tab-btn active" onclick="switchTab('single')">
+          🚀 极致单屏版 (一览无遗)
+        </button>
+        <button class="tab-btn" onclick="switchTab('compact')">
+          ⚡ 精简速览版 (两屏全览)
+        </button>
+        <button class="tab-btn" onclick="switchTab('detailed')">
+          📖 详细参考版 (全注释/短歌行)
+        </button>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
+        <input type="text" id="quickSearch" placeholder="速查韵部 / 字母..." oninput="handleSearch()">
+      </div>
+      <button class="btn-action no-print" onclick="window.print()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        打印 / PDF
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- ========================================================
+         TAB 0: 极致单屏版 (全内容高度压缩至一屏，无任何冗余说明，一览无遗)
+         ======================================================== -->
+    <div id="tab-single" class="tab-content single-view active">
+      
+      <!-- 上半区：4列（主元音6位、声母38母、介音与声调、韵尾与重纽） -->
+      <div class="top-grid">
+
+        <!-- 1. 主元音 (6位) 一行一个 -->
+        <div class="single-card">
+          <div class="single-card-header">
+            <span>主元音 (6位)</span>
+            <span class="badge">等第组合</span>
+          </div>
+          <table class="single-table">
+            <tbody>
+              <tr>
+                <td style="width: 20px; text-align: center;"><span class="py" style="color:#1d4ed8; padding:0 3px;">a</span></td>
+                <td style="white-space: nowrap;">一等 <span class="py">a</span> · 二等 <span class="py">ea</span> · 三等 <span class="py">ia</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: center;"><span class="py" style="color:#1d4ed8; padding:0 3px;">o</span></td>
+                <td style="white-space: nowrap;">一等 <span class="py">o</span> · 二等 <span class="py">eo</span> · 三等 <span class="py">io</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: center;"><span class="py" style="color:#b45309; padding:0 3px;">e</span></td>
+                <td style="white-space: nowrap;">一等 <span class="py">e</span>(额) · 三等 <span class="py">ie</span>(i+额)</td>
+              </tr>
+              <tr>
+                <td style="text-align: center;"><span class="py" style="color:#7c3aed; padding:0 3px;">ê</span></td>
+                <td style="white-space: nowrap;">四等 <span class="py">ê</span> · 二等 <span class="py">eê</span> · 三等 <span class="py">iê</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: center;"><span class="py" style="color:#047857; padding:0 3px;">i</span></td>
+                <td style="white-space: nowrap;">三等 <span class="py">i</span> (重纽B记为 <span class="py">eii</span>)</td>
+              </tr>
+              <tr>
+                <td style="text-align: center;"><span class="py" style="color:#047857; padding:0 3px;">u</span></td>
+                <td style="white-space: nowrap;">一等 <span class="py">u</span> · 合口介音来源</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2. 声母 (38母) -->
+        <div class="single-card">
+          <div class="single-card-header">
+            <span>声母系统 (38母)</span>
+            <span class="badge">双写浊 · -r舌上 · gn日</span>
+          </div>
+          <table class="single-table">
+            <thead>
+              <tr><th style="width:24px;">组</th><th>全清</th><th>次清</th><th>全浊(双写)</th><th>次浊</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>唇</strong></td><td><span class="hz">帮</span><span class="chip chip-q">b</span></td><td><span class="hz">滂</span><span class="chip chip-cq">p</span></td><td><span class="hz">並</span><span class="chip chip-z">bb</span></td><td><span class="hz">明</span><span class="chip chip-cz">m</span></td></tr>
+              <tr><td><strong>舌</strong></td><td><span class="hz">端</span><span class="chip chip-q">d</span></td><td><span class="hz">透</span><span class="chip chip-cq">t</span></td><td><span class="hz">定</span><span class="chip chip-z">dd</span></td><td><span class="hz">泥</span><span class="chip chip-cz">n</span></td></tr>
+              <tr><td><strong>上</strong></td><td><span class="hz">知</span><span class="chip chip-q">dr</span></td><td><span class="hz">彻</span><span class="chip chip-cq">tr</span></td><td><span class="hz">澄</span><span class="chip chip-z">ddr</span></td><td><span style="color:#94a3b8;font-size:9.5px;">无娘母</span></td></tr>
+              <tr><td><strong>齿</strong></td><td><span class="hz">精</span><span class="chip chip-q">z</span></td><td><span class="hz">清</span><span class="chip chip-cq">c</span></td><td><span class="hz">从</span><span class="chip chip-z">dz</span></td><td><span class="hz">心</span><span class="chip chip-q">s</span> <span class="hz">邪</span><span class="chip chip-z">sz</span></td></tr>
+              <tr><td><strong>庄</strong></td><td><span class="hz">庄</span><span class="chip chip-q">zh</span></td><td><span class="hz">初</span><span class="chip chip-cq">ch</span></td><td><span class="hz">崇</span><span class="chip chip-z">dzh</span></td><td><span class="hz">生</span><span class="chip chip-q">sh</span> <span class="hz">俟</span><span class="chip chip-z">r</span></td></tr>
+              <tr><td><strong>章</strong></td><td><span class="hz">章</span><span class="chip chip-q">j</span></td><td><span class="hz">昌</span><span class="chip chip-cq">q</span></td><td><span class="hz">常</span><span class="chip chip-z">dj</span></td><td><span class="hz">书</span><span class="chip chip-q">x</span> <span class="hz">船</span><span class="chip chip-z">xj</span></td></tr>
+              <tr><td><strong>牙</strong></td><td><span class="hz">见</span><span class="chip chip-q">g</span></td><td><span class="hz">谿</span><span class="chip chip-cq">k</span></td><td><span class="hz">群</span><span class="chip chip-z">gg</span></td><td><span class="hz">疑</span><span class="chip chip-cz">ng</span></td></tr>
+              <tr><td><strong>喉</strong></td><td><span class="hz">影</span><span class="chip chip-q">∅</span></td><td><span class="hz">晓</span><span class="chip chip-cq">h</span></td><td><span class="hz">匣</span><span class="chip chip-z">hh</span></td><td><span class="hz">云</span><span class="chip chip-spec">hhi</span> <span class="hz">以</span><span class="chip chip-spec">y</span></td></tr>
+              <tr><td><strong>半</strong></td><td colspan="2"><span class="hz">来</span><span class="chip chip-cz">l</span> (半舌)</td><td colspan="2"><span class="hz">日</span><span class="chip chip-cz">gn</span> (半齿/ñ)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 3. 介音等呼 & 声调标记 -->
+        <div class="single-card">
+          <div class="single-card-header">
+            <span>介音等呼 & 声调</span>
+            <span class="badge">开/合/调</span>
+          </div>
+          <table class="single-table" style="margin-bottom: 2px;">
+            <thead><tr><th>等呼</th><th>开口</th><th>合口</th><th>读法</th></tr></thead>
+            <tbody>
+              <tr><td><strong>一等</strong></td><td><span class="py">∅</span></td><td><span class="py">u</span></td><td>后缩大口</td></tr>
+              <tr><td><strong>二等</strong></td><td><span class="py">e</span></td><td><span class="py">o</span></td><td>扁嘴前响</td></tr>
+              <tr><td><strong>三A</strong></td><td><span class="py">i</span></td><td><span class="py">iu</span></td><td>硬腭擦(ü)</td></tr>
+              <tr><td><strong>三B</strong></td><td><span class="py">ei</span></td><td><span class="py">eiu</span></td><td>重纽B摩擦</td></tr>
+              <tr><td><strong>四等</strong></td><td><span class="py">∅</span></td><td><span class="py">u</span></td><td>主元音为ê</td></tr>
+            </tbody>
+          </table>
+          <div style="border-top: 1px solid #f1f5f9; padding-top: 2px;">
+            <table class="single-table" style="text-align: center;">
+              <tbody>
+                <tr>
+                  <td><span class="t-ping">平</span> <span class="py">∅</span></td>
+                  <td><span class="t-shang">上</span> <span class="py">-x</span></td>
+                  <td><span class="t-qu">去</span> <span class="py">-h</span><small style="color:#64748b;">(-nq)</small></td>
+                  <td><span class="t-ciru">次入</span> <span class="py">-l</span></td>
+                  <td><span class="t-ru">入</span> <span class="py">-p,-t,-k</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 4. 韵尾平配 & 重纽速查 -->
+        <div class="single-card">
+          <div class="single-card-header">
+            <span>韵尾 & 重纽速查</span>
+            <span class="badge">A(i-) vs B(ei-)</span>
+          </div>
+          <div style="font-size: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 2px; margin-bottom: 2px; line-height: 1.25;">
+            半元音: <span class="py">-i</span>, <span class="py">-u</span> ｜ 次入: <span class="py">-l</span> (祭泰夬废)<br>
+            平配: <span class="py">-m↔-p</span> ｜ <span class="py">-n↔-t</span> ｜ <span class="py">-ng↔-k</span>
+          </div>
+          <table class="single-table" style="font-size: 10px;">
+            <thead><tr><th>韵</th><th>A 组</th><th>B 组</th><th>例字</th></tr></thead>
+            <tbody>
+              <tr><td><strong>支/脂</strong></td><td>iê / i</td><td>eiê / eii</td><td>弥/糜 · 规/妫</td></tr>
+              <tr><td><strong>祭(次)</strong></td><td>iêl (iuêl)</td><td>eiêl (eiuêl)</td><td>弊/蔽</td></tr>
+              <tr><td><strong>真/质</strong></td><td>in / it</td><td>ein / eit</td><td>宾/频 · 笔/密</td></tr>
+              <tr><td><strong>仙/薛</strong></td><td>iên / iêt</td><td>eiên / eiêt</td><td>便/变 · 别/瞥</td></tr>
+              <tr><td><strong>宵</strong></td><td>iêu</td><td>eiêu</td><td>标/表 · 苗/眇</td></tr>
+              <tr><td><strong>侵/缉</strong></td><td>im / ip</td><td>eim / eip</td><td>愔/音 · 今/金</td></tr>
+              <tr><td><strong>盐/叶</strong></td><td>iêm / iêp</td><td>eiêm / eiêp</td><td>廉/敛 · 叶A/叶B</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- 下半区：十六摄全景仪表盘 (4列 × 4摄，纯净紧凑) -->
+      <div class="bottom-grid" id="singleSheGrid">
+        
+        <!-- Col 1 -->
+        <div class="single-card single-she-box" data-search="通摄 东冬钟 屋沃烛">
+          <div class="single-card-header"><span>1. 通摄 (-ng / -k)</span><span class="badge">阳入配</span></div>
+          <div class="single-she-row"><span>东一: <span class="hz">东</span> <span class="py">ung</span></span><span>屋: <span class="py">uk</span></span></div>
+          <div class="single-she-row"><span>冬一: <span class="hz">冬</span> <span class="py">ong</span></span><span>沃: <span class="py">ok</span></span></div>
+          <div class="single-she-row"><span>钟三: <span class="hz">钟</span> <span class="py">iong</span></span><span>烛: <span class="py">iok</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="江摄 江觉">
+          <div class="single-card-header"><span>2. 江摄 (-ng / -k)</span><span class="badge">二等独用</span></div>
+          <div class="single-she-row"><span>江二: <span class="hz">江</span> <span class="py">eong</span></span><span>觉: <span class="py">eok</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="止摄 支脂之微">
+          <div class="single-card-header"><span>3. 止摄 (开尾)</span><span class="badge">前高元音</span></div>
+          <div class="single-she-row"><span>支三: <span class="hz">支</span> <span class="py">iê / iuê</span></span><span>之三: <span class="hz">之</span> <span class="py">ie</span></span></div>
+          <div class="single-she-row"><span>脂三(A/B): <span class="hz">脂</span> <span class="py">i / eii</span></span><span>微三: <span class="hz">微</span> <span class="py">iei/iuei</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="遇摄 模鱼虞">
+          <div class="single-card-header"><span>4. 遇摄 (开尾)</span><span class="badge">后圆唇</span></div>
+          <div class="single-she-row"><span>模一合: <span class="hz">模</span> <span class="py">o</span></span><span>鱼三开: <span class="hz">鱼</span> <span class="py">io</span></span></div>
+          <div class="single-she-row"><span>虞三合: <span class="hz">虞</span> <span class="py">iuo</span></span><span></span></div>
+        </div>
+
+        <!-- Col 2 -->
+        <div class="single-card single-she-box" data-search="蟹摄 咍灰皆佳齐 泰夬废祭 次入声">
+          <div class="single-card-header"><span>5. 蟹摄 (-i / -l次入)</span><span class="badge">含四次入</span></div>
+          <div class="single-she-row"><span>咍/灰: <span class="py">ei / uei</span></span><span>皆/佳: <span class="py">eêi / eê</span></span><span>齐: <span class="py">êi(uêi)</span></span></div>
+          <div class="single-she-row" style="color:var(--tone-ciru); font-weight:600;">
+            <span>次入: 泰<span class="py">al</span> · 夬<span class="py">eal</span> · 废<span class="py">ial</span> · 祭<span class="py">iêl(eiêl)</span></span>
+          </div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="臻摄 魂痕没 元月 殷迄 真质 谆术 臻栉 文物">
+          <div class="single-card-header"><span>6. 臻摄 (-n / -t)</span><span class="badge">舌尖闭音</span></div>
+          <div class="single-she-row"><span>魂/痕: <span class="py">uen/en</span> (没<span class="py">uet</span>)</span><span>元/殷: <span class="py">ion/ien</span> (月<span class="py">iot</span>/迄<span class="py">iet</span>)</span></div>
+          <div class="single-she-row"><span>真/质(A/B): <span class="py">in(ein) / it(eit)</span></span><span>谆/术/文: <span class="py">iun/iuen (iut/iuet)</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="山摄 寒桓删山仙先 曷末辖黠薛屑">
+          <div class="single-card-header"><span>7. 山摄 (-n / -t)</span><span class="badge">齿音平配</span></div>
+          <div class="single-she-row"><span>寒/桓: <span class="py">an/uan</span> (曷/末 <span class="py">at/uat</span>)</span><span>删/山: <span class="py">ean/eên</span> (辖/黠 <span class="py">eat/eêt</span>)</span></div>
+          <div class="single-she-row"><span>仙三(A/B): <span class="py">iên(eiên) / iêt(eiêt)</span></span><span>先四: <span class="py">ên(uên) / êt(uêt)</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="效摄 豪肴宵萧">
+          <div class="single-card-header"><span>8. 效摄 (-u 开尾)</span><span class="badge">后双元音</span></div>
+          <div class="single-she-row"><span>豪一: <span class="hz">豪</span> <span class="py">ao</span></span><span>肴二: <span class="hz">肴</span> <span class="py">eao</span></span></div>
+          <div class="single-she-row"><span>宵三(A/B): <span class="hz">宵</span> <span class="py">iêu / eiêu</span></span><span>萧四: <span class="hz">萧</span> <span class="py">êu</span></span></div>
+        </div>
+
+        <!-- Col 3 -->
+        <div class="single-card single-she-box" data-search="果摄 歌戈">
+          <div class="single-card-header"><span>9. 果摄 (单元音开尾)</span><span class="badge">一/三等</span></div>
+          <div class="single-she-row"><span>歌一开: <span class="hz">歌</span> <span class="py">a</span></span><span>戈一合: <span class="hz">戈</span> <span class="py">ua</span></span><span>戈三: <span class="py">iaa</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="假摄 麻">
+          <div class="single-card-header"><span>10. 假摄 (前低开尾)</span><span class="badge">二/三等</span></div>
+          <div class="single-she-row"><span>麻二开: <span class="hz">麻二</span> <span class="py">ea</span></span><span>麻三开: <span class="hz">麻三</span> <span class="py">ia</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="宕摄 唐阳 铎药">
+          <div class="single-card-header"><span>11. 宕摄 (-ng / -k)</span><span class="badge">大口后音</span></div>
+          <div class="single-she-row"><span>唐一开/合: <span class="hz">唐</span> <span class="py">ang/uang</span></span><span>铎: <span class="py">ak/uak</span></span></div>
+          <div class="single-she-row"><span>阳三开/合: <span class="hz">阳</span> <span class="py">iang/iuang</span></span><span>药: <span class="py">iak/iuak</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="梗摄 庚耕清青 陌麦昔锡">
+          <div class="single-card-header"><span>12. 梗摄 (-ng / -k)</span><span class="badge">前元音配</span></div>
+          <div class="single-she-row"><span>庚二/三: <span class="py">eang(ieang) / eak(ieak)</span></span><span>耕二: <span class="py">eêng / eêk</span></span></div>
+          <div class="single-she-row"><span>清三: <span class="py">iêng / iêk</span></span><span>青四: <span class="py">êng / êk</span></span></div>
+        </div>
+
+        <!-- Col 4 -->
+        <div class="single-card single-she-box" data-search="曾摄 登蒸 德职">
+          <div class="single-card-header"><span>13. 曾摄 (-ng / -k)</span><span class="badge">中元音</span></div>
+          <div class="single-she-row"><span>登一开/合: <span class="hz">登</span> <span class="py">eng/ueng</span></span><span>德: <span class="py">ek/uek</span></span></div>
+          <div class="single-she-row"><span>蒸三开/合: <span class="hz">蒸</span> <span class="py">ing/iuing</span></span><span>职: <span class="py">ik/iuik</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="流摄 侯尤幽">
+          <div class="single-card-header"><span>14. 流摄 (高元音开尾)</span><span class="badge">一/三等</span></div>
+          <div class="single-she-row"><span>侯一: <span class="hz">侯</span> <span class="py">ou</span></span><span>尤三: <span class="hz">尤</span> <span class="py">iu</span></span><span>幽三: <span class="hz">幽</span> <span class="py">eiu</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="深摄 侵缉">
+          <div class="single-card-header"><span>15. 深摄 (-m / -p)</span><span class="badge">三等闭口</span></div>
+          <div class="single-she-row"><span>侵三(A/B): <span class="hz">侵</span> <span class="py">im / eim</span></span><span>缉三(A/B): <span class="hz">缉</span> <span class="py">ip / eip</span></span></div>
+        </div>
+
+        <div class="single-card single-she-box" data-search="咸摄 覃谈咸衔严凡盐添 合盍洽狎业乏叶贴">
+          <div class="single-card-header"><span>16. 咸摄 (-m / -p)</span><span class="badge">闭唇大摄</span></div>
+          <div class="single-she-row"><span>覃/谈: <span class="py">em/am (ep/ap)</span></span><span>咸/衔: <span class="py">eêm/eam (eêp/eap)</span></span></div>
+          <div class="single-she-row"><span>严/凡: <span class="py">iam/iuam (iap/iuap)</span></span><span>盐/添: <span class="py">iêm(eiêm)/êm (iêp/êp)</span></span></div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================
+         TAB 1: 精简速览版 (严格控制在两屏内，无多余冗余文字)
+         ======================================================== -->
+    <div id="tab-compact" class="tab-content compact-view">
+      
+      <!-- Screen 1: 主元音 (6位一行一个) 位于声母上方 + 介音/声调 + 韵尾/重纽 -->
+      <div class="grid-top">
+        
+        <!-- 左列: 主元音系统 (6位，一行一行清晰排布) + 声母系统 (38母) -->
+        <div style="display: flex; flex-direction: column; gap: 7px;">
+
+          <!-- 主元音 (6位) 放在声母系统正上方，每个元音占一行 -->
+          <div class="card">
+            <div class="card-header">
+              <span>主元音系统 (6位核心音位)</span>
+              <span class="badge">一行一音 · 等第派生与辨析</span>
+            </div>
+            <div class="card-body" style="padding: 4px 6px;">
+              <table class="compact-table" style="font-size: 11.5px;">
+                <thead>
+                  <tr>
+                    <th style="width: 28px; text-align: center;">元音</th>
+                    <th style="white-space: nowrap;">等第组合 (介音+主元音)</th>
+                    <th>发音要领与核心辨析</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="text-align: center;"><span class="py" style="font-size: 12.5px; color:#1d4ed8; padding:1px 6px;">a</span></td>
+                    <td style="white-space: nowrap;">一等 <span class="py">a</span> · 二等 <span class="py">ea</span> · 三等 <span class="py">ia</span></td>
+                    <td>后a(a)嘴型最大；二等前a(ea)前响；三等ia</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;"><span class="py" style="font-size: 12.5px; color:#1d4ed8; padding:1px 6px;">o</span></td>
+                    <td style="white-space: nowrap;">一等 <span class="py">o</span> · 二等 <span class="py">eo</span> · 三等 <span class="py">io</span></td>
+                    <td>后圆唇单元音o(勿发uo)；eo用于江韵(long)；io鱼钟</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;"><span class="py" style="font-size: 12.5px; color:#b45309; padding:1px 6px;">e</span></td>
+                    <td style="white-space: nowrap;">一等 <span class="py">e</span> · 三等 <span class="py">ie</span></td>
+                    <td><strong>恒读汉语拼音“额”/ə/</strong>；ie读i+额(切勿读拼音ie)</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;"><span class="py" style="font-size: 12.5px; color:#7c3aed; padding:1px 6px;">ê</span></td>
+                    <td style="white-space: nowrap;">四等 <span class="py">ê</span> · 二等 <span class="py">eê</span> · 三等 <span class="py">iê</span></td>
+                    <td>四等ê(法é/英let)；eê同英map之a；iê读拼音ie</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;"><span class="py" style="font-size: 12.5px; color:#047857; padding:1px 6px;">i</span></td>
+                    <td style="white-space: nowrap;">三等 <span class="py">i</span> (重纽B记为 <span class="py">eii</span>)</td>
+                    <td>同汉语拼音i；脂韵三等B加e拼为eii防混咍(ei)</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;"><span class="py" style="font-size: 12.5px; color:#047857; padding:1px 6px;">u</span></td>
+                    <td style="white-space: nowrap;">一等 <span class="py">u</span> (合口介音来源)</td>
+                    <td>同汉语拼音u；作为一/四等合口标志与独立介音</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 声母系统 (紧随主元音下方) -->
+          <div class="card">
+            <div class="card-header">
+              <span>声母系统 (38母对照)</span>
+              <span class="badge">双写全浊 · -r舌上 · gn日 · hhi云</span>
+            </div>
+            <div class="card-body" style="padding: 4px 6px;">
+              <table class="compact-table">
+                <thead>
+                  <tr>
+                    <th>发音组</th>
+                    <th>全清</th>
+                    <th>次清</th>
+                    <th>全浊 (双写)</th>
+                    <th>次浊</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>唇音</strong></td>
+                    <td><span class="hz">帮</span><span class="chip chip-q">b</span></td>
+                    <td><span class="hz">滂</span><span class="chip chip-cq">p</span></td>
+                    <td><span class="hz">並</span><span class="chip chip-z">bb</span></td>
+                    <td><span class="hz">明</span><span class="chip chip-cz">m</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>舌头</strong></td>
+                    <td><span class="hz">端</span><span class="chip chip-q">d</span></td>
+                    <td><span class="hz">透</span><span class="chip chip-cq">t</span></td>
+                    <td><span class="hz">定</span><span class="chip chip-z">dd</span></td>
+                    <td><span class="hz">泥</span><span class="chip chip-cz">n</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>舌上</strong></td>
+                    <td><span class="hz">知</span><span class="chip chip-q">dr</span></td>
+                    <td><span class="hz">彻</span><span class="chip chip-cq">tr</span></td>
+                    <td><span class="hz">澄</span><span class="chip chip-z">ddr</span></td>
+                    <td style="color:#94a3b8; font-size:10px;">切韵无娘母</td>
+                  </tr>
+                  <tr>
+                    <td><strong>齿头</strong></td>
+                    <td><span class="hz">精</span><span class="chip chip-q">z</span></td>
+                    <td><span class="hz">清</span><span class="chip chip-cq">c</span></td>
+                    <td><span class="hz">从</span><span class="chip chip-z">dz</span></td>
+                    <td><span class="hz">心</span><span class="chip chip-q">s</span> <span class="hz">邪</span><span class="chip chip-z">sz</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>庄组</strong></td>
+                    <td><span class="hz">庄</span><span class="chip chip-q">zh</span></td>
+                    <td><span class="hz">初</span><span class="chip chip-cq">ch</span></td>
+                    <td><span class="hz">崇</span><span class="chip chip-z">dzh</span></td>
+                    <td><span class="hz">生</span><span class="chip chip-q">sh</span> <span class="hz">俟</span><span class="chip chip-z">r</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>章组</strong></td>
+                    <td><span class="hz">章</span><span class="chip chip-q">j</span></td>
+                    <td><span class="hz">昌</span><span class="chip chip-cq">q</span></td>
+                    <td><span class="hz">常</span><span class="chip chip-z">dj</span></td>
+                    <td><span class="hz">书</span><span class="chip chip-q">x</span> <span class="hz">船</span><span class="chip chip-z">xj</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>牙音</strong></td>
+                    <td><span class="hz">见</span><span class="chip chip-q">g</span></td>
+                    <td><span class="hz">谿</span><span class="chip chip-cq">k</span></td>
+                    <td><span class="hz">群</span><span class="chip chip-z">gg</span></td>
+                    <td><span class="hz">疑</span><span class="chip chip-cz">ng</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>喉音</strong></td>
+                    <td><span class="hz">影</span><span class="chip chip-q">∅</span></td>
+                    <td><span class="hz">晓</span><span class="chip chip-cq">h</span></td>
+                    <td><span class="hz">匣</span><span class="chip chip-z">hh</span></td>
+                    <td><span class="hz">云</span><span class="chip chip-spec">hhi</span> <span class="hz">以</span><span class="chip chip-spec">y</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>半舌齿</strong></td>
+                    <td colspan="2"><span class="hz">来</span> (半舌) <span class="chip chip-cz">l</span></td>
+                    <td colspan="2"><span class="hz">日</span> (半齿) <span class="chip chip-cz">gn</span> (/ɲ/同ñ)</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="font-size:10px; color:#64748b; margin-top:3px; padding-top:2px; border-top:1px dashed #f1f5f9;">
+                ※ 浊辅音不送气双写防混；从dz/邪sz、常dj/船xj分立；云hhi读/ʕ/或y。
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 中列: 介音等呼 + 声调标记 -->
+        <div style="display: flex; flex-direction: column; gap: 7px;">
+          
+          <!-- 介音与等呼 -->
+          <div class="card">
+            <div class="card-header">
+              <span>介音与等呼 (Medials)</span>
+              <span class="badge">郑张/潘悟云体系</span>
+            </div>
+            <div class="card-body" style="padding: 4px 6px;">
+              <table class="compact-table">
+                <thead>
+                  <tr><th>等呼</th><th>开口</th><th>合口</th><th>拼读要领</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>一等</strong></td><td><span class="py">∅ (无)</span></td><td><span class="py">u</span></td><td>后缩大口 (ga / gua)</td></tr>
+                  <tr><td><strong>二等</strong></td><td><span class="py">e</span></td><td><span class="py">o</span> <small>(ue缩)</small></td><td>扁嘴前响 (gea / goa)</td></tr>
+                  <tr><td><strong>三等A</strong></td><td><span class="py">i</span></td><td><span class="py">iu</span> <small>(读ü)</small></td><td>硬腭擦 (miê / giuê)</td></tr>
+                  <tr><td><strong>三等B</strong></td><td><span class="py">ei</span></td><td><span class="py">eiu</span> <small>(e+ü)</small></td><td>重纽B强摩擦 (meiê / geiuê)</td></tr>
+                  <tr><td><strong>四等</strong></td><td><span class="py">∅</span> <small>(主ê)</small></td><td><span class="py">u</span> <small>(主ê)</small></td><td>前高前响 (tên / suên)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 声调标记 -->
+          <div class="card">
+            <div class="card-header">
+              <span>声调标记 (Tones)</span>
+              <span class="badge">尾缀字母法</span>
+            </div>
+            <div class="card-body" style="padding: 4px 6px;">
+              <table class="compact-table">
+                <thead>
+                  <tr><th>调类</th><th>标记</th><th>说明与简记</th><th>例</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><span class="t-ping">平声</span></td><td><span class="py">不标 (∅)</span></td><td>平调 (春·阳中德泽)</td><td>tên (天)</td></tr>
+                  <tr><td><span class="t-shang">上声</span></td><td><span class="py">-x</span></td><td>升调 (夏·炎炽如火)</td><td>xiuix (水)</td></tr>
+                  <tr><td><span class="t-qu">去声</span></td><td><span class="py">-h</span></td><td>降调；<span class="py">-ng+h</span> 简缩为 <span class="py">-nq</span></td><td>ddih (地), miuanq (望)</td></tr>
+                  <tr><td><span class="t-ciru">次入</span></td><td><span class="py">-l</span></td><td><strong>祭泰夬废</strong>四韵独用</td><td>ddal (大), koal (快)</td></tr>
+                  <tr><td><span class="t-ru">入声</span></td><td><span class="py">-p, -t, -k</span></td><td>促调，与鼻尾平配</td><td>it (一), djip (十)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 右列: 韵尾系统 (4类) + 重纽速查 (Chongniu A vs B) -->
+        <div style="display: flex; flex-direction: column; gap: 7px;">
+          
+          <!-- 韵尾系统 -->
+          <div class="card">
+            <div class="card-header">
+              <span>韵尾系统 (4类共9尾)</span>
+              <span class="badge">鼻塞平配 · 次入-l</span>
+            </div>
+            <div class="card-body" style="padding: 4px 6px;">
+              <table class="compact-table">
+                <thead>
+                  <tr><th style="width: 55px;">类型</th><th>韵尾符号</th><th>说明与对应配对</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>半元音</strong></td>
+                    <td><span class="py">-i</span>, <span class="py">-u</span></td>
+                    <td>开尾韵润音：开/豪/宵/侯</td>
+                  </tr>
+                  <tr>
+                    <td><strong>鼻塞平配</strong></td>
+                    <td colspan="2">
+                      双唇 <span class="py">-m ↔ -p</span> (咸深)<br>
+                      舌尖 <span class="py">-n ↔ -t</span> (臻山)<br>
+                      舌根 <span class="py">-ng ↔ -k</span> (通江宕梗曾)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>次入声尾</strong></td>
+                    <td><span class="py">-l</span></td>
+                    <td><strong>祭泰夬废</strong>四韵独用，早期通押-t，后并入-i</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 重纽对比速查表 -->
+          <div class="card">
+            <div class="card-header">
+              <span>重纽八韵速查 (Chongniu A vs B)</span>
+              <span class="badge">唇牙喉 + i + i/ê</span>
+            </div>
+            <div class="card-body" style="padding: 4px 6px;">
+              <table class="compact-table" style="font-size:11px;">
+                <thead>
+                  <tr><th>韵部</th><th>A 组 (i-)</th><th>B 组 (ei-)</th><th>典型对比例字</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>支/脂</strong></td><td>iê / i</td><td>eiê / eii</td><td>弥 miê vs 糜 meiê · 规 giuê vs 妫 geiuê</td></tr>
+                  <tr><td><strong>祭(次入)</strong></td><td>iêl (iuêl)</td><td>eiêl (eiuêl)</td><td>弊 biêlh (A) vs 蔽 beiêlh (B)</td></tr>
+                  <tr><td><strong>真/质</strong></td><td>in / it</td><td>ein / eit</td><td>宾 bin (A) vs 频 bbein (B) · 笔 bit vs 密 meit</td></tr>
+                  <tr><td><strong>仙/薛</strong></td><td>iên / iêt</td><td>eiên / eiêt</td><td>便 biên (A) vs 变 beiênh (B)</td></tr>
+                  <tr><td><strong>宵</strong></td><td>iêu</td><td>eiêu</td><td>标 biêu (A) vs 表 peiêux (B)</td></tr>
+                  <tr><td><strong>侵/缉</strong></td><td>im / ip</td><td>eim / eip</td><td>愔 im (影A) vs 音 eim (影B) · 今 gim vs 金 geim</td></tr>
+                  <tr><td><strong>盐/叶</strong></td><td>iêm / iêp</td><td>eiêm / eiêp</td><td>廉 liêm vs 敛 leiêmx · 叶 iêp vs eiêp</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Screen 2: 十六摄韵母全览 (4列紧凑排列，无废话，一眼看尽全韵) -->
+      <div class="card" style="margin-top: 4px;">
+        <div class="card-header">
+          <span>《广韵》十六摄完整韵母转写矩阵 (16 She Compact Matrix)</span>
+          <span class="badge">平上去入完整配对</span>
+        </div>
+        <div class="card-body" style="padding: 6px;">
+          <div class="she-4col" id="sheMatrixCompact">
+            
+            <!-- Col 1 -->
+            <div class="she-item-box" data-search="通摄 东冬钟 屋沃烛">
+              <div class="she-item-header"><span>1. 通摄 (-ng / -k)</span><span class="badge">阳入配对</span></div>
+              <div class="she-row"><span>东一开/合: <span class="hz">东</span></span><span class="py">ung</span><span>屋: <span class="py">uk</span></span></div>
+              <div class="she-row"><span>冬一开/合: <span class="hz">冬</span></span><span class="py">ong</span><span>沃: <span class="py">ok</span></span></div>
+              <div class="she-row"><span>钟三开/合: <span class="hz">钟</span></span><span class="py">iong</span><span>烛: <span class="py">iok</span></span></div>
+            </div>
+
+            <div class="she-item-box" data-search="江摄 江觉">
+              <div class="she-item-header"><span>2. 江摄 (-ng / -k)</span><span class="badge">二等独用</span></div>
+              <div class="she-row"><span>江二开: <span class="hz">江</span></span><span class="py">eong</span><span>觉: <span class="py">eok</span></span></div>
+              <div class="mini-tip">读 long 之 ong，唐后并入 ang</div>
+            </div>
+
+            <div class="she-item-box" data-search="止摄 支脂之微">
+              <div class="she-item-header"><span>3. 止摄 (开尾)</span><span class="badge">前高元音</span></div>
+              <div class="she-row"><span>支三开/合: <span class="hz">支</span></span><span class="py">iê / iuê</span></div>
+              <div class="she-row"><span>脂三开/合: <span class="hz">脂</span> (A/B)</span><span class="py">i / eii (iui/eiui)</span></div>
+              <div class="she-row"><span>之三开: <span class="hz">之</span></span><span class="py">ie</span> <small>(i+额)</small></div>
+              <div class="she-row"><span>微三开/合: <span class="hz">微</span></span><span class="py">iei / iuei</span></div>
+            </div>
+
+            <div class="she-item-box" data-search="遇摄 模鱼虞">
+              <div class="she-item-header"><span>4. 遇摄 (开尾)</span><span class="badge">后圆唇</span></div>
+              <div class="she-row"><span>模一合: <span class="hz">模</span></span><span class="py">o</span> <small>(唐变u)</small></div>
+              <div class="she-row"><span>鱼三开: <span class="hz">鱼</span></span><span class="py">io</span></div>
+              <div class="she-row"><span>虞三合: <span class="hz">虞</span></span><span class="py">iuo</span> <small>(唐鱼虞并iu)</small></div>
+            </div>
+
+            <!-- Col 2 -->
+            <div class="she-item-box" data-search="蟹摄 咍灰皆佳齐 泰夬废祭 次入声">
+              <div class="she-item-header"><span>5. 蟹摄 (-i / -l次入)</span><span class="badge">含四次入</span></div>
+              <div class="she-row"><span>咍一/灰一: <span class="hz">咍/灰</span></span><span class="py">ei / uei</span></div>
+              <div class="she-row"><span>皆二/佳二: <span class="hz">皆/佳</span></span><span class="py">eêi / eê</span></div>
+              <div class="she-row"><span>齐四开/合: <span class="hz">齐</span></span><span class="py">êi / uêi</span></div>
+              <div class="she-row" style="color:var(--tone-ciru); font-weight:600;">
+                <span>次入(泰夬废祭):</span><span class="py">al, eal, ial, iêl</span>
+              </div>
+            </div>
+
+            <div class="she-item-box" data-search="臻摄 魂痕没 元月 殷迄 真质 谆术 臻栉 文物">
+              <div class="she-item-header"><span>6. 臻摄 (-n / -t)</span><span class="badge">舌尖闭音</span></div>
+              <div class="she-row"><span>魂/痕/没: <span class="hz">魂/痕</span></span><span class="py">uen / en</span><span>没: <span class="py">uet</span></span></div>
+              <div class="she-row"><span>元三/月三: <span class="hz">元</span></span><span class="py">ion</span><span>月: <span class="py">iot</span></span></div>
+              <div class="she-row"><span>殷三/迄三: <span class="hz">殷</span></span><span class="py">ien</span><span>迄: <span class="py">iet</span></span></div>
+              <div class="she-row"><span>真/质(A/B): <span class="hz">真</span></span><span class="py">in(ein)</span><span>质: <span class="py">it(eit)</span></span></div>
+              <div class="she-row"><span>谆/术/文: <span class="hz">谆/文</span></span><span class="py">iun / iuen</span><span>术/物: <span class="py">iut/iuet</span></span></div>
+            </div>
+
+            <div class="she-item-box" data-search="山摄 寒桓删山仙先 曷末辖黠薛屑">
+              <div class="she-item-header"><span>7. 山摄 (-n / -t)</span><span class="badge">齿音平配</span></div>
+              <div class="she-row"><span>寒一/桓一: <span class="hz">寒/桓</span></span><span class="py">an / uan</span><span>曷/末: <span class="py">at/uat</span></span></div>
+              <div class="she-row"><span>删二/山二: <span class="hz">删/山</span></span><span class="py">ean / eên</span><span>辖/黠: <span class="py">eat/eêt</span></span></div>
+              <div class="she-row"><span>仙三(A/B): <span class="hz">仙</span></span><span class="py">iên(eiên)</span><span>薛: <span class="py">iêt(eiêt)</span></span></div>
+              <div class="she-row"><span>先四开/合: <span class="hz">先</span></span><span class="py">ên / uên</span><span>屑: <span class="py">êt / uêt</span></span></div>
+            </div>
+
+            <div class="she-item-box" data-search="效摄 豪肴宵萧">
+              <div class="she-item-header"><span>8. 效摄 (-u 开尾)</span><span class="badge">后双元音</span></div>
+              <div class="she-row"><span>豪一开: <span class="hz">豪</span></span><span class="py">ao</span></div>
+              <div class="she-row"><span>肴二开: <span class="hz">肴</span></span><span class="py">eao</span></div>
+              <div class="she-row"><span>宵三(A/B): <span class="hz">宵</span></span><span class="py">iêu / eiêu</span> <small>(近iao)</small></div>
+              <div class="she-row"><span>萧四开: <span class="hz">萧</span></span><span class="py">êu</span></div>
+            </div>
+
+            <!-- Col 3 -->
+            <div class="she-item-box" data-search="果摄 歌戈">
+              <div class="she-item-header"><span>9. 果摄 (单元音开尾)</span><span class="badge">一/三等</span></div>
+              <div class="she-row"><span>歌一开: <span class="hz">歌</span></span><span class="py">a</span></div>
+              <div class="she-row"><span>戈一合: <span class="hz">戈</span></span><span class="py">ua</span></div>
+              <div class="she-row"><span>戈三开(梵译): <span class="hz">戈三</span></span><span class="py">iaa</span></div>
+            </div>
+
+            <div class="she-item-box" data-search="假摄 麻">
+              <div class="she-item-header"><span>10. 假摄 (前低开尾)</span><span class="badge">二/三等</span></div>
+              <div class="she-row"><span>麻二开: <span class="hz">麻二</span></span><span class="py">ea</span></div>
+              <div class="she-row"><span>麻三开: <span class="hz">麻三</span></span><span class="py">ia</span></div>
+            </div>
+
+            <div class="she-item-box" data-search="宕摄 唐阳 铎药">
+              <div class="she-item-header"><span>11. 宕摄 (-ng / -k)</span><span class="badge">大口后元音</span></div>
+              <div class="she-row"><span>唐一开/合: <span class="hz">唐</span></span><span class="py">ang / uang</span><span>铎: <span class="py">ak/uak</span></span></div>
+              <div class="she-row"><span>阳三开/合: <span class="hz">阳</span></span><span class="py">iang / iuang</span><span>药: <span class="py">iak/iuak</span></span></div>
+            </div>
+
+            <div class="she-item-box" data-search="梗摄 庚耕清青 陌麦昔锡">
+              <div class="she-item-header"><span>12. 梗摄 (-ng / -k)</span><span class="badge">前元音平配</span></div>
+              <div class="she-row"><span>庚二/庚三: <span class="hz">庚</span></span><span class="py">eang/ieang</span><span>陌: <span class="py">eak/ieak</span></span></div>
+              <div class="she-row"><span>耕二开/合: <span class="hz">耕</span></span><span class="py">eêng/oêng</span><span>麦: <span class="py">eêk/oêk</span></span></div>
+              <div class="she-row"><span>清三开/合: <span class="hz">清</span></span><span class="py">iêng/iuêng</span><span>昔: <span class="py">iêk/iuêk</span></span></div>
+              <div class="she-row"><span>青四开/合: <span class="hz">青</span></span><span class="py">êng/uêng</span><span>锡: <span class="py">êk/uêk</span></span></div>
+            </div>
+
+            <!-- Col 4 -->
+            <div class="she-item-box" data-search="曾摄 登蒸 德职">
+              <div class="she-item-header"><span>13. 曾摄 (-ng / -k)</span><span class="badge">中元音舌根</span></div>
+              <div class="she-row"><span>登一开/合: <span class="hz">登</span></span><span class="py">eng / ueng</span><span>德: <span class="py">ek/uek</span></span></div>
+              <div class="she-row"><span>蒸三开/合: <span class="hz">蒸</span></span><span class="py">ing / iuing</span><span>职: <span class="py">ik/iuik</span></span></div>
+              <div class="mini-tip">蒸登通押时带增生元音 ieng/iek</div>
+            </div>
+
+            <div class="she-item-box" data-search="流摄 侯尤幽">
+              <div class="she-item-header"><span>14. 流摄 (高元音开尾)</span><span class="badge">一/三等</span></div>
+              <div class="she-row"><span>侯一开: <span class="hz">侯</span></span><span class="py">ou</span> <small>(必读ou非u)</small></div>
+              <div class="she-row"><span>尤三开: <span class="hz">尤</span></span><span class="py">iu</span></div>
+              <div class="she-row"><span>幽三开: <span class="hz">幽</span></span><span class="py">eiu</span> <small>(即尤韵重纽B)</small></div>
+            </div>
+
+            <div class="she-item-box" data-search="深摄 侵缉">
+              <div class="she-item-header"><span>15. 深摄 (-m / -p)</span><span class="badge">三等闭口</span></div>
+              <div class="she-row"><span>侵三(A/B): <span class="hz">侵</span></span><span class="py">im / eim</span></div>
+              <div class="she-row"><span>缉三(A/B): <span class="hz">缉</span></span><span class="py">ip / eip</span></div>
+              <div class="mini-tip">愔 im (A) vs 音 eim (B)</div>
+            </div>
+
+            <div class="she-item-box" data-search="咸摄 覃谈咸衔严凡盐添 合盍洽狎业乏叶贴">
+              <div class="she-item-header"><span>16. 咸摄 (-m / -p)</span><span class="badge">闭唇大摄</span></div>
+              <div class="she-row"><span>覃一/谈一: <span class="hz">覃/谈</span></span><span class="py">em / am</span><span>合/盍: <span class="py">ep/ap</span></span></div>
+              <div class="she-row"><span>咸二/衔二: <span class="hz">咸/衔</span></span><span class="py">eêm / eam</span><span>洽/狎: <span class="py">eêp/eap</span></span></div>
+              <div class="she-row"><span>严三/凡三: <span class="hz">严/凡</span></span><span class="py">iam / iuam</span><span>业/乏: <span class="py">iap/iuap</span></span></div>
+              <div class="she-row"><span>盐三/添四: <span class="hz">盐/添</span></span><span class="py">iêm(eiêm)/êm</span><span>叶/贴: <span class="py">iêp/êp</span></span></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================
+         TAB 2: 详细参考版 (保留全部考据说明、公式、短歌行、范例)
+         ======================================================== -->
+    <div id="tab-detailed" class="tab-content detailed-view">
+      
+      <!-- Formula Banner -->
+      <section class="formula-banner">
+        <div>
+          <div class="formula-title">拼写公式 (Formula)</div>
+          <div style="font-size: 11px; color: #64748b;">音节 = 声母 + (介音) + 主元音 + (韵尾) + 声调</div>
+        </div>
+        <div class="formula-expr">
+          <div class="formula-pill">声母<span class="sub">清/浊双写/-r/gn</span></div>
+          <span>+</span>
+          <div class="formula-pill">介音<span class="sub">一∅ / 二e,o / 三i,iu,ei,eiu / 四∅</span></div>
+          <span>+</span>
+          <div class="formula-pill">主元音<span class="sub">a, ea, o, e, ê, i, u...</span></div>
+          <span>+</span>
+          <div class="formula-pill">韵尾<span class="sub">-i,-u / -m,-n,-ng / -p,-t,-k / -l</span></div>
+          <span>+</span>
+          <div class="formula-pill">调号<span class="sub">平∅ / 上-x / 去-h / 次入-l / 入-p,t,k</span></div>
+        </div>
+        <div style="font-size: 11.5px; color: #334155; display: flex; gap: 12px; flex-wrap: wrap;">
+          <span>⚡ <strong>浊辅音</strong>双写 (bb,dd,gg,dz,sz,dj,xj,dzh)</span>
+          <span>⚡ <strong>ê</strong> 专司四等与部分二三等，<strong>e</strong> 恒读/ə/(额)</span>
+          <span>⚡ <strong>-l</strong> 为祭泰夬废次入声</span>
+        </div>
+      </section>
+
+      <!-- Tester -->
+      <div class="tester-container no-print">
+        <span style="font-weight: 700; font-size: 12px; color: #1e293b;">🔍 拼音即时反查小工具:</span>
+        <input type="text" id="syllableInput" class="tester-input" placeholder="输入拼音如 ddal, miuonh" onkeyup="analyzePinyin()">
+        <div id="analyzerOutput" style="font-size: 12px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+          <span style="color: #64748b;">输入方案拼音，即时解析其声母、介音、元音、韵尾与声调属性</span>
+        </div>
+      </div>
+
+      <!-- Detailed Row 1 -->
+      <div class="grid-2-1">
+        
+        <!-- 声母系统 -->
+        <section class="card">
+          <div class="card-header">
+            <span>（二）声母系统（三十七/三十八母转写对照）</span>
+            <span class="badge">双写表示不送气浊音 · 兼容汉语拼音</span>
+          </div>
+          <div class="card-body">
+            <table class="compact-table">
+              <thead>
+                <tr>
+                  <th style="width: 70px;">发音部位</th>
+                  <th>全清 (Voiceless)</th>
+                  <th>次清 (Aspirated)</th>
+                  <th>全浊 (Voiced 紧塞/浊)</th>
+                  <th>次浊 (Sonorant 鼻/流)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>唇音</strong></td>
+                  <td><span class="hz">帮</span> <span class="chip chip-q">b</span></td>
+                  <td><span class="hz">滂</span> <span class="chip chip-cq">p</span></td>
+                  <td><span class="hz">並</span> <span class="chip chip-z">bb</span></td>
+                  <td><span class="hz">明</span> <span class="chip chip-cz">m</span></td>
+                </tr>
+                <tr>
+                  <td><strong>舌头音</strong></td>
+                  <td><span class="hz">端</span> <span class="chip chip-q">d</span></td>
+                  <td><span class="hz">透</span> <span class="chip chip-cq">t</span></td>
+                  <td><span class="hz">定</span> <span class="chip chip-z">dd</span></td>
+                  <td><span class="hz">泥</span> <span class="chip chip-cz">n</span></td>
+                </tr>
+                <tr>
+                  <td><strong>舌上音</strong></td>
+                  <td><span class="hz">知</span> <span class="chip chip-q">dr</span></td>
+                  <td><span class="hz">彻</span> <span class="chip chip-cq">tr</span></td>
+                  <td><span class="hz">澄</span> <span class="chip chip-z">ddr</span></td>
+                  <td><span style="color: #94a3b8; font-size: 11px;">切韵时代无娘母(nr)</span></td>
+                </tr>
+                <tr>
+                  <td><strong>齿头音</strong></td>
+                  <td><span class="hz">精</span> <span class="chip chip-q">z</span></td>
+                  <td><span class="hz">清</span> <span class="chip chip-cq">c</span></td>
+                  <td><span class="hz">从</span> <span class="chip chip-z">dz</span></td>
+                  <td><span class="hz">心</span> <span class="chip chip-q">s</span> / <span class="hz">邪</span> <span class="chip chip-z">sz</span></td>
+                </tr>
+                <tr>
+                  <td><strong>正齿二等(庄)</strong></td>
+                  <td><span class="hz">庄</span> <span class="chip chip-q">zh</span></td>
+                  <td><span class="hz">初</span> <span class="chip chip-cq">ch</span></td>
+                  <td><span class="hz">崇</span> <span class="chip chip-z">dzh</span></td>
+                  <td><span class="hz">生</span> <span class="chip chip-q">sh</span> / <span class="hz">俟</span> <span class="chip chip-z">r</span></td>
+                </tr>
+                <tr>
+                  <td><strong>正齿三等(章)</strong></td>
+                  <td><span class="hz">章</span> <span class="chip chip-q">j</span></td>
+                  <td><span class="hz">昌</span> <span class="chip chip-cq">q</span></td>
+                  <td><span class="hz">常</span> <span class="chip chip-z">dj</span></td>
+                  <td><span class="hz">书</span> <span class="chip chip-q">x</span> / <span class="hz">船</span> <span class="chip chip-z">xj</span></td>
+                </tr>
+                <tr>
+                  <td><strong>牙音</strong></td>
+                  <td><span class="hz">见</span> <span class="chip chip-q">g</span></td>
+                  <td><span class="hz">谿</span> <span class="chip chip-cq">k</span></td>
+                  <td><span class="hz">群</span> <span class="chip chip-z">gg</span></td>
+                  <td><span class="hz">疑</span> <span class="chip chip-cz">ng</span></td>
+                </tr>
+                <tr>
+                  <td><strong>喉音</strong></td>
+                  <td><span class="hz">影</span> <span class="chip chip-q">∅ 零声母</span></td>
+                  <td><span class="hz">晓</span> <span class="chip chip-cq">h</span></td>
+                  <td><span class="hz">匣</span> <span class="chip chip-z">hh</span></td>
+                  <td><span class="hz">云(喻三)</span> <span class="chip chip-spec">hhi</span> / <span class="hz">以(喻四)</span> <span class="chip chip-spec">y</span></td>
+                </tr>
+                <tr>
+                  <td><strong>半舌/半齿</strong></td>
+                  <td colspan="2"><span class="hz">来母</span> <span class="chip chip-cz">l</span></td>
+                  <td colspan="2"><span class="hz">日母</span> <span class="chip chip-cz">gn</span> (硬腭鼻音 /ɲ/)</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="callout">
+              <strong>声母注记:</strong> 
+              (1) 兼容汉语拼音；
+              (2) 双写表浊辅音，唐代浊塞音不送气；dz, sz, dj, xj 避免重复不美观；
+              (3) 舌上音知组加 -r；
+              (4) 云母(hhi)读浊咽音 /ʕ/，不会可读 y；
+              (5) 日母用 gn 同西语 ñ；
+              (6) 严格区分从/邪、常/船。
+            </div>
+          </div>
+        </section>
+
+        <!-- 声调 + 介音 -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <section class="card">
+            <div class="card-header">
+              <span>（七）声调标记 (Tones)</span>
+              <span class="badge">隋《四声论》物象</span>
+            </div>
+            <div class="card-body">
+              <table class="compact-table">
+                <tbody>
+                  <tr><td><span class="t-ping">平声</span></td><td>平调 (春·阳中德泽不偏)</td><td><span class="py">不标 (∅)</span></td><td>tên (天)</td></tr>
+                  <tr><td><span class="t-shang">上声</span></td><td>升调 (夏·炎炽如火)</td><td><span class="py">-x</span></td><td>xiuix (水)</td></tr>
+                  <tr><td><span class="t-qu">去声</span></td><td>降调 (秋·霜凝木落)</td><td><span class="py">-h / -nq</span></td><td>ddih, miuanq</td></tr>
+                  <tr><td><span class="t-ciru">次入声</span></td><td>早期入声尾变异 (祭泰夬废)</td><td><span class="py">-l</span></td><td>ddal (大)</td></tr>
+                  <tr><td><span class="t-ru">入声</span></td><td>短促促声 (冬·天地闭藏)</td><td><span class="py">-k, -t, -p</span></td><td>it (一), djip (十)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-header">
+              <span>（三）介音与等呼 (Medials)</span>
+              <span class="badge">郑张/潘悟云介音标记</span>
+            </div>
+            <div class="card-body">
+              <table class="compact-table">
+                <thead><tr><th>等呼</th><th>开/合</th><th>发音技巧</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>一等</strong></td><td><span class="py">∅ / u</span></td><td>大口后缩 (ga / gua)</td></tr>
+                  <tr><td><strong>二等</strong></td><td><span class="py">e / o</span></td><td>扁唇前响 (gea / goa 瓜)</td></tr>
+                  <tr><td><strong>三等A</strong></td><td><span class="py">i / iu</span></td><td>硬腭擦音 (iu读ü)</td></tr>
+                  <tr><td><strong>三等B</strong></td><td><span class="py">ei / eiu</span></td><td>重纽B强摩擦硬腭 (e+ü)</td></tr>
+                  <tr><td><strong>四等</strong></td><td><span class="py">∅ / u</span></td><td>主元音为 ê，无单独介音</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+      </div>
+
+      <!-- Detailed Row 2 -->
+      <div class="grid-3">
+        <section class="card">
+          <div class="card-header"><span>（四）主元音音位</span></div>
+          <div class="card-body">
+            <table class="compact-table">
+              <tbody>
+                <tr><td><span class="py">a / ea / ia</span></td><td>一等后a / 二等前a / 三等拼音ia</td></tr>
+                <tr><td><span class="py">o / eo / io</span></td><td>一等单元音o / 江韵long / 三等i+o</td></tr>
+                <tr><td><span class="py">e / ie</span></td><td>一等额/ə/ / 三等i+额(非拼音ie)</td></tr>
+                <tr><td><span class="py">ê / eê / iê</span></td><td>四等ê / 二等map之a / 三等拼音ie</td></tr>
+                <tr><td><span class="py">i / u</span></td><td>同汉语拼音 i、u</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header"><span>（五）韵尾系统</span></div>
+          <div class="card-body">
+            <table class="compact-table">
+              <tbody>
+                <tr><td><strong>半元音</strong></td><td><span class="py">-i, -u</span> (开尾)</td></tr>
+                <tr><td><strong>鼻音尾</strong></td><td><span class="py">-m, -n, -ng</span> (阳声韵)</td></tr>
+                <tr><td><strong>塞音尾</strong></td><td><span class="py">-p, -t, -k</span> (入声促调平配)</td></tr>
+                <tr><td><strong>次入声尾</strong></td><td><span class="py">-l</span> (祭泰夬废，早期与-t通押，后合流为-i)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header"><span>（一）ê输入技巧</span></div>
+          <div class="card-body">
+            <ul style="padding-left: 14px; font-size:11.5px; line-height:1.5; color:#334155;">
+              <li><strong>iOS / iPad:</strong> 英文长按 <span class="kbd">e</span> 滑选 <code>ê</code></li>
+              <li><strong>macOS:</strong> 按 <span class="kbd">Option</span>+<span class="kbd">i</span> 后再按 <span class="kbd">e</span>，或长按 e 选 3</li>
+              <li><strong>直接复制:</strong> <code style="background:#e0f2fe; padding:1px 5px; color:#0369a1; font-weight:bold;">ê</code></li>
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      <!-- Detailed Row 3: 16 She Full Cards -->
+      <section class="card" style="margin-bottom: 12px;">
+        <div class="card-header">
+          <span>（六）《广韵》十六摄韵母系统详细拟音与考据说明</span>
+          <span class="badge">含通押与音变历史</span>
+        </div>
+        <div class="card-body">
+          <div class="she-grid">
+            <div class="she-card">
+              <div class="she-title"><span>1. 通摄</span><span class="badge">阳入配对</span></div>
+              <div class="she-rhyme-item"><span>东一: <span class="hz">东</span> <span class="py">ung</span></span><span>屋: <span class="py">uk</span></span></div>
+              <div class="she-rhyme-item"><span>冬一: <span class="hz">冬</span> <span class="py">ong</span></span><span>沃: <span class="py">ok</span></span></div>
+              <div class="she-rhyme-item"><span>钟三: <span class="hz">钟</span> <span class="py">iong</span></span><span>烛: <span class="py">iok</span></span></div>
+              <div class="she-note">ong比ung口形略大，唐代以后渐混。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>2. 江摄</span><span class="badge">二等独用</span></div>
+              <div class="she-rhyme-item"><span>江二: <span class="hz">江</span> <span class="py">eong</span></span><span>觉: <span class="py">eok</span></span></div>
+              <div class="she-note">发音近英语long之ong，唐代变为主元音a混入ang。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>3. 止摄</span><span class="badge">前高元音开尾</span></div>
+              <div class="she-rhyme-item"><span>支三: <span class="hz">支</span> <span class="py">iê / iuê</span></span></div>
+              <div class="she-rhyme-item"><span>脂三: <span class="hz">脂</span> (A/B) <span class="py">i / eii (iui/eiui)</span></span></div>
+              <div class="she-rhyme-item"><span>之三: <span class="hz">之</span> <span class="py">ie</span> (i+额)</span></div>
+              <div class="she-rhyme-item"><span>微三: <span class="hz">微</span> <span class="py">iei / iuei</span></span></div>
+              <div class="she-note">脂重纽B拼eii防与咍(ei)混；唐后支脂之先并为i，后iei亦并入。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>4. 遇摄</span><span class="badge">后圆唇</span></div>
+              <div class="she-rhyme-item"><span>模一合: <span class="hz">模</span> <span class="py">o</span></span></div>
+              <div class="she-rhyme-item"><span>鱼三开: <span class="hz">鱼</span> <span class="py">io</span></span></div>
+              <div class="she-rhyme-item"><span>虞三合: <span class="hz">虞</span> <span class="py">iuo</span></span></div>
+              <div class="she-note">唐代io与iuo合并为iu(ü)，o变高为u。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>5. 蟹摄</span><span class="badge">含次入声-l</span></div>
+              <div class="she-rhyme-item"><span>咍一/灰一: <span class="hz">咍/灰</span> <span class="py">ei / uei</span></span></div>
+              <div class="she-rhyme-item"><span>皆二/佳二: <span class="hz">皆/佳</span> <span class="py">eêi / eê</span></span></div>
+              <div class="she-rhyme-item"><span>齐四开/合: <span class="hz">齐</span> <span class="py">êi / uêi</span></span></div>
+              <div class="she-rhyme-item" style="color:var(--tone-ciru); font-weight:600;">
+                <span>次入(泰夬废祭): <span class="py">al, eal, ial, iêl</span></span>
+              </div>
+              <div class="she-note">祭泰夬废早期尾为-l与-t通押，后合流为-i；灰韵与咍同元音绝非oi。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>6. 臻摄</span><span class="badge">-n / -t 配对</span></div>
+              <div class="she-rhyme-item"><span>真三/谆三: <span class="hz">真/谆</span> <span class="py">in(ein)/iun</span></span><span>质/术: <span class="py">it/iut</span></span></div>
+              <div class="she-rhyme-item"><span>臻二/文三: <span class="hz">臻/文</span> <span class="py">ein/iuen</span></span><span>栉/物: <span class="py">eit/iuet</span></span></div>
+              <div class="she-rhyme-item"><span>元三/殷三: <span class="hz">元/殷</span> <span class="py">ion/ien</span></span><span>月/迄: <span class="py">iot/iet</span></span></div>
+              <div class="she-rhyme-item"><span>魂一/痕一: <span class="hz">魂/痕</span> <span class="py">uen/en</span></span><span>没: <span class="py">uet</span></span></div>
+              <div class="she-note">南朝诗元魂痕互押，元韵(ion)、月韵(iot)主元音绝非a。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>7. 山摄</span><span class="badge">-n / -t 配对</span></div>
+              <div class="she-rhyme-item"><span>寒一/桓一: <span class="hz">寒/桓</span> <span class="py">an/uan</span></span><span>曷/末: <span class="py">at/uat</span></span></div>
+              <div class="she-rhyme-item"><span>删二/山二: <span class="hz">删/山</span> <span class="py">ean/eên</span></span><span>辖/黠: <span class="py">eat/eêt</span></span></div>
+              <div class="she-rhyme-item"><span>仙三/先四: <span class="hz">仙/先</span> <span class="py">iên/ên</span></span><span>薛/屑: <span class="py">iêt/êt</span></span></div>
+              <div class="she-note">桓韵读uan，与an自由相押。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>8. 效摄</span><span class="badge">-u 尾</span></div>
+              <div class="she-rhyme-item"><span>豪一/肴二: <span class="hz">豪/肴</span> <span class="py">ao / eao</span></span></div>
+              <div class="she-rhyme-item"><span>宵三/萧四: <span class="hz">宵/萧</span> <span class="py">iêu(eiêu) / êu</span></span></div>
+              <div class="she-note">宵iêu近iao；南北朝宵(iêu)与萧(êu)常通押。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>9. 果摄</span><span class="badge">单元音开尾</span></div>
+              <div class="she-rhyme-item"><span>歌一开: <span class="hz">歌</span> <span class="py">a</span> · 戈一合: <span class="hz">戈</span> <span class="py">ua</span></span></div>
+              <div class="she-rhyme-item"><span>戈三开(梵译): <span class="hz">戈三</span> <span class="py">iaa</span></span></div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>10. 假摄</span><span class="badge">前低元音</span></div>
+              <div class="she-rhyme-item"><span>麻二开: <span class="hz">麻二</span> <span class="py">ea</span> · 麻三开: <span class="hz">麻三</span> <span class="py">ia</span></span></div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>11. 宕摄</span><span class="badge">-ng / -k 配对</span></div>
+              <div class="she-rhyme-item"><span>唐一: <span class="hz">唐</span> <span class="py">ang/uang</span></span><span>铎: <span class="py">ak/uak</span></span></div>
+              <div class="she-rhyme-item"><span>阳三: <span class="hz">阳</span> <span class="py">iang/iuang</span></span><span>药: <span class="py">iak/iuak</span></span></div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>12. 梗摄</span><span class="badge">-ng / -k 配对</span></div>
+              <div class="she-rhyme-item"><span>庚二/三: <span class="hz">庚</span> <span class="py">eang/ieang</span></span><span>陌: <span class="py">eak/ieak</span></span></div>
+              <div class="she-rhyme-item"><span>耕二/清三: <span class="hz">耕/清</span> <span class="py">eêng/iêng</span></span><span>麦/昔: <span class="py">eêk/iêk</span></span></div>
+              <div class="she-rhyme-item"><span>青四: <span class="hz">青</span> <span class="py">êng/uêng</span></span><span>锡: <span class="py">êk/uêk</span></span></div>
+              <div class="she-note">庚(æŋ)耕(ɛŋ)清(iɛŋ)为主元音前响，忌读ang；青(eŋ)独用。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>13. 曾摄</span><span class="badge">-ng / -k 配对</span></div>
+              <div class="she-rhyme-item"><span>登一: <span class="hz">登</span> <span class="py">eng/ueng</span></span><span>德: <span class="py">ek/uek</span></span></div>
+              <div class="she-rhyme-item"><span>蒸三: <span class="hz">蒸</span> <span class="py">ing/iuing</span></span><span>职: <span class="py">ik/iuik</span></span></div>
+              <div class="she-note">蒸登可通押，发ing/ik时带增生元音读如ieng/iek。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>14. 流摄</span><span class="badge">高元音开尾</span></div>
+              <div class="she-rhyme-item"><span>侯一: <span class="hz">侯</span> <span class="py">ou</span> · 尤三: <span class="hz">尤</span> <span class="py">iu</span> · 幽三: <span class="hz">幽</span> <span class="py">eiu</span></span></div>
+              <div class="she-note">南北朝尤侯通押，侯必读ou而非u；模韵变u前侯已先为ou。</div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>15. 深摄</span><span class="badge">-m / -p 配对</span></div>
+              <div class="she-rhyme-item"><span>侵三: <span class="hz">侵</span> <span class="py">im/eim</span></span><span>缉: <span class="py">ip/eip</span></span></div>
+            </div>
+
+            <div class="she-card">
+              <div class="she-title"><span>16. 咸摄</span><span class="badge">-m / -p 配对</span></div>
+              <div class="she-rhyme-item"><span>覃/谈: <span class="hz">覃/谈</span> <span class="py">em/am</span></span><span>合/盍: <span class="py">ep/ap</span></span></div>
+              <div class="she-rhyme-item"><span>咸/衔: <span class="hz">咸/衔</span> <span class="py">eêm/eam</span></span><span>洽/狎: <span class="py">eêp/eap</span></span></div>
+              <div class="she-rhyme-item"><span>严/凡: <span class="hz">严/凡</span> <span class="py">iam/iuam</span></span><span>业/乏: <span class="py">iap/iuap</span></span></div>
+              <div class="she-rhyme-item"><span>盐/添: <span class="hz">盐/添</span> <span class="py">iêm/êm</span></span><span>叶/贴: <span class="py">iêp/êp</span></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Detailed Row 4: Chongniu full + Examples + Poem -->
+      <section class="card" style="margin-bottom: 12px;">
+        <div class="card-header">
+          <span>（十）《切韵》重纽完整对照与辨析</span>
+        </div>
+        <div class="card-body">
+          <table class="compact-table">
+            <thead>
+              <tr><th>韵部</th><th>重纽A开/合</th><th>重纽B开/合</th><th>经典辨字例</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>支韵</strong></td><td>iê / iuê</td><td>eiê / eiuê</td><td>弥 miê vs 糜 meiê · 祇 ggiê vs 奇 ggeiê</td></tr>
+              <tr><td><strong>脂韵</strong></td><td>i / iui</td><td>eii / eiui</td><td>规 giuê vs 妫 geiuê</td></tr>
+              <tr><td><strong>祭韵(次入)</strong></td><td>iêl / iuêl</td><td>eiêl / eiuêl</td><td>弊 biêlh vs 蔽 beiêlh</td></tr>
+              <tr><td><strong>真/质</strong></td><td>in / it (iun/iut)</td><td>ein / eit (eiun/eiut)</td><td>宾 bin vs 频 bbein · 笔 bit vs 密 meit</td></tr>
+              <tr><td><strong>仙/薛</strong></td><td>iên / iêt (iuên/iuêt)</td><td>eiên / eiêt (eiuên/eiuêt)</td><td>便 biên vs 变 beiênh · 别 bbiêt vs 瞥 pheit</td></tr>
+              <tr><td><strong>宵韵</strong></td><td>iêu / iuêu</td><td>eiêu / eiuêu</td><td>标 biêu vs 表 peiêux · 苗 miêu vs 眇 meiêux</td></tr>
+              <tr><td><strong>侵/缉</strong></td><td>im / ip</td><td>eim / eip</td><td>愔 im vs 音 eim · 今 gim vs 金 geim</td></tr>
+              <tr><td><strong>盐/叶</strong></td><td>iêm / iêp</td><td>eiêm / eiêp</td><td>廉 liêm vs 敛 leiêmx · 叶 iêp vs 叶 eiêp</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Detailed Row 5: Examples & Poem -->
+      <div class="grid-1-2">
+        <section class="card">
+          <div class="card-header"><span>（八）高频核心字词拼写速查</span></div>
+          <div class="card-body">
+            <table class="compact-table">
+              <tbody>
+                <tr><td><strong>数字1-10</strong></td><td>一 it 二 gnih 三 sam 四 sih 五 ngox 六 liuk 七 cit 八 beêt 九 giux 十 djip</td></tr>
+                <tr><td><strong>大数</strong></td><td>百 beak 千 cên 万 miuonh 亿 ik</td></tr>
+                <tr><td><strong>代词</strong></td><td>我 ngax 爱 eih 你 nix 人 gnin 君 giun</td></tr>
+                <tr><td><strong>天地水火</strong></td><td>天 tên 地 ddih 日 gnit 月 ngiuot 星 sêng 水 xiuix 火 huax 风 biung</td></tr>
+                <tr><td><strong>形容词</strong></td><td>大 ddal 小 siêux 开 kei 关 goan 快 koal 慢 meanh 高 gao 深 xim</td></tr>
+                <tr><td><strong>等呼对比</strong></td><td>歌 ga (一) 戈 gua (一合) · 家 gea (二) 瓜 goa (二合) · 佳 geê 皆 geêi</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header"><span>（九）实战阅读：《短歌行》（曹操）</span></div>
+          <div class="card-body">
+            <div class="poem-grid">
+              <div class="poem-line"><div class="poem-hz">对酒当歌，人生几何。</div><div class="poem-py">Dueih ziux dang ga, gnin sheang gieix hha.</div></div>
+              <div class="poem-line"><div class="poem-hz">譬如朝露，去日苦多。</div><div class="poem-py">Piêh gnio diêu loh, kioh gnit kox da.</div></div>
+              <div class="poem-line"><div class="poem-hz">慨当以慷，忧思难忘。</div><div class="poem-py">Keih dang yix kangx, hhiu sie nan miuanq.</div></div>
+              <div class="poem-line"><div class="poem-hz">何以解忧？唯有杜康。</div><div class="poem-py">Hha yix geêx iu? Yui hhiux ddoh kang.</div></div>
+              <div class="poem-line"><div class="poem-hz">青青子衿，悠悠我心。</div><div class="poem-py">Cêng cêng ziex geim, yiu yiu ngax sim.</div></div>
+              <div class="poem-line"><div class="poem-hz">但为君故，沉吟至今。</div><div class="poem-py">Ddanx hhiuêh giun goh, ddim ngeim jih geim.</div></div>
+              <div class="poem-line"><div class="poem-hz">呦呦鹿鸣，食野之苹。</div><div class="poem-py">Eiu eiu luk miêng, xjik yax jie bbiêng.</div></div>
+              <div class="poem-line"><div class="poem-hz">我有嘉宾，鼓瑟吹笙。</div><div class="poem-py">Ngax hhiux gea bin, gox shit quê sheang.</div></div>
+              <div class="poem-line"><div class="poem-hz">明明如月，何时可掇？</div><div class="poem-py">Miêng miêng gnio ngiuot, hha djie kax duat?</div></div>
+              <div class="poem-line"><div class="poem-hz">忧从中来，不可断绝。</div><div class="poem-py">Iu dziong diung lei, biu kax dduanx dziuêt.</div></div>
+              <div class="poem-line"><div class="poem-hz">越陌度阡，枉用相存。</div><div class="poem-py">Hhiuat meak ddoh cên, iuangx yonq siang dzuen.</div></div>
+              <div class="poem-line"><div class="poem-hz">契阔谈䜩，心念旧恩。</div><div class="poem-py">Kêt kuat ddam ênh, sim nêmh giuh en.</div></div>
+              <div class="poem-line"><div class="poem-hz">月明星稀，乌鹊南飞。</div><div class="poem-py">Ngiuot miêng sêng hiei, o ciak nem biuei.</div></div>
+              <div class="poem-line"><div class="poem-hz">绕树三匝，何枝可依？</div><div class="poem-py">Gniêuh djuoh sam zep, hha jiê kax iei?</div></div>
+              <div class="poem-line"><div class="poem-hz">山不厌高，海不厌深。</div><div class="poem-py">Sheên biu iêmh gao, heix biu iêmh xim.</div></div>
+              <div class="poem-line"><div class="poem-hz">周公吐哺，天下归心。</div><div class="poem-py">Jiu gung tox bboh, tên hheah giuei sim.</div></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer style="text-align: center; color: #94a3b8; font-size: 11px; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 10px;">
+      中古汉语《切韵》拼音转写速查备忘单 · 纯白底色紧凑排版
+    </footer>
+
+  </div>
+
+  <script>
+    // Tab switching logic (3 Tabs)
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      if (tabName === 'single') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('tab-single').classList.add('active');
+      } else if (tabName === 'compact') {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('tab-compact').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.getElementById('tab-detailed').classList.add('active');
+      }
+    }
+
+    // Search logic for all 3 views
+    function handleSearch() {
+      const q = document.getElementById('quickSearch').value.trim().toLowerCase();
+      
+      // Filter single-screen matrix
+      const singleItems = document.querySelectorAll('.single-she-box');
+      singleItems.forEach(el => {
+        const text = (el.getAttribute('data-search') + ' ' + el.innerText).toLowerCase();
+        if (!q || text.includes(q)) {
+          el.style.display = '';
+          el.style.borderColor = q ? 'var(--primary)' : '';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+
+      // Filter compact matrix
+      const compactItems = document.querySelectorAll('.she-item-box');
+      compactItems.forEach(el => {
+        const text = (el.getAttribute('data-search') + ' ' + el.innerText).toLowerCase();
+        if (!q || text.includes(q)) {
+          el.style.display = '';
+          el.style.borderColor = q ? 'var(--primary)' : '';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+
+      // Filter detailed cards
+      const detailedCards = document.querySelectorAll('.she-card');
+      detailedCards.forEach(el => {
+        const text = el.innerText.toLowerCase();
+        if (!q || text.includes(q)) {
+          el.style.display = '';
+          el.style.borderColor = q ? 'var(--primary)' : '';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    }
+
+    // Pinyin Analyzer Tool
+    const initials = [
+      { p: 'ddr', name: '澄母 (舌上浊)' },
+      { p: 'dr', name: '知母 (舌上清)' },
+      { p: 'tr', name: '彻母 (舌上次清)' },
+      { p: 'dzh', name: '崇母 (庄组浊)' },
+      { p: 'zh', name: '庄母 (庄组清)' },
+      { p: 'ch', name: '初母 (庄组次清)' },
+      { p: 'sh', name: '生母 (庄组清擦)' },
+      { p: 'hhi', name: '云母/喻三 (浊咽音)' },
+      { p: 'hh', name: '匣母 (喉音浊)' },
+      { p: 'bb', name: '並母 (唇音浊)' },
+      { p: 'dd', name: '定母 (舌头浊)' },
+      { p: 'dz', name: '从母 (齿头浊)' },
+      { p: 'sz', name: '邪母 (齿头浊擦)' },
+      { p: 'dj', name: '常母 (章组浊)' },
+      { p: 'xj', name: '船母 (章组浊擦)' },
+      { p: 'gg', name: '群母 (牙音浊)' },
+      { p: 'gn', name: '日母 (硬腭鼻音/ñ)' },
+      { p: 'ng', name: '疑母 (舌根鼻音)' },
+      { p: 'b', name: '帮母 (全清)' },
+      { p: 'p', name: '滂母 (次清)' },
+      { p: 'm', name: '明母 (次浊)' },
+      { p: 'd', name: '端母 (全清)' },
+      { p: 't', name: '透母 (次清)' },
+      { p: 'n', name: '泥母 (次浊)' },
+      { p: 'z', name: '精母 (全清)' },
+      { p: 'c', name: '清母 (次清)' },
+      { p: 's', name: '心母 (全清擦)' },
+      { p: 'r', name: '俟母 (庄组浊擦)' },
+      { p: 'j', name: '章母 (全清)' },
+      { p: 'q', name: '昌母 (次清)' },
+      { p: 'x', name: '书母 (全清擦)' },
+      { p: 'g', name: '见母 (全清)' },
+      { p: 'k', name: '谿母 (次清)' },
+      { p: 'h', name: '晓母 (全清)' },
+      { p: 'y', name: '以母/喻四' },
+      { p: 'l', name: '来母 (次浊)' }
+    ];
+
+    function analyzePinyin() {
+      let raw = document.getElementById('syllableInput').value.trim().toLowerCase();
+      const output = document.getElementById('analyzerOutput');
+      if (!raw) {
+        output.innerHTML = '<span style="color: #64748b;">输入方案拼音，即时解析其声母、介音、元音、韵尾与声调属性</span>';
+        return;
+      }
+
+      let tone = '平声 (∅)';
+      let clean = raw;
+      if (raw.endsWith('x')) {
+        tone = '上声 (-x)';
+        clean = raw.slice(0, -1);
+      } else if (raw.endsWith('nq')) {
+        tone = '去声 (-nq 缩略自 -ng+h)';
+        clean = raw.slice(0, -2) + 'ng';
+      } else if (raw.endsWith('h')) {
+        tone = '去声 (-h)';
+        clean = raw.slice(0, -1);
+      } else if (raw.endsWith('l')) {
+        tone = '次入声 (-l，祭泰夬废)';
+        clean = raw.slice(0, -1);
+      } else if (raw.endsWith('k') || raw.endsWith('t') || raw.endsWith('p')) {
+        tone = `入声 (-${raw.slice(-1)})`;
+        clean = raw.slice(0, -1);
+      }
+
+      let matchedInitial = { p: '零声母 (影母)', name: '影母 (零声母)' };
+      let remainder = clean;
+      for (let init of initials) {
+        if (clean.startsWith(init.p)) {
+          matchedInitial = init;
+          remainder = clean.slice(init.p.length);
+          break;
+        }
+      }
+
+      let medial = '无介音 (一等/四等)';
+      if (remainder.startsWith('eiu')) medial = '三等B合口 (eiu-)';
+      else if (remainder.startsWith('ei')) medial = '三等B开口 (ei-)';
+      else if (remainder.startsWith('iu')) medial = '三等A合口 (iu-)';
+      else if (remainder.startsWith('io')) medial = '三等合/开 (io-)';
+      else if (remainder.startsWith('ie')) medial = '三等 (ie-)';
+      else if (remainder.startsWith('i')) medial = '三等A开口 (i-)';
+      else if (remainder.startsWith('o')) medial = '二等合口 (o- < ue)';
+      else if (remainder.startsWith('e') && !remainder.startsWith('ê')) medial = '二等开口 (e-)';
+      else if (remainder.startsWith('u')) medial = '一等/四等合口 (u-)';
+
+      output.innerHTML = `
+        <span class="chip chip-spec">${matchedInitial.name}</span>
+        <span style="color:#cbd5e1;">+</span>
+        <span class="chip" style="background:#e0f2fe; color:#0369a1;">韵部/介尾: ${remainder || '无'} (${medial})</span>
+        <span style="color:#cbd5e1;">+</span>
+        <span class="chip" style="background:#fef3c7; color:#92400e;">调类: ${tone}</span>
+      `;
+    }
+  </script>
+</body>
+</html>

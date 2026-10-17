@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黄金角叶序可视化｜向日葵原基生长仿真</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX 数学公式渲染库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #f7f8fa;
+            color: #222831;
+            line-height: 1.6;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+        .panel {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 20px;
+        }
+        .btn {
+            padding: 9px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all .2s ease;
+        }
+        .btn-primary { background:#3b82f6; color:#fff; }
+        .btn-secondary { background:#e9ecef; color:#222831; }
+        .btn-success { background:#10b981; color:#fff; }
+        .btn-danger { background:#ef4444; color:#fff; }
+        .btn:hover { transform: translateY(-1px); }
+        canvas { display:block; border-radius:10px; background:#ffffff; }
+        .canvas-wrap {
+            position: relative;
+        }
+        .angle-label {
+            position:absolute;
+            top:16px;
+            left:16px;
+            background:rgba(255,255,255,0.92);
+            backdrop-filter: blur(6px);
+            padding:8px 12px;
+            border-radius:8px;
+            font-size:13px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header class="mb-8">
+        <h1 class="text-[28px] font-semibold">黄金角叶序可视化</h1>
+        <p class="text-gray-500 mt-1">静态解析模型｜原基挤压生长仿真</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- 画布区域（带角度文字与公式代码叠加层） -->
+        <div class="lg:col-span-8">
+            <div class="canvas-wrap panel relative overflow-hidden">
+                <div class="angle-label">
+                    <div>黄金角常量：<strong>137.5078°</strong></div>
+                    <div>当前/下一方位：<span id="angleDisplay" class="font-semibold text-blue-600">0.00°</span></div>
+                    <div class="text-[11px] text-blue-600 font-medium flex items-center gap-1.5 mt-1 pt-1 border-t border-slate-100">
+                        <span class="inline-block w-2 h-2 rounded-full bg-blue-600"></span>
+                        <span>新原基在中心以蓝色诞生，受挤压逐步外移 (蓝 → 绿 → 黄)</span>
+                    </div>
+                </div>
+
+                <!-- 空白位置展示核心公式代码卡片 -->
+                <div class="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-md bg-white/95 backdrop-blur-md p-3.5 rounded-xl border border-slate-200/90 shadow-xl pointer-events-auto z-10">
+                    <div class="flex items-center justify-between mb-1.5 pb-1 border-b border-slate-100">
+                        <span class="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            核心数学公式 (Vogel's Model in JS)
+                        </span>
+                        <button id="toggleFormulaBtn" class="text-[11px] text-slate-500 hover:text-slate-800 px-1 py-0.5 rounded transition">收起</button>
+                    </div>
+                    <div id="formulaBody">
+                        <pre class="font-mono text-[11px] leading-[1.5] text-slate-800 bg-slate-50/90 p-2.5 rounded-lg border border-slate-200/60 overflow-x-auto"><code>// 1. 黄金角常量 (弧度 ≈ 2.39996 rad / 137.5078°)
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+// 2. 原基极坐标 (θ: 极角匀速旋转, r: 极径按√n分布)
+const theta = n * GOLDEN_ANGLE;
+const r = scale * Math.sqrt(n);
+
+// 3. 笛卡尔坐标映射 (屏幕绘制坐标)
+const x = centerX + r * Math.cos(theta);
+const y = centerY + r * Math.sin(theta);
+
+// 4. 原基生长微小膨胀 (随成熟度/年龄变大)
+const radius = baseR + Math.sqrt(age) * growthRate * 12;</code></pre>
+                        <!-- 实时计算数值监视 -->
+                        <div class="mt-2 pt-1.5 border-t border-slate-200/70 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono text-slate-600 bg-slate-100/60 px-2 py-1 rounded">
+                            <span>n = <b id="valN" class="text-blue-600 font-semibold">0</b></span>
+                            <span>θ = <b id="valTheta" class="text-indigo-600 font-semibold">0.0°</b></span>
+                            <span>r = <b id="valR" class="text-purple-600 font-semibold">0.0px</b></span>
+                            <span>半径 = <b id="valRadius" class="text-emerald-600 font-semibold">2.2px</b></span>
+                        </div>
+                    </div>
+                </div>
+
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- 控制面板 + 原理说明 -->
+        <div class="lg:col-span-4 space-y-5">
+            <div class="panel">
+                <h3 class="text-lg font-medium mb-3">模式切换</h3>
+                <div class="flex gap-2">
+                    <button id="modeStatic" class="btn btn-primary flex-1">静态模型</button>
+                    <button id="modeGrow" class="btn btn-secondary flex-1">挤压生长</button>
+                </div>
+            </div>
+            <div class="panel">
+                <h3 class="text-lg font-medium mb-3">动画控制</h3>
+                <div class="space-y-4">
+                    <div class="flex gap-2">
+                        <button id="startBtn" class="btn btn-success flex-1">开始</button>
+                        <button id="resetBtn" class="btn btn-danger flex-1">重置</button>
+                    </div>
+
+                    <!-- 速度控制：1倍速、2倍速、3倍速、4倍速 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-sm font-medium text-gray-700">播放速度</label>
+                            <span id="speedDisplay" class="text-xs font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded">1x 速度</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button class="btn btn-primary py-1.5 text-xs speed-btn" data-speed="1">1x</button>
+                            <button class="btn btn-secondary py-1.5 text-xs speed-btn" data-speed="2">2x</button>
+                            <button class="btn btn-secondary py-1.5 text-xs speed-btn" data-speed="3">3x</button>
+                            <button class="btn btn-secondary py-1.5 text-xs speed-btn" data-speed="4">4x</button>
+                        </div>
+                    </div>
+
+                    <!-- 种子微小生长变大参数 -->
+                    <div>
+                        <div class="flex justify-between items-center text-sm text-gray-600">
+                            <label class="font-medium text-gray-700">种子膨胀参数 (Growth Rate)</label>
+                            <span id="growthRateDisplay" class="text-xs font-mono text-emerald-600 font-semibold">0.020</span>
+                        </div>
+                        <input id="growthRateSlider" type="range" min="0" max="0.05" value="0.020" step="0.002" class="w-full mt-1.5">
+                        <p class="text-[11px] text-gray-400 mt-1">控制点随成熟（距中心距离）逐渐增大的微小系数</p>
+                    </div>
+
+                    <div>
+                        <label class="text-sm text-gray-600">花盘缩放系数</label>
+                        <input id="scaleSlider" type="range" min="1" max="10" value="3.2" step="0.1" class="w-full mt-1">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600">最大种子数量</label>
+                        <input id="maxPointSlider" type="range" min="30" max="400" value="200" class="w-full mt-1">
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <h3 class="text-lg font-medium mb-3">核心原理</h3>
+                <div class="text-sm text-gray-600 space-y-3">
+                    <div>
+                        <strong class="text-gray-800">静态解析模型 (Vogel)</strong>
+                        <p>第n个点：极角 θ = n × 137.508°；极径 r = c × √n。一次性推导全花盘点位。</p>
+                    </div>
+                    <div>
+                        <strong class="text-gray-800">挤压生长模型</strong>
+                        <p>1. 在分生组织中心以黄金角间隔诞生新原基<br>2. 随新原基增加，外层种子沿径向被挤压外移，且在成熟过程中逐渐饱满膨大<br>3. 种子角度终身固定；视觉上的双向螺旋是点集的数学涌现。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 核心数学与视觉原理 Q&A -->
+    <div class="mt-8 panel">
+        <div class="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+            <span class="text-xl">💡</span>
+            <h2 class="text-base font-semibold text-gray-800">核心原理深度解析 (Q&A)</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- 问题 1 -->
+            <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200/70 space-y-2.5">
+                <div class="flex items-start gap-2">
+                    <span class="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded mt-0.5 shrink-0">问 1</span>
+                    <h3 class="font-medium text-gray-900 text-sm">为什么偏偏是黄金角能最大限度铺满空间？</h3>
+                </div>
+                <div class="text-xs text-gray-600 leading-relaxed space-y-2 pl-7">
+                    <div>
+                        <strong class="text-gray-800 block mb-1">角度推导：</strong>
+                        将圆周（$360^\circ$）按黄金比例 $\phi = \frac{1+\sqrt{5}}{2} \approx 1.618$ 分割：
+                        <div class="my-1.5 p-2 bg-white rounded-lg border border-slate-200/80 text-center font-mono text-slate-800 text-[13px] overflow-x-auto shadow-sm">
+                            $$360^\circ \times \left(1 - \frac{1}{\phi}\right) = 360^\circ \times \frac{3-\sqrt{5}}{2} \approx 137.5078^\circ$$
+                        </div>
+                    </div>
+                    <div>
+                        <strong class="text-gray-800">数论本质（最无理的数）：</strong>
+                        若为有理数角（如 $360^\circ \times \frac{p}{q}$），每 $q$ 颗种子便会在同一直径上重叠，退化为 $q$ 条放射状空隙辐条。而在连分数展开中，黄金比 $\phi = [1; 1, 1, \dots]$ 每一级分母均为最小整数 1，数论上是<strong>离所有有理数最遥远、最难被有理数逼近的数</strong>。
+                    </div>
+                    <div>
+                        <strong class="text-gray-800">密铺效果：</strong>
+                        每次递增黄金角，新原基永远精准插入已有种子之间“当前最大的空白扇区”，将空间均等化分割，杜绝局部挤压或大片空白，实现理论极限级的均匀密铺。
+                    </div>
+                </div>
+            </div>
+
+            <!-- 问题 2 -->
+            <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200/70 space-y-2.5">
+                <div class="flex items-start gap-2">
+                    <span class="bg-emerald-600 text-white text-xs font-bold px-2 py-0.5 rounded mt-0.5 shrink-0">问 2</span>
+                    <h3 class="font-medium text-gray-900 text-sm">我们感受到的螺旋线是视觉拟合还是客观存在？</h3>
+                </div>
+                <div class="text-xs text-gray-600 leading-relaxed space-y-2 pl-7">
+                    <p><strong class="text-gray-800">结论：</strong>两者兼备——既是<strong>客观存在的数学几何拓扑</strong>，也是<strong>人眼视觉邻近律</strong>的必然涌现。</p>
+                    <div>
+                        <strong class="text-gray-800">客观最近邻与费马螺线：</strong>
+                        黄金比的渐进有理逼近恰好是斐波那契数之比（$21/34, 34/55$ 等）。当两颗种子序号差为斐波那契数 $F_k$ 时，欧氏空间距离达到极小，在几何上<strong>客观互为最近邻点</strong>，且严格落在连续的<strong>费马螺线族</strong>（$r^2 = a^2\theta$）上。
+                    </div>
+                    <div>
+                        <strong class="text-gray-800">视觉完形感知：</strong>
+                        人类视觉系统遵循格式塔“邻近律”，会自动连结距离最近的点，因此我们自然数出的顺/逆时针螺旋条数必然是严格对应的相邻斐波那契数（如 34 与 55）。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const angleDisplay = document.getElementById('angleDisplay');
+
+// 实时公式监视器 DOM
+const valN = document.getElementById('valN');
+const valTheta = document.getElementById('valTheta');
+const valR = document.getElementById('valR');
+const valRadius = document.getElementById('valRadius');
+const toggleFormulaBtn = document.getElementById('toggleFormulaBtn');
+const formulaBody = document.getElementById('formulaBody');
+
+let formulaCollapsed = false;
+if (toggleFormulaBtn && formulaBody) {
+    toggleFormulaBtn.onclick = () => {
+        formulaCollapsed = !formulaCollapsed;
+        formulaBody.style.display = formulaCollapsed ? 'none' : 'block';
+        toggleFormulaBtn.textContent = formulaCollapsed ? '展开' : '收起';
+    };
+}
+
+function resizeCanvas(){
+    const wrap = canvas.parentElement;
+    const w = wrap.clientWidth - 40;
+    canvas.width = w;
+    canvas.height = w;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// 黄金角 弧度与度数
+const GOLDEN_ANGLE_RAD = Math.PI * (3 - Math.sqrt(5));
+const GOLDEN_ANGLE_DEG = GOLDEN_ANGLE_RAD * 180 / Math.PI;
+const INTERVAL_PER_SEED = 1000; // 基准：1秒1颗
+
+// UI 元素
+const modeStaticBtn = document.getElementById('modeStatic');
+const modeGrowBtn = document.getElementById('modeGrow');
+const startBtn = document.getElementById('startBtn');
+const resetBtn = document.getElementById('resetBtn');
+const scaleSlider = document.getElementById('scaleSlider');
+const maxPointSlider = document.getElementById('maxPointSlider');
+const speedBtns = document.querySelectorAll('.speed-btn');
+const speedDisplay = document.getElementById('speedDisplay');
+const growthRateSlider = document.getElementById('growthRateSlider');
+const growthRateDisplay = document.getElementById('growthRateDisplay');
+
+let mode = 'static';
+let running = false;
+let points = [];
+let maxPoints = 200;
+let scale = 3.2;
+
+// 速度倍率与点生长参数
+let playbackSpeed = 1;
+let baseRadius = 2.2;      // 新生原基基础半径 (px)
+let growthRate = 0.020;    // 原基生长膨胀微小参数
+
+// 生长数据
+let growPoints = [];
+let totalSeedCount = 0;
+let lastSeedTime = 0;
+let latestSeedId = -1; // 标记最新种子
+
+// 速度按钮切换
+speedBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        speedBtns.forEach(b => {
+            b.className = "btn btn-secondary py-1.5 text-xs speed-btn";
+        });
+        btn.className = "btn btn-primary py-1.5 text-xs speed-btn";
+        playbackSpeed = Number(btn.dataset.speed);
+        if (speedDisplay) speedDisplay.textContent = `${playbackSpeed}x 速度`;
+    });
+});
+
+// 生长膨胀参数滑块
+if (growthRateSlider) {
+    growthRateSlider.oninput = () => {
+        growthRate = Number(growthRateSlider.value);
+        if (growthRateDisplay) growthRateDisplay.textContent = growthRate.toFixed(3);
+        draw();
+    };
+}
+
+// ===== 静态模型
+function computeStaticPoints(){
+    const arr = [];
+    for(let n=1; n<=maxPoints; n++){
+        const theta = n * GOLDEN_ANGLE_RAD;
+        const r = Math.sqrt(n) * scale;
+        const cx = canvas.width / 2, cy = canvas.height / 2;
+        const x = cx + r * Math.cos(theta);
+        const y = cy + r * Math.sin(theta);
+        arr.push({ x, y, r, theta, n });
+    }
+    return arr;
+}
+
+// 添加新原基
+function addNewPrimordium(){
+    totalSeedCount += 1;
+    const thetaNew = totalSeedCount * GOLDEN_ANGLE_RAD;
+    growPoints.push({
+        bornAt: totalSeedCount,
+        theta: thetaNew
+    });
+    latestSeedId = totalSeedCount;
+}
+
+// 更新所有种子坐标
+function updateGrowPositions(){
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    points = [];
+    for(const p of growPoints){
+        const age = totalSeedCount - p.bornAt;
+        const r = Math.sqrt(age) * scale;
+        const x = cx + r * Math.cos(p.theta);
+        const y = cy + r * Math.sin(p.theta);
+        points.push({
+            x, y, r, theta: p.theta,
+            bornAt: p.bornAt
+        });
+    }
+}
+
+// 绘制：方位指示线 + 种子 + 新生原基光环 + 实时数据更新
+function draw(){
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    // 1. ===== 绘制黄金角方位指示线（浅色细虚线，轻盈无误导，无端点大圆）
+    if(mode === 'grow'){
+        const nextAngleRad = totalSeedCount * GOLDEN_ANGLE_RAD;
+        const pointerLen = Math.min(canvas.width, canvas.height) * 0.44;
+        const startOffset = 8; // 中心留出间隙，不遮挡新生中心红点
+        const startX = cx + startOffset * Math.cos(nextAngleRad);
+        const startY = cy + startOffset * Math.sin(nextAngleRad);
+        const endX = cx + pointerLen * Math.cos(nextAngleRad);
+        const endY = cy + pointerLen * Math.sin(nextAngleRad);
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.5)"; // 柔和中性浅灰蓝色，与中心蓝点分明
+        ctx.lineWidth = 1.0;                          // 纤细线宽
+        ctx.setLineDash([4, 4]);                      // 虚线形态，轻盈纯辅助
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        ctx.restore();
+
+        // 彻底移除了原先令人误导的端点圆！
+
+        // 更新角度文字
+        const deg = (nextAngleRad * 180 / Math.PI) % 360;
+        angleDisplay.textContent = deg.toFixed(2) + "°";
+    }else{
+        angleDisplay.textContent = "静态模式";
+    }
+
+    // 2. ===== 绘制所有种子（颜色随年龄呈：蓝 → 绿 → 黄 渐变）
+    for(const p of points){
+        const age = mode === 'grow' ? (totalSeedCount - p.bornAt) : (p.n || 0);
+        const dotRadius = Math.max(1.8, Math.min(8.0, baseRadius + Math.sqrt(age) * growthRate * 12));
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, dotRadius, 0, Math.PI * 2);
+
+        if(mode === 'grow'){
+            if(p.bornAt === latestSeedId){
+                ctx.fillStyle = "#2563eb"; // 最新诞生（0阶）：鲜明深蓝色 (Blue)
+            } else if(age === 1){
+                ctx.fillStyle = "#0284c7"; // 1阶：天蓝色 (Sky Blue)
+            } else if(age === 2){
+                ctx.fillStyle = "#0d9488"; // 2阶：青绿色 (Teal)
+            } else if(age === 3){
+                ctx.fillStyle = "#16a34a"; // 3阶：鲜绿色 (Green)
+            } else if(age === 4){
+                ctx.fillStyle = "#84cc16"; // 4阶：嫩黄绿色 (Lime)
+            } else if(age === 5){
+                ctx.fillStyle = "#eab308"; // 5阶：明黄色 (Yellow)
+            } else {
+                ctx.fillStyle = "#ca8a04"; // 成熟种子：经典向日葵金褐色 (Golden)
+            }
+        } else {
+            ctx.fillStyle = "#ca8a04"; // 静态模式：金黄色
+        }
+        ctx.fill();
+    }
+
+    // 3. ===== 更新空白处公式卡片中的实时计算数值
+    if (valN && valTheta && valR && valRadius) {
+        const curN = mode === 'grow' ? totalSeedCount : maxPoints;
+        const curThetaDeg = (curN * GOLDEN_ANGLE_DEG) % 360;
+        const curR = Math.sqrt(curN) * scale;
+        const curAge = mode === 'grow' ? 0 : curN;
+        const curDotR = Math.max(1.8, Math.min(8.0, baseRadius + Math.sqrt(curAge) * growthRate * 12));
+
+        valN.textContent = curN;
+        valTheta.textContent = `${curThetaDeg.toFixed(1)}°`;
+        valR.textContent = `${curR.toFixed(1)}px`;
+        valRadius.textContent = `${curDotR.toFixed(1)}px`;
+    }
+}
+
+let animId = null;
+function animate(timestamp){
+    if(!running) return;
+
+    if(mode === 'grow'){
+        const currentInterval = INTERVAL_PER_SEED / playbackSpeed;
+        if(timestamp - lastSeedTime >= currentInterval && totalSeedCount < maxPoints){
+            addNewPrimordium();
+            lastSeedTime = timestamp;
+        }
+        updateGrowPositions();
+
+        if(totalSeedCount >= maxPoints){
+            running = false;
+            startBtn.textContent = '重播';
+            startBtn.className = 'btn btn-primary flex-1';
+        }
+    }
+    draw();
+    if(running){
+        animId = requestAnimationFrame(animate);
+    }
+}
+
+function reset(){
+    cancelAnimationFrame(animId);
+    running = false;
+    startBtn.textContent = '开始';
+    startBtn.className = 'btn btn-success flex-1';
+    growPoints = [];
+    totalSeedCount = 0;
+    lastSeedTime = 0;
+    latestSeedId = -1;
+    maxPoints = Number(maxPointSlider.value);
+    if(mode === 'static'){
+        points = computeStaticPoints();
+    }else{
+        points = [];
+    }
+    draw();
+}
+
+function setMode(newMode){
+    mode = newMode;
+    modeStaticBtn.className = "btn " + (newMode === 'static' ? 'btn-primary flex-1' : 'btn-secondary flex-1');
+    modeGrowBtn.className = "btn " + (newMode === 'grow' ? 'btn-primary flex-1' : 'btn-secondary flex-1');
+    reset();
+}
+
+// 事件绑定
+modeStaticBtn.onclick = () => setMode('static');
+modeGrowBtn.onclick = () => setMode('grow');
+
+startBtn.onclick = () => {
+    if(!running){
+        if(mode === 'grow' && totalSeedCount >= maxPoints){
+            reset();
+        }
+        running = true;
+        startBtn.textContent = '暂停';
+        startBtn.className = 'btn btn-secondary flex-1';
+        lastSeedTime = performance.now();
+        animId = requestAnimationFrame(animate);
+    } else {
+        running = false;
+        startBtn.textContent = '继续';
+        startBtn.className = 'btn btn-success flex-1';
+        cancelAnimationFrame(animId);
+    }
+};
+
+resetBtn.onclick = reset;
+scaleSlider.oninput = () => {
+    scale = Number(scaleSlider.value);
+    if(mode === 'static') points = computeStaticPoints();
+    draw();
+};
+maxPointSlider.oninput = () => { 
+    maxPoints = Number(maxPointSlider.value); 
+    reset(); 
+};
+
+// KaTeX 数学公式渲染触发器
+function renderMath() {
+    if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+        });
+    }
+}
+window.addEventListener('DOMContentLoaded', renderMath);
+window.addEventListener('load', renderMath);
+setTimeout(renderMath, 200);
+setTimeout(renderMath, 800);
+setTimeout(renderMath, 2000);
+
+reset();
+</script>
+</body>
+</html>

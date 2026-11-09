@@ -1,0 +1,3721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《广韵》反切系联与音系检索库 (Guangyun Fanqie Search & Causal Audit)</title>
+  <!-- Preload local dataset script for seamless offline file:// execution (bypasses browser file CORS restriction) -->
+  <!-- GitHub Pages Edition: High-Performance IndexedDB Caching & Direct Remote Fetching -->
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --accent-border: #bfdbfe;
+      --green: #059669;
+      --green-light: #ecfdf5;
+      --green-border: #a7f3d0;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --amber-border: #fde68a;
+      --red: #dc2626;
+      --red-light: #fef2f2;
+      --red-border: #fecaca;
+      --purple: #7c3aed;
+      --purple-light: #f5f3ff;
+      --purple-border: #ddd6fe;
+      --font-serif: "Songti SC", "SimSun", "Noto Serif CJK SC", "STSong", serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans CJK SC", "Source Han Sans CN", "Microsoft YaHei", sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    .top-nav {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-sm);
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .brand-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .meta-stat {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--bg-hover);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+    }
+    .btn-nav {
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-nav:hover {
+      background: var(--bg-hover);
+      border-color: var(--text-muted);
+    }
+
+    /* Main Container */
+    .main-container {
+      max-width: 1040px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+      flex: 1;
+    }
+
+    /* Search Hero Section */
+    .search-hero {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .hero-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .hero-sub {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    /* Search Box */
+    .search-box-wrapper {
+      position: relative;
+      background: #ffffff;
+      border: 2px solid var(--border-strong);
+      border-radius: 14px;
+      box-shadow: var(--shadow-md);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      padding: 4px 6px;
+      margin-bottom: 12px;
+    }
+    .search-box-wrapper:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12), var(--shadow-md);
+    }
+    .search-icon {
+      padding: 0 12px;
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+    .search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      color: var(--text-primary);
+      background: transparent;
+      padding: 10px 4px;
+      font-family: inherit;
+    }
+    .search-input::placeholder {
+      color: #94a3b8;
+      font-size: 14.5px;
+    }
+    .btn-clear {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 6px 10px;
+      display: none;
+    }
+    .btn-clear:hover { color: var(--text-primary); }
+    .btn-search {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-search:hover { background: #1d4ed8; }
+
+    /* Search Modes Pills */
+    .mode-pills {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .pill-btn {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .pill-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .pill-btn.active {
+      background: var(--accent-light);
+      border-color: var(--accent-border);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Example Prompts */
+    .example-chips {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .example-chip {
+      background: #ffffff;
+      border: 1px dashed var(--border-strong);
+      color: var(--text-secondary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .example-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    /* Search History Bar */
+    .history-chips-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      min-height: 26px;
+      margin-top: 2px;
+    }
+    .history-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      font-size: 12px;
+    }
+    .history-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+    .history-chip .mode-tag {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(37, 99, 235, 0.08);
+      border-radius: 2px;
+      padding: 0 3px;
+      line-height: 14px;
+    }
+    .history-chip .btn-del-item {
+      margin-left: 2px;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 12px;
+      opacity: 0.4;
+      border-radius: 50%;
+      padding: 0 2px;
+      transition: all 0.15s ease;
+    }
+    .history-chip .btn-del-item:hover {
+      opacity: 1;
+      color: #dc2626;
+      background: rgba(220, 38, 38, 0.1);
+    }
+    .btn-clear-history {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 3px;
+      transition: all 0.15s ease;
+    }
+    .btn-clear-history:hover {
+      color: #dc2626;
+      background: rgba(220, 38, 38, 0.08);
+      text-decoration: underline;
+    }
+
+    /* Search Results Area */
+    .results-area {
+      margin-top: 24px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 48px 24px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+    .empty-state-sub { font-size: 13px; color: var(--text-secondary); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+
+    /* Result Card Styles */
+    .res-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 18px;
+      overflow: hidden;
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .res-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-md);
+    }
+    .res-card-header {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: #ffffff;
+    }
+    .res-card-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .char-badge-lg {
+      font-family: var(--font-serif);
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--accent);
+      background: var(--accent-light);
+      border: 1px solid var(--accent-border);
+      min-width: 48px;
+      width: auto;
+      max-width: max-content;
+      padding: 0 10px;
+      height: 48px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      flex-shrink: 0;
+      gap: 4px;
+      line-height: 1;
+    }
+    .char-badge-lg.theme-blue {
+      color: var(--accent);
+      background: var(--accent-light);
+      border-color: var(--accent-border);
+    }
+    .char-badge-lg.theme-green {
+      color: var(--green);
+      background: var(--green-light);
+      border-color: var(--green-border);
+    }
+    .pill-btn[data-mode="lower"].active {
+      background: var(--green-light);
+      border-color: var(--green-border);
+      color: var(--green);
+    }
+    .pill-btn[data-mode="xilian"].active {
+      background: rgba(168, 85, 247, 0.12);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #7e22ce;
+      font-weight: 700;
+    }
+    .btn-action.success {
+      background: var(--green-light);
+      border-color: var(--green-border);
+      color: var(--green);
+    }
+    .btn-action.success:hover { background: #d1fae5; }
+    .card-title-text {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+    .card-sub-text {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .res-card-body {
+      padding: 18px 20px;
+    }
+
+    /* Badges */
+    .tag-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+    }
+    .tag-blue { background: var(--accent-light); color: var(--accent); border-color: var(--accent-border); }
+    .tag-green { background: var(--green-light); color: var(--green); border-color: var(--green-border); }
+    .tag-amber { background: var(--amber-light); color: var(--amber); border-color: var(--amber-border); }
+    .tag-purple { background: var(--purple-light); color: var(--purple); border-color: var(--purple-border); }
+    .tag-red { background: var(--red-light); color: var(--red); border-color: var(--red-border); }
+
+    /* Action Buttons inside Card */
+    .btn-action {
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--text-muted);
+    }
+    .btn-action.primary {
+      background: var(--accent-light);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+    .btn-action.primary:hover { background: #dbeafe; }
+    .btn-action.danger {
+      color: var(--red);
+      border-color: var(--red-border);
+      background: var(--red-light);
+    }
+    .btn-action.danger:hover { background: #fee2e2; }
+    .btn-action.warn {
+      color: var(--amber);
+      border-color: var(--amber-border);
+      background: var(--amber-light);
+    }
+    .btn-action.warn:hover { background: #fef3c7; }
+
+    /* Single Cutter Explorer Card */
+    .fq-explorer-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .fq-explorer-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+      transform: translateY(-2px);
+    }
+    .fq-explorer-card.theme-green:hover {
+      border-color: var(--green);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);
+    }
+
+    /* Step List (Causal Proof Chain) */
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .step-item {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.15s ease;
+    }
+    .step-item:hover {
+      border-color: var(--border-strong);
+      background: #fafafa;
+    }
+    .step-item.flagged {
+      border-color: var(--amber-border);
+      background: var(--amber-light);
+    }
+    .step-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 9999px;
+      background: var(--bg-hover);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+    }
+    .step-char-pair {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .step-desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+    .step-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Headwords Grid */
+    .headwords-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .hw-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      transition: all 0.15s ease;
+    }
+    .hw-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-sm);
+    }
+    .hw-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .hw-char {
+      font-family: var(--font-serif);
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--accent);
+    }
+    .hw-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    /* Inline 33 Columns Details Drawer/Accordion */
+    .inline-details-box {
+      margin-top: 12px;
+      background: #f8fafc;
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 12px;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .details-section {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .details-section-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .details-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 2.5px 0;
+      border-bottom: 1px dashed #f1f5f9;
+    }
+    .details-label {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+    .details-val {
+      font-weight: 600;
+      color: var(--text-primary);
+      text-align: right;
+    }
+
+    /* Revision Ledger Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      display: none;
+    }
+    .drawer-box {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 580px;
+      max-width: 95vw;
+      background: #ffffff;
+      z-index: 101;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .drawer-box.open { transform: translateX(0); }
+    .drawer-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .drawer-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      background: #f8fafc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Table Styles */
+    .ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .ledger-table th {
+      text-align: left;
+      padding: 8px 10px;
+      background: #f8fafc;
+      border-bottom: 2px solid var(--border);
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+    .ledger-table td {
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .ledger-table tr:hover { background: #f8fafc; }
+
+    /* Streamlined Character Table (No Horizontal Scroll) */
+    .streamlined-char-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+    }
+    .streamlined-char-table th {
+      padding: 6px 8px;
+      font-size: 11.5px;
+      white-space: nowrap;
+      background: #f1f5f9;
+      color: var(--text-secondary);
+      font-weight: 700;
+      border-bottom: 2px solid var(--border);
+    }
+    .streamlined-char-table td {
+      padding: 7px 8px;
+      font-size: 11.5px;
+      line-height: 1.35;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border);
+    }
+    .streamlined-char-table tr:hover {
+      background: #f8fafc;
+    }
+
+    /* Reading Switcher Toolbar Styles */
+    .reading-switcher-panel {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .reading-switcher-tip {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .reading-switcher-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .reading-row-label {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      min-width: 95px;
+    }
+    .reading-pill {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      color: var(--text-secondary);
+      font-size: 11.5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+    .reading-pill:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      color: var(--text-primary);
+    }
+    .reading-pill.active {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff !important;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+    }
+    .reading-pill.active strong {
+      color: #ffffff !important;
+    }
+    .reading-pill.active .reading-active-tag {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 800;
+      margin-left: 4px;
+    }
+
+    /* Toast */
+    #globalToast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 200;
+    }
+
+    /* Nav Actions */
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #94a3b8;
+      margin-right: 4px;
+    }
+    .status-indicator.ready { background: #10b981; }
+    .status-indicator.bridge { background: #2563eb; }
+    .status-indicator.loading {
+      background: #f59e0b;
+      animation: pulse-dot 1.2s infinite ease-in-out;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.8); }
+    }
+
+    /* Modal & Dialogs */
+    .wb-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: var(--shadow-lg);
+      z-index: 150;
+      width: 90%;
+      max-width: 540px;
+      text-align: center;
+    }
+    .wb-drop-zone {
+      border: 2px dashed var(--accent-border);
+      background: var(--accent-light);
+      border-radius: 12px;
+      padding: 24px 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .wb-drop-zone:hover, .wb-drop-zone.dragover {
+      border-color: var(--accent);
+      background: #e0f2fe;
+    }
+
+    /* Dataset Manager & Progress Bar Styles */
+    .wb-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .wb-modal-title {
+      font-size: 16.5px;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: var(--text-muted);
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .modal-close-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-hover);
+    }
+    .cache-status-card {
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: left;
+      margin-bottom: 16px;
+    }
+    .cache-status-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      margin-bottom: 5px;
+      line-height: 1.4;
+    }
+    .cache-status-label {
+      color: var(--text-secondary);
+    }
+    .cache-status-val {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .progress-box {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .progress-bar-bg {
+      background: #e2e8f0;
+      height: 10px;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    .progress-bar-fill {
+      background: linear-gradient(90deg, #2563eb, #38bdf8);
+      height: 100%;
+      width: 0%;
+      transition: width 0.15s ease;
+      border-radius: 9999px;
+    }
+    .action-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .btn-sync-github {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 11px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 5px rgba(37, 99, 235, 0.25);
+    }
+    .btn-sync-github:hover {
+      background: #1d4ed8;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+    }
+    .btn-sync-github:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .btn-secondary-action {
+      background: #ffffff;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-strong);
+      padding: 7px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-secondary-action:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+
+    /* Decoupled Lab */
+
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Navbar -->
+  <header class="top-nav">
+    <div class="brand-wrap">
+      <div class="brand-logo" onclick="resetToHome()">
+        <span>📚</span>
+        <span>广韵音韵实验室</span>
+      </div>
+      <span class="brand-tag">反切因果溯源</span>
+    </div>
+
+    <div class="nav-actions">
+      <span class="meta-stat" id="datasetStatusBadge" onclick="openDataManagerModal()" title="点击查看《广韵》数据集状态与本地缓存" style="cursor:pointer;">
+        <span class="status-indicator loading"></span>
+        <span id="datasetStatusText">正在检测本地缓存...</span>
+      </span>
+      <button class="btn-nav" id="btnOpenDataManager" onclick="openDataManagerModal()" title="管理《广韵》数据集、查看本地缓存及从 GitHub 检查更新" style="position:relative;">
+        <span>🔄 数据管理 / 更新</span>
+        <span id="updateDotBadge" style="display:none; position:absolute; top:-4px; right:-4px; width:9px; height:9px; background:#ef4444; border-radius:50%; border:2px solid #fff;"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="main-container">
+
+    <!-- VIEW 1: Search & Audit View -->
+    <div id="searchView">
+      <!-- Search Hero Section -->
+      <div class="search-hero">
+        <h1 class="hero-title">《广韵》反切系联与因果溯源检索库</h1>
+        <p class="hero-sub">支持反切拼切查字、声纽系联全族、规范韵类推导、双字最短因果证明及底层 33 列考据透视</p>
+
+        <!-- Global Search Box -->
+        <div class="search-box-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="globalSearchInput" class="search-input" 
+                 placeholder="输入字头 (支持单字 / 多字比对)、切语 (单字查切语全谱 如: 平 / 義，或双字切语 如: 平義) 或 查系联 (如: 丘 / 弭 / 避 髲)..." 
+                 autocomplete="off" autofocus onkeydown="handleSearchKey(event)" oninput="handleSearchInput()">
+          <button class="btn-clear" id="btnClearSearch" onclick="clearSearch()">✕</button>
+          <button class="btn-search" onclick="triggerSearch()">检 索</button>
+        </div>
+
+        <!-- Search Mode Pills (统一为 查字、查切语、查系联 三大模式) -->
+        <div class="mode-pills">
+          <button class="pill-btn active" data-mode="char" onclick="setSearchMode('char')">查字 (单字 / 多字横向比对)</button>
+          <button class="pill-btn" data-mode="pair" onclick="setSearchMode('pair')">查切语 (单字切语谱 / 双字切语)</button>
+          <button class="pill-btn" data-mode="xilian" onclick="setSearchMode('xilian')">查系联 (单字系联族 / 双字互联)</button>
+        </div>
+
+        <!-- Dynamic Search History Bar -->
+        <div id="searchHistoryBar" class="history-chips-wrapper">
+          <span style="opacity:0.6; font-size:11px;">🕒 暂无最近检索历史</span>
+        </div>
+      </div>
+
+      <!-- Search Results Dynamic Mounting Area -->
+      <div id="resultsMountArea" class="results-area">
+        <!-- Default Empty State -->
+        <div class="empty-state">
+          <div class="empty-state-icon">📖</div>
+          <div class="empty-state-title">即搜即得 · 纯粹清爽的反切音韵工作台</div>
+          <p class="empty-state-sub">
+            在上方搜索框直接输入任何《广韵》字头、反切切语或待考字对。<br>
+            系统将自动穿透 25,327 条底层主库、40 个声纽系联族与 307 个规范韵类，逐级列出清晰严谨的因果证明链。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    </main>
+
+  <!-- Data Manager & Cache Control Modal -->
+  <div class="drawer-overlay" id="dataLoaderOverlay" style="display:none;" onclick="handleOverlayClick(event)"></div>
+  <div id="dataLoaderModal" class="wb-modal" style="display:none; max-width:560px; text-align:left;">
+    <div class="wb-modal-header">
+      <div class="wb-modal-title">
+        <span>📦</span>
+        <span>《广韵》数据集与本地缓存管理</span>
+      </div>
+      <button class="modal-close-btn" id="modalCloseBtn" onclick="closeDataManagerModal()" title="关闭">✕</button>
+    </div>
+
+    <!-- Active Loading / Download Progress Area (动态显隐) -->
+    <div id="progressSection" class="progress-box" style="display:none; background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:14px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:700; color:#1e40af;">
+        <span id="progressStatusText">正在从 GitHub 下载《广韵》全库数据 (约15MB)...</span>
+        <span id="progressPercentText" style="font-family:var(--font-mono);">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:11.5px; color:#3b82f6;">
+        <span id="progressDetailText">已连接数据源，准备传输...</span>
+        <span>首次下载后将永久缓存至浏览器</span>
+      </div>
+    </div>
+
+    <!-- Cache Status Overview Card -->
+    <div class="cache-status-card" id="cacheStatusCard">
+      <div class="cache-status-row">
+        <span class="cache-status-label">本地浏览器缓存 (IndexedDB)：</span>
+        <span class="cache-status-val" id="cacheStatusBadgeVal">检测中...</span>
+      </div>
+      <div class="cache-status-row">
+        <span class="cache-status-label">已缓存记录规模：</span>
+        <span class="cache-status-val" id="cacheRecordsVal">-</span>
+      </div>
+      <div class="cache-status-row">
+        <span class="cache-status-label">缓存存储时间：</span>
+        <span class="cache-status-val" id="cacheTimeVal" style="font-family:var(--font-mono);">-</span>
+      </div>
+      <div class="cache-status-row">
+        <span class="cache-status-label">当前数据源：</span>
+        <span class="cache-status-val" id="dataSourceVal">GitHub Pages</span>
+      </div>
+      <div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); font-size:12px; color:var(--text-secondary); line-height:1.5;">
+        💡 <b>缓存机制说明</b>：本页面采用浏览器 <code>IndexedDB</code> 高性能本地数据库存储。数据下载一次即永久留存，下次打开<b>瞬间秒开</b>，不再消耗流量。
+      </div>
+    </div>
+
+    <!-- Primary Actions -->
+    <div class="action-btn-group">
+      <button class="btn-sync-github" id="btnSyncGithub" onclick="handleSyncFromGitHub()">
+        <span>⚡ 从 GitHub 强制同步最新数据</span>
+      </button>
+      <div style="font-size:11.5px; color:var(--text-muted); text-align:center;">
+        当作者在 GitHub 提交了新考据或数据修正时，点击上方按钮可跳过浏览器缓存直接同步最新全库数据。
+      </div>
+    </div>
+
+    <!-- Drop Zone & Local File Import (Collapsible / Secondary) -->
+    <div style="margin-top:18px;">
+      <div style="font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:8px;">
+        📂 本地导入或离线实验数据：
+      </div>
+      <div class="wb-drop-zone" id="wbDropZone" onclick="document.getElementById('wbFileInput').click()" style="padding:14px 12px;">
+        <div style="font-size:22px; margin-bottom:4px;">📥</div>
+        <div style="font-weight:700; font-size:13px; color:var(--accent);">点击选择 或 拖入 <code>guangyun_data.json</code></div>
+        <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">导入后亦会自动同步保存到本地浏览器缓存</div>
+      </div>
+      <input type="file" id="wbFileInput" accept=".json" style="display:none;" onchange="handleWorkbenchFileSelect(event)">
+    </div>
+
+    <!-- Advanced Settings (Collapsible) -->
+    <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:10px;">
+      <details style="font-size:12px; color:var(--text-secondary);">
+        <summary style="cursor:pointer; font-weight:600; color:var(--text-muted);">🛠️ 高级缓存选项与自定义数据源</summary>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+          <div>
+            <label style="display:block; margin-bottom:4px; font-weight:600;">GitHub 数据源 URL：</label>
+            <div style="display:flex; gap:6px;">
+              <input type="text" id="customDataUrlInput" value="./guangyun_data.json" style="flex:1; padding:6px 10px; border:1px solid var(--border-strong); border-radius:6px; font-size:12px; font-family:var(--font-mono);">
+              <button class="btn-secondary-action" onclick="handleLoadCustomUrl()">重新拉取</button>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+            <span style="color:var(--text-muted);">如遇数据损坏或需清空离线存储：</span>
+            <button class="btn-secondary-action" onclick="handleClearCache()" style="color:#dc2626; border-color:#fecaca;">
+              🗑️ 清空本地缓存
+            </button>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="globalToast">已完成操作</div>
+
+  <!-- DECOUPLED DATASET HOLDER -->
+  <script>
+    let LAB_DATA = null;
+    let isBridgeOnline = false;
+  </script>
+
+  <!-- SEARCH LOGIC & INTERACTION CONTROLLER -->
+  <script>
+    // Global Application State
+    let currentMode = 'auto';
+
+    // =========================================================================
+    // INDEXEDDB BROWSER CACHE & GITHUB DATASET CONTROLLER
+    // =========================================================================
+
+    const DEFAULT_DATA_URL = './guangyun_data.json';
+    let currentCacheMeta = null;
+    let isInitialLoading = false;
+
+    // --- High-Performance IndexedDB Storage Adapter ---
+    const GuangyunStorage = {
+      db: null,
+      dbName: 'GuangyunFanqieDB',
+      storeName: 'datasetStore',
+
+      async getDB() {
+        if (this.db) return this.db;
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open(this.dbName, 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(this.storeName)) {
+              db.createObjectStore(this.storeName, { keyPath: 'id' });
+            }
+          };
+          req.onsuccess = (e) => {
+            this.db = e.target.result;
+            resolve(this.db);
+          };
+          req.onerror = (e) => reject(e.target.error);
+        });
+      },
+
+      async loadCachedDataset() {
+        try {
+          const db = await this.getDB();
+          return new Promise((resolve) => {
+            const tx = db.transaction([this.storeName], 'readonly');
+            const store = tx.objectStore(this.storeName);
+            const req = store.get('latest');
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+          });
+        } catch (e) {
+          console.warn('IndexedDB read failed:', e);
+          return null;
+        }
+      },
+
+      async saveDataset(data, meta = {}) {
+        try {
+          const db = await this.getDB();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction([this.storeName], 'readwrite');
+            const store = tx.objectStore(this.storeName);
+            const payload = {
+              id: 'latest',
+              data: data,
+              meta: {
+                ...meta,
+                cachedAt: new Date().toLocaleString(),
+                rowsCount: (data.rows && data.rows.length) ? data.rows.length : 0
+              }
+            };
+            const req = store.put(payload);
+            req.onsuccess = () => resolve(payload.meta);
+            req.onerror = (e) => reject(e.target.error);
+          });
+        } catch (e) {
+          console.warn('IndexedDB save failed:', e);
+          return null;
+        }
+      },
+
+      async clearCache() {
+        try {
+          const db = await this.getDB();
+          return new Promise((resolve) => {
+            const tx = db.transaction([this.storeName], 'readwrite');
+            const store = tx.objectStore(this.storeName);
+            const req = store.delete('latest');
+            req.onsuccess = () => resolve(true);
+            req.onerror = () => resolve(false);
+          });
+        } catch (e) {
+          console.warn('IndexedDB clear failed:', e);
+          return false;
+        }
+      }
+    };
+
+    // --- Main Dataset Initialization ---
+    async function initDataLoader() {
+      setupDropZoneEvents();
+
+      // 1. First Priority: Check IndexedDB Local Cache (Instant sub-100ms startup)
+      updateNavStatus('loading', '正在检测本地缓存...');
+      try {
+        const cached = await GuangyunStorage.loadCachedDataset();
+        if (cached && cached.data && cached.data.rows && cached.data.rows.length > 0) {
+          console.log('✓ Found local IndexedDB dataset cache:', cached.meta);
+          currentCacheMeta = cached.meta;
+          onDatasetLoaded(cached.data, { source: '本地缓存 (IndexedDB)', meta: cached.meta });
+          checkRemoteUpdateSilently();
+          return;
+        }
+      } catch (err) {
+        console.warn('Cache lookup failed, proceeding to network fetch:', err);
+      }
+
+      // 2. Second Priority: Preloaded script tag (if present)
+      if (window.LAB_EMBEDDED_DATA && window.LAB_EMBEDDED_DATA.rows) {
+        onDatasetLoaded(window.LAB_EMBEDDED_DATA, { source: '嵌入数据', meta: null });
+        GuangyunStorage.saveDataset(window.LAB_EMBEDDED_DATA, { source: '嵌入数据' });
+        return;
+      }
+
+      // 3. Third Priority: First-time visitor - Fetch from GitHub with progress bar
+      openDataManagerModal({ isInitialLoading: true });
+      await fetchAndApplyRemoteData(DEFAULT_DATA_URL, false);
+    }
+
+    // --- Streamed Fetch with Progress Feedback ---
+    async function fetchAndApplyRemoteData(url, isForceReload = false) {
+      const progressBox = document.getElementById('progressSection');
+      const progressBar = document.getElementById('progressBarFill');
+      const progressPercent = document.getElementById('progressPercentText');
+      const progressStatus = document.getElementById('progressStatusText');
+      const progressDetail = document.getElementById('progressDetailText');
+      const btnSync = document.getElementById('btnSyncGithub');
+
+      if (progressBox) progressBox.style.display = 'block';
+      if (progressBar) progressBar.style.width = '0%';
+      if (btnSync) btnSync.disabled = true;
+
+      progressStatus.innerText = isForceReload 
+        ? '正在强制从 GitHub 同步最新《广韵》全库数据...' 
+        : '正在首次从 GitHub 云端载入《广韵》全库数据...';
+      progressDetail.innerText = '正在建立网络连接...';
+      updateNavStatus('loading', '正在从 GitHub 下载数据...');
+
+      try {
+        const fetchUrl = isForceReload ? `${url}?t=${Date.now()}` : url;
+        const fetchOptions = isForceReload ? { cache: 'reload' } : {};
+        const resp = await fetch(fetchUrl, fetchOptions);
+
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status} (${resp.statusText})`);
+        }
+
+        const lastModified = resp.headers.get('last-modified');
+        const etag = resp.headers.get('etag');
+        const contentLength = resp.headers.get('content-length');
+        const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+        let parsedData = null;
+
+        if (resp.body && window.ReadableStream) {
+          const reader = resp.body.getReader();
+          const chunks = [];
+          let received = 0;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            received += value.length;
+
+            const receivedMB = (received / (1024 * 1024)).toFixed(1);
+            if (total > 0) {
+              const pct = Math.min(100, Math.round((received / total) * 100));
+              if (progressBar) progressBar.style.width = `${pct}%`;
+              if (progressPercent) progressPercent.innerText = `${pct}%`;
+              const totalMB = (total / (1024 * 1024)).toFixed(1);
+              if (progressDetail) progressDetail.innerText = `已下载 ${receivedMB} MB / ${totalMB} MB (${pct}%)`;
+            } else {
+              if (progressBar) progressBar.style.width = '70%';
+              if (progressPercent) progressPercent.innerText = `${receivedMB} MB`;
+              if (progressDetail) progressDetail.innerText = `已流式接收 ${receivedMB} MB 数据...`;
+            }
+          }
+
+          if (progressDetail) progressDetail.innerText = '下载完成，正在解析 JSON 数据模型...';
+          const allChunks = new Uint8Array(received);
+          let pos = 0;
+          for (const chunk of chunks) {
+            allChunks.set(chunk, pos);
+            pos += chunk.length;
+          }
+          const text = new TextDecoder('utf-8').decode(allChunks);
+          parsedData = JSON.parse(text);
+        } else {
+          parsedData = await resp.json();
+        }
+
+        // Save to IndexedDB Cache
+        progressDetail.innerText = '正在写入浏览器 IndexedDB 本地永久缓存...';
+        const savedMeta = await GuangyunStorage.saveDataset(parsedData, {
+          source: 'GitHub Pages',
+          url: url,
+          lastModified: lastModified,
+          etag: etag
+        });
+        currentCacheMeta = savedMeta;
+
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressPercent) progressPercent.innerText = '100%';
+        if (progressDetail) progressDetail.innerText = '✓ 数据载入完成！';
+
+        setTimeout(() => {
+          if (progressBox) progressBox.style.display = 'none';
+          closeDataManagerModal();
+          onDatasetLoaded(parsedData, { source: 'GitHub Pages (云端已同步)', meta: savedMeta });
+          hideUpdateAvailableIndicator();
+          showToast(isForceReload ? '✓ 已成功从 GitHub 同步最新《广韵》数据集！' : '✓ 首次数据加载成功并已永久缓存至本地！', 2800);
+        }, 500);
+
+      } catch (err) {
+        console.warn('Network dataset load failed:', err);
+        if (progressStatus) progressStatus.innerText = '❌ 网络载入失败';
+        if (progressDetail) progressDetail.innerText = `${err.message}。若在本地直接运行或离线环境，请使用下方本地导入。`;
+        if (progressBar) progressBar.style.background = '#ef4444';
+        updateNavStatus('loading', '数据载入待处理');
+        showToast('数据载入失败，请检查网络或手动选择本地文件', 3200);
+      } finally {
+        if (btnSync) btnSync.disabled = false;
+      }
+    }
+
+    // --- Silent Background Update Probe ---
+    async function checkRemoteUpdateSilently() {
+      if (window.location.protocol === 'file:') return;
+      try {
+        const headResp = await fetch(DEFAULT_DATA_URL, { method: 'HEAD', cache: 'no-cache' });
+        if (!headResp.ok) return;
+        const lastModified = headResp.headers.get('last-modified');
+        const etag = headResp.headers.get('etag');
+
+        if (currentCacheMeta) {
+          let hasNewVersion = false;
+          if (currentCacheMeta.etag && etag && currentCacheMeta.etag !== etag) {
+            hasNewVersion = true;
+          } else if (currentCacheMeta.lastModified && lastModified) {
+            if (new Date(lastModified) > new Date(currentCacheMeta.lastModified)) {
+              hasNewVersion = true;
+            }
+          }
+          if (hasNewVersion) {
+            console.log('⚡ GitHub remote dataset has updates available!');
+            showUpdateAvailableIndicator();
+          }
+        }
+      } catch (e) {
+        // Silent probe failure is safely ignored
+      }
+    }
+
+    function showUpdateAvailableIndicator() {
+      const badge = document.getElementById('updateDotBadge');
+      if (badge) badge.style.display = 'inline-block';
+      const btn = document.getElementById('btnOpenDataManager');
+      if (btn) btn.title = '🔔 GitHub 上的《广韵》全库数据有新版本，点击同步';
+    }
+
+    function hideUpdateAvailableIndicator() {
+      const badge = document.getElementById('updateDotBadge');
+      if (badge) badge.style.display = 'none';
+      const btn = document.getElementById('btnOpenDataManager');
+      if (btn) btn.title = '管理《广韵》数据集、查看本地缓存及从 GitHub 检查更新';
+    }
+
+    // --- UI Controls for Data Manager Modal ---
+    function openDataManagerModal(options = {}) {
+      isInitialLoading = !!options.isInitialLoading;
+      document.getElementById('dataLoaderOverlay').style.display = 'block';
+      document.getElementById('dataLoaderModal').style.display = 'block';
+
+      const closeBtn = document.getElementById('modalCloseBtn');
+      if (closeBtn) closeBtn.style.display = isInitialLoading ? 'none' : 'block';
+
+      updateCacheUIInfo();
+    }
+
+    function closeDataManagerModal() {
+      document.getElementById('dataLoaderOverlay').style.display = 'none';
+      document.getElementById('dataLoaderModal').style.display = 'none';
+    }
+
+    function handleOverlayClick(event) {
+      if (!isInitialLoading) {
+        closeDataManagerModal();
+      }
+    }
+
+    function updateCacheUIInfo() {
+      const badgeVal = document.getElementById('cacheStatusBadgeVal');
+      const recordsVal = document.getElementById('cacheRecordsVal');
+      const timeVal = document.getElementById('cacheTimeVal');
+      const sourceVal = document.getElementById('dataSourceVal');
+
+      if (currentCacheMeta) {
+        if (badgeVal) badgeVal.innerHTML = '<span style="color:#059669;">● 已缓存 (IndexedDB)</span>';
+        if (recordsVal) recordsVal.innerText = `${(currentCacheMeta.rowsCount || 25327).toLocaleString()} 条字头记录`;
+        if (timeVal) timeVal.innerText = currentCacheMeta.cachedAt || '-';
+        if (sourceVal) sourceVal.innerText = currentCacheMeta.source || 'GitHub Pages';
+      } else {
+        if (badgeVal) badgeVal.innerHTML = '<span style="color:#d97706;">○ 尚未建立本地缓存</span>';
+        if (recordsVal) recordsVal.innerText = LAB_DATA ? `${LAB_DATA.rows.length.toLocaleString()} 条 (内存态)` : '-';
+        if (timeVal) timeVal.innerText = '未缓存';
+        if (sourceVal) sourceVal.innerText = '待从 GitHub 下载';
+      }
+    }
+
+    function updateNavStatus(type, text) {
+      const statusBadge = document.getElementById('datasetStatusBadge');
+      const statusIndicator = statusBadge ? statusBadge.querySelector('.status-indicator') : null;
+      const statusText = document.getElementById('datasetStatusText');
+
+      if (statusIndicator) {
+        if (type === 'ready') statusIndicator.className = 'status-indicator ready';
+        else if (type === 'bridge') statusIndicator.className = 'status-indicator bridge';
+        else statusIndicator.className = 'status-indicator loading';
+      }
+      if (statusText) statusText.innerText = text;
+    }
+
+    // --- Action Handlers ---
+    async function handleSyncFromGitHub() {
+      const targetUrl = document.getElementById('customDataUrlInput').value.trim() || DEFAULT_DATA_URL;
+      await fetchAndApplyRemoteData(targetUrl, true);
+    }
+
+    async function handleLoadCustomUrl() {
+      const url = document.getElementById('customDataUrlInput').value.trim();
+      if (!url) {
+        alert('请输入有效的数据集 URL');
+        return;
+      }
+      await fetchAndApplyRemoteData(url, true);
+    }
+
+    async function handleClearCache() {
+      if (!confirm('确定要清空本地 IndexedDB 浏览器缓存吗？\n清空后下次打开本页面将需要重新从 GitHub 下载全量数据。')) {
+        return;
+      }
+      const ok = await GuangyunStorage.clearCache();
+      if (ok) {
+        currentCacheMeta = null;
+        updateCacheUIInfo();
+        showToast('✓ 已清空本地浏览器缓存', 2000);
+      }
+    }
+
+    function setupDropZoneEvents() {
+      const dropZone = document.getElementById('wbDropZone');
+      if (!dropZone) return;
+      ['dragenter', 'dragover'].forEach(name => {
+        window.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); }, false);
+      });
+      ['dragleave', 'drop'].forEach(name => {
+        window.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); }, false);
+      });
+      window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const dt = e.dataTransfer;
+        if (dt.files && dt.files.length > 0) {
+          handleWorkbenchFileSelect({ target: { files: dt.files } });
+        }
+      });
+    }
+
+    function handleWorkbenchFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      const statusText = document.getElementById('datasetStatusText');
+      if (statusText) statusText.innerText = `正在解析本地 ${file.name} ...`;
+
+      reader.onload = async (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          const meta = await GuangyunStorage.saveDataset(parsed, {
+            source: `本地文件 (${file.name})`,
+            fileSize: file.size
+          });
+          currentCacheMeta = meta;
+          closeDataManagerModal();
+          onDatasetLoaded(parsed, { source: `本地文件 (${file.name})`, meta: meta });
+          showToast(`✓ 已成功导入本地文件并同步写入浏览器缓存！`, 2500);
+        } catch (err) {
+          alert('JSON 解析失败，请确保选择的是有效的 guangyun_data.json 文件。\n错误信息: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function onDatasetLoaded(data, info = {}) {
+      window.LAB_DATA = data;
+      LAB_DATA = data;
+      isInitialLoading = false;
+
+      const modalCloseBtn = document.getElementById('modalCloseBtn');
+      if (modalCloseBtn) modalCloseBtn.style.display = 'block';
+
+      const rimesCount = (data.lower_clusters && data.lower_clusters.length) ? data.lower_clusters.length : 307;
+      const isFromCache = info && info.source && info.source.includes('缓存');
+      const statusPrefix = isFromCache ? '⚡ ' : '✓ ';
+      updateNavStatus('ready', `${statusPrefix}${data.rows.length.toLocaleString()} 字头 · 40 声纽 · ${rimesCount} 规范韵类`);
+
+      updateCacheUIInfo();
+
+      // If user had an active search query, re-run search seamlessly
+      const searchInput = document.getElementById('globalSearchInput');
+      if (searchInput && searchInput.value.trim()) {
+        triggerSearch();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initDataLoader();
+      renderSearchHistoryBar();
+    });
+
+    // --- Search Mode Handling ---
+    function setSearchMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.pill-btn').forEach(btn => {
+        const isMatch = (btn.dataset.mode === mode) || (mode === 'char' && btn.dataset.mode === 'auto') || (mode === 'auto' && btn.dataset.mode === 'char');
+        btn.classList.toggle('active', isMatch);
+      });
+      const inputVal = document.getElementById('globalSearchInput').value.trim();
+      if (inputVal) {
+        triggerSearch();
+      }
+    }
+
+    function handleSearchKey(event) {
+      if (event.key === 'Enter') {
+        triggerSearch();
+      }
+    }
+
+    function handleSearchInput() {
+      const val = document.getElementById('globalSearchInput').value;
+      document.getElementById('btnClearSearch').style.display = val ? 'inline-block' : 'none';
+    }
+
+    function clearSearch() {
+      document.getElementById('globalSearchInput').value = '';
+      document.getElementById('btnClearSearch').style.display = 'none';
+      resetToHome();
+    }
+
+    function resetToHome() {
+      document.getElementById('globalSearchInput').value = '';
+      document.getElementById('resultsMountArea').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📖</div>
+          <div class="empty-state-title">即搜即得 · 纯粹清爽的反切音韵工作台</div>
+          <p class="empty-state-sub">
+            在上方搜索框直接输入任何《广韵》字头、反切切语或待考字对。<br>
+            系统将自动穿透 25,327 条底层主库、40 个声纽系联族与 307 个规范韵类，逐级列出清晰严谨的因果证明链。
+          </p>
+        </div>
+      `;
+    }
+
+    // --- Phonological & Character Resolution Helpers ---
+    function resolveCharRows(c) {
+      const lab = window.LAB_DATA || LAB_DATA;
+      if (!c || !lab) return null;
+      if (lab.char_to_rows && lab.char_to_rows[c] && lab.char_to_rows[c].length > 0) {
+        return { targetChar: c, rows: lab.char_to_rows[c], isSimp: false, origChar: c };
+      }
+      // Check simplified-to-traditional / variant mapping
+      if (lab.simp_to_trad && lab.simp_to_trad[c]) {
+        const trads = lab.simp_to_trad[c];
+        let allRIndices = [];
+        for (let tc of trads) {
+          if (lab.char_to_rows[tc]) {
+            allRIndices = allRIndices.concat(lab.char_to_rows[tc]);
+          }
+        }
+        if (allRIndices.length > 0) {
+          return { targetChar: trads[0], allTrads: trads, rows: allRIndices, isSimp: true, origChar: c };
+        }
+      }
+      return null;
+    }
+
+    function getUpperClusterName(u) {
+      const lab = window.LAB_DATA || LAB_DATA;
+      if (!u || !lab) return '—';
+      const cid = lab.char_to_upper_cluster ? lab.char_to_upper_cluster[u] : undefined;
+      if (cid === undefined) return '非上字';
+      const cl = lab.upper_clusters ? lab.upper_clusters.find(c => c.cluster_id === cid) : null;
+      if (!cl) return `第 #${cid} 声纽族`;
+      return cl.name || cl.chenli_name || (cl.representative ? cl.representative + '纽' : (cl.primary_sheng ? cl.primary_sheng + '母' : `第 #${cid} 族`));
+    }
+
+    function getLowerClusterName(l, rowColId = null) {
+      const lab = window.LAB_DATA || LAB_DATA;
+      if (!l && (rowColId === null || rowColId === undefined || rowColId === '')) return '—';
+      let cid = (rowColId !== null && rowColId !== undefined && rowColId !== '') ? Number(rowColId) : undefined;
+      if (cid === undefined && lab && lab.char_to_lower_cluster) {
+        cid = lab.char_to_lower_cluster[l];
+      }
+      if (cid === undefined) return '非下字';
+      const cl = lab && lab.lower_clusters ? lab.lower_clusters.find(c => c.cluster_id === cid || c.col_id === cid) : null;
+      if (!cl) return `第 #${cid} 韵类`;
+      return cl.name || cl.cluster_name || (cl.representative ? cl.representative + '类' : `第 #${cid} 类`);
+    }
+
+    function getCharFQ(ch) {
+      if (!ch) return '';
+      const lab = window.LAB_DATA || LAB_DATA;
+      const res = resolveCharRows(ch);
+      if (res && res.rows.length > 0 && lab) {
+        const r = lab.rows[res.rows[0]];
+        if (r && r[3]) return `【${r[3]}切】`;
+      }
+      return '';
+    }
+
+    // --- 搜索历史管理模块 (Search History Management) ---
+    const SEARCH_HISTORY_KEY = 'GY_FANQIE_SEARCH_HISTORY';
+    const MAX_SEARCH_HISTORY = 12;
+
+    function getSearchHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function addSearchHistory(text, mode) {
+      const clean = (text || '').trim();
+      if (!clean) return;
+      let list = getSearchHistory();
+      const targetMode = mode || 'char';
+      list = list.filter(item => !(item.text === clean && item.mode === targetMode));
+      list.unshift({ text: clean, mode: targetMode, ts: Date.now() });
+      if (list.length > MAX_SEARCH_HISTORY) {
+        list = list.slice(0, MAX_SEARCH_HISTORY);
+      }
+      try {
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(list));
+      } catch (e) {}
+      renderSearchHistoryBar();
+    }
+
+    function quickFillHistory(index) {
+      const list = getSearchHistory();
+      const item = list[index];
+      if (item) {
+        quickFill(item.text, item.mode);
+      }
+    }
+
+    function removeSearchHistoryItem(e, index) {
+      if (e) e.stopPropagation();
+      let list = getSearchHistory();
+      list.splice(index, 1);
+      try {
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(list));
+      } catch (e) {}
+      renderSearchHistoryBar();
+    }
+
+    function clearAllSearchHistory() {
+      try {
+        localStorage.removeItem(SEARCH_HISTORY_KEY);
+      } catch (e) {}
+      renderSearchHistoryBar();
+    }
+
+    const HISTORY_MODE_LABELS = { char: '字', pair: '切', xilian: '系' };
+
+    function escapeHtmlSimple(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderSearchHistoryBar() {
+      const container = document.getElementById('searchHistoryBar');
+      if (!container) return;
+      const list = getSearchHistory();
+      if (!list || list.length === 0) {
+        container.innerHTML = `<span style="opacity:0.6; font-size:11px;">🕒 暂无最近检索历史</span>`;
+        return;
+      }
+      let html = `<span>🕒 最近检索：</span>`;
+      list.forEach((item, idx) => {
+        const label = HISTORY_MODE_LABELS[item.mode] || '搜';
+        const modeTitle = item.mode === 'pair' ? '查切语' : (item.mode === 'xilian' ? '查系联' : '查字');
+        html += `
+          <span class="history-chip" onclick="quickFillHistory(${idx})" title="点击重新检索 (模式: ${modeTitle})">
+            <span class="mode-tag">[${label}]</span>
+            <span class="chip-text">${escapeHtmlSimple(item.text)}</span>
+            <span class="btn-del-item" onclick="removeSearchHistoryItem(event, ${idx})" title="删除此条记录">×</span>
+          </span>
+        `;
+      });
+      html += `<button class="btn-clear-history" onclick="clearAllSearchHistory()" title="清空全部检索历史">清空</button>`;
+      container.innerHTML = html;
+    }
+
+    function quickFill(text, mode = null) {
+      document.getElementById('globalSearchInput').value = text;
+      handleSearchInput();
+      if (mode) {
+        let targetMode = mode;
+        if (mode === 'upper' || mode === 'lower' || mode === 'path') {
+          targetMode = 'xilian';
+        }
+        setSearchMode(targetMode);
+        if (mode === 'upper') { addSearchHistory(text, targetMode); searchUpperCluster(text); return; }
+        if (mode === 'lower') { addSearchHistory(text, targetMode); searchLowerCluster(text); return; }
+        if (mode === 'path') { addSearchHistory(text, targetMode); searchProofPath(text); return; }
+      } else {
+        const chars = Array.from(text.trim());
+        if (chars.length === 1) {
+          setSearchMode('char');
+        }
+      }
+      triggerSearch();
+    }
+
+    // --- Main Search Router ---
+    function triggerSearch() {
+      const raw = (document.getElementById('globalSearchInput').value || '').trim();
+      if (!raw) {
+        showToast('请输入要检索的内容');
+        return;
+      }
+      addSearchHistory(raw, currentMode);
+
+      const lab = window.LAB_DATA || LAB_DATA;
+      if (!lab) {
+        showToast('数据库正在加载中，请稍候...');
+        return;
+      }
+
+      if (currentMode === 'pair') {
+        searchFanqiePair(raw);
+      } else if (currentMode === 'xilian') {
+        searchXilian(raw);
+      } else if (currentMode === 'upper') {
+        searchUpperCluster(raw);
+      } else if (currentMode === 'lower') {
+        searchLowerCluster(raw);
+      } else if (currentMode === 'path') {
+        searchProofPath(raw);
+      } else {
+        // default: 'char' (单字 / 多字对比)
+        searchHeadword(raw);
+      }
+    }
+
+    // --- Search 1: Fanqie Pair (Supports Single-Cutter Explorer & 2-Char Fanqie Pair) ---
+    function searchFanqiePair(raw) {
+      const mount = document.getElementById('resultsMountArea');
+      const cleanRaw = (raw || '').trim().replace(/切$/, ''); // Strip optional trailing '切'
+      
+      let tokens = cleanRaw.split(/[\s,，、]+/).filter(Boolean);
+      let chars = [];
+      if (tokens.length >= 2) {
+        chars = tokens.slice(0, 2);
+      } else if (tokens.length === 1) {
+        chars = Array.from(tokens[0]);
+      }
+
+      if (chars.length === 0) {
+        mount.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">请输入反切切语（如: 平義）或单个反切上下字（如: 平 或 義）</div>
+          </div>
+        `;
+        return;
+      }
+
+      // If single character: open Cutter Explorer
+      if (chars.length === 1) {
+        renderSingleCutterExplorer(chars[0]);
+        return;
+      }
+
+      // If >= 2 characters: open 2-Character Pair
+      renderTwoCutterPair(chars[0], chars[1]);
+    }
+
+    function renderTwoCutterPair(u, l) {
+      const mount = document.getElementById('resultsMountArea');
+      const lab = window.LAB_DATA || LAB_DATA;
+      const key = `${u}_${l}`;
+      const heads = (lab && lab.fq_to_heads && lab.fq_to_heads[key]) || [];
+
+      // Check tshet-uinh status for this pair
+      const tshetKey = `${u}${l}`;
+      const tshetInfo = lab && lab.tshet_fq_map ? lab.tshet_fq_map[tshetKey] : null;
+
+      if (heads.length === 0) {
+        mount.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">未在《广韵》中检索到切语【${u}${l}切】拼切的字头</div>
+            <p class="empty-state-sub">
+              请检查上字【${u}】与下字【${l}】是否准确，或尝试分别查询上字【${u}】或下字【${l}】的切语谱或系联族。
+            </p>
+            <div style="margin-top:16px; display:flex; justify-content:center; gap:10px;">
+              <button class="btn-action primary" onclick="quickFill('${u}', 'pair')">查上字【${u}】切语谱</button>
+              ${l ? `<button class="btn-action success" onclick="quickFill('${l}', 'pair')">查下字【${l}】切语谱</button>` : ''}
+              <button class="btn-action" onclick="quickFill('${u}', 'xilian')">查上字【${u}】系联族</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      let cardsHtml = heads.map((h, hIdx) => {
+        const rIdx = (h.row_idx !== undefined) ? h.row_idx : (h.row_id - 1);
+        return `
+          <div class="hw-card">
+            <div class="hw-header">
+              <span class="hw-char">${h.head}</span>
+              <div>
+                <span class="tag-badge tag-blue">${h.sheng}母</span>
+                <span class="tag-badge tag-green">${h.yun}韵</span>
+                <span class="tag-badge tag-amber">${h.tone}声</span>
+                ${h.cn ? `<span class="tag-badge tag-purple">重纽${h.cn}类</span>` : ''}
+              </div>
+            </div>
+            <div class="hw-meta">
+              <strong>${h.fq}切</strong> · ${h.zu}组 · ${h.hu}口 · ${h.deng}等<br>
+              <span style="color:var(--text-muted); font-size:11px;">韵部原貌: ${h.orig_yun} · 小韵ID: ${h.xiaoyun_id || '—'}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+              <div style="display:flex; gap:6px;">
+                <button class="btn-action primary" onclick="quickFill('${u}', 'pair')">上字【${u}】切语谱</button>
+                <button class="btn-action success" onclick="quickFill('${l}', 'pair')">下字【${l}】切语谱</button>
+              </div>
+              <button class="btn-action primary" onclick="toggleInline33Details('card_details_${rIdx}_${hIdx}', '${h.head}', ${rIdx})">
+                <span>考据透镜 ▾</span>
+              </button>
+            </div>
+            <div id="card_details_${rIdx}_${hIdx}" class="inline-details-box" style="display:none;"></div>
+          </div>
+        `;
+      }).join('');
+
+      mount.innerHTML = `
+        <div class="res-card">
+          <div class="res-card-header">
+            <div class="res-card-title-wrap">
+              <div class="char-badge-lg" style="font-size:22px; gap:2px;">
+                <span style="color:var(--accent);">${u}</span>
+                <span style="color:var(--green);">${l}</span>
+              </div>
+              <div>
+                <div class="card-title-text">切语【${u}${l}切】拼切字头 (共 ${heads.length} 字)</div>
+                <div class="card-sub-text">
+                  上字：<strong style="color:var(--accent);">【${u}】</strong>${lab.upper_cuts_heads[u] ? `(拼切${lab.upper_cuts_heads[u].total_heads}字)` : ''} · 
+                  下字：<strong style="color:var(--green);">【${l}】</strong>${lab.lower_cuts_heads[l] ? `(拼切${lab.lower_cuts_heads[l].total_heads}字)` : ''}
+                  ${tshetInfo ? ` · 推定地位: ${tshetInfo.sheng}${tshetInfo.deng}${tshetInfo.hu}${tshetInfo.yun}${tshetInfo.tone}` : ''}
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-action primary" onclick="quickFill('${u}', 'pair')">查上字【${u}】切语谱</button>
+              <button class="btn-action success" onclick="quickFill('${l}', 'pair')">查下字【${l}】切语谱</button>
+              <button class="btn-action" onclick="quickFill('${u} ${l}', 'xilian')">🔗 查两字系联</button>
+            </div>
+          </div>
+          <div class="res-card-body">
+            <div class="headwords-grid">${cardsHtml}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- Search 1.1: Single Cutter Explorer (上字/下字切语谱全览) ---
+    function renderSingleCutterExplorer(char, activeTab = 'all') {
+      const mount = document.getElementById('resultsMountArea');
+      const lab = window.LAB_DATA || LAB_DATA;
+      if (!lab) return;
+
+      const uSummary = lab.upper_cuts_heads ? lab.upper_cuts_heads[char] : null;
+      const lSummary = lab.lower_cuts_heads ? lab.lower_cuts_heads[char] : null;
+      const isUpper = Boolean(uSummary && uSummary.lowers_count > 0);
+      const isLower = Boolean(lSummary && lSummary.uppers_count > 0);
+
+      if (!isUpper && !isLower) {
+        const res = resolveCharRows(char);
+        mount.innerHTML = `
+          <div class="empty-state" style="padding:36px 20px;">
+            <div class="empty-state-icon" style="font-size:38px; margin-bottom:12px;">🔍</div>
+            <div class="empty-state-title" style="font-size:18px; font-weight:800; color:var(--text-primary);">
+              字【${char}】在《广韵》中未曾用作反切上字或下字
+            </div>
+            <p class="empty-state-sub" style="max-width:580px; margin:12px auto 20px; line-height:1.7; font-size:13px; color:var(--text-secondary);">
+              经全库拓扑扫描，字【${char}】在《广韵》全书 3,800 余小韵中，<strong>未曾作为反切上字或反切下字</strong>用于拼切其他字头，因此无相关切语组合。<br>
+              ${res ? `该字作为<strong>正文字头</strong>收录在《广韵》中（共检索到 ${res.rows.length} 个读音）。若需查看其读音与考据透镜，请切换至【查字】模式：` : `该字在《广韵》字头中亦未检索到，请核对字形（繁体/传承字）。`}
+            </p>
+            ${res ? `
+              <div style="display:flex; justify-content:center; gap:12px;">
+                <button class="btn-action primary" style="padding:9px 20px; font-size:13px; font-weight:700;" onclick="quickFill('${char}', 'char')">
+                  📖 立即在【查字】模式中查阅【${char}】
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+        return;
+      }
+
+      // Build upper pairs list
+      const upperPairs = [];
+      if (isUpper && uSummary.lowers) {
+        for (const [l, sampleHeads] of Object.entries(uSummary.lowers)) {
+          const key = `${char}_${l}`;
+          const heads = (lab.fq_to_heads && lab.fq_to_heads[key]) || [];
+          if (heads.length > 0) {
+            const f = heads[0];
+            upperPairs.push({
+              fq: `${char}${l}`,
+              u: char,
+              l: l,
+              role: 'upper',
+              headsCount: heads.length,
+              headsList: heads.map(h => h.head).join('、'),
+              sheng: f.sheng,
+              zu: f.zu,
+              hu: f.hu,
+              deng: f.deng,
+              tone: f.tone,
+              yun: f.yun,
+              she: f.she,
+              cn: f.cn,
+              xiaoyun_id: f.xiaoyun_id
+            });
+          }
+        }
+        upperPairs.sort((a, b) => (a.xiaoyun_id || 0) - (b.xiaoyun_id || 0));
+      }
+
+      // Build lower pairs list
+      const lowerPairs = [];
+      if (isLower && lSummary.uppers) {
+        for (const [u, sampleHeads] of Object.entries(lSummary.uppers)) {
+          const key = `${u}_${char}`;
+          const heads = (lab.fq_to_heads && lab.fq_to_heads[key]) || [];
+          if (heads.length > 0) {
+            const f = heads[0];
+            lowerPairs.push({
+              fq: `${u}${char}`,
+              u: u,
+              l: char,
+              role: 'lower',
+              headsCount: heads.length,
+              headsList: heads.map(h => h.head).join('、'),
+              sheng: f.sheng,
+              zu: f.zu,
+              hu: f.hu,
+              deng: f.deng,
+              tone: f.tone,
+              yun: f.yun,
+              she: f.she,
+              cn: f.cn,
+              xiaoyun_id: f.xiaoyun_id
+            });
+          }
+        }
+        lowerPairs.sort((a, b) => (a.xiaoyun_id || 0) - (b.xiaoyun_id || 0));
+      }
+
+      const uClName = getUpperClusterName(char);
+      const lClName = getLowerClusterName(char);
+
+      // Tab switching filters
+      let filteredPairs = [];
+      if (activeTab === 'upper') {
+        filteredPairs = upperPairs;
+      } else if (activeTab === 'lower') {
+        filteredPairs = lowerPairs;
+      } else {
+        filteredPairs = [...upperPairs, ...lowerPairs];
+      }
+
+      // Role summary subtitle
+      let subText = '';
+      if (isUpper && isLower) {
+        subText = `兼具反切上字与下字双重身份 · 作为上字构成 <strong>${upperPairs.length}</strong> 组切语 (${uSummary.total_heads} 字) · 作为下字构成 <strong>${lowerPairs.length}</strong> 组切语 (${lSummary.total_heads} 字)`;
+      } else if (isUpper) {
+        subText = `《广韵》反切上字（声纽族：【${uClName}】） · 拼切组合出 <strong>${upperPairs.length}</strong> 组切语 · 统领 <strong>${uSummary.total_heads}</strong> 个字头`;
+      } else {
+        subText = `《广韵》反切下字（韵类族：【${lClName}】） · 拼切组合出 <strong>${lowerPairs.length}</strong> 组切语 · 统领 <strong>${lSummary.total_heads}</strong> 个字头`;
+      }
+
+      // Render cards HTML
+      const cardsHtml = filteredPairs.map(p => {
+        const isUpperRole = (p.role === 'upper');
+        const roleTagClass = isUpperRole ? 'tag-blue' : 'tag-green';
+        const roleBorderClass = isUpperRole ? 'theme-blue' : 'theme-green';
+        const roleColor = isUpperRole ? 'var(--accent)' : 'var(--green)';
+
+        return `
+          <div class="fq-explorer-card ${roleBorderClass}" onclick="quickFill('${p.fq}', 'pair')">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:17px; font-weight:800; color:${roleColor}; font-family:serif;">
+                  【${p.fq}切】
+                </span>
+                <span class="tag-badge ${roleTagClass}">
+                  ${isUpperRole ? `【${char}】为上字 ➔ 下字【${p.l}】` : `上字【${p.u}】 ➔ 【${char}】为下字`}
+                </span>
+                <span class="tag-badge tag-amber">拼切 ${p.headsCount} 字</span>
+              </div>
+              <span style="font-size:12px; color:var(--accent); font-weight:700; display:inline-flex; align-items:center; gap:2px;">
+                查看此切语 ➔
+              </span>
+            </div>
+
+            <div style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px; line-height:1.5;">
+              <strong style="color:var(--text-primary);">${p.sheng}母 · ${p.zu}组</strong> · ${p.hu}口 · ${p.deng}等 · 
+              <strong style="color:var(--green);">${p.yun}韵 · ${p.tone}声</strong> (${p.she}摄)
+              ${p.cn ? ` · <span class="tag-badge tag-purple" style="font-size:11px;">重纽${p.cn}类</span>` : ''}
+              <span style="color:var(--text-muted); font-size:11px; margin-left:6px;">#${p.xiaoyun_id || '—'}</span>
+            </div>
+
+            <div style="background:var(--bg-page); border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--text-primary); line-height:1.5; word-break:break-all;">
+              <span style="color:var(--text-muted); font-weight:700; margin-right:4px;">拼切字头:</span>
+              ${p.headsList}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Tab switch bar
+      let tabSwitcherHtml = '';
+      if (isUpper && isLower) {
+        tabSwitcherHtml = `
+          <div style="display:flex; gap:8px; margin-bottom:16px;">
+            <button class="pill-btn ${activeTab === 'all' ? 'active' : ''}" onclick="renderSingleCutterExplorer('${char}', 'all')">
+              全部切语 (${upperPairs.length + lowerPairs.length})
+            </button>
+            <button class="pill-btn ${activeTab === 'upper' ? 'active' : ''}" style="${activeTab === 'upper' ? 'background:var(--accent); color:#fff; border-color:var(--accent);' : 'border-color:var(--accent); color:var(--accent);'}" onclick="renderSingleCutterExplorer('${char}', 'upper')">
+              🔵 作为上字构成的切语 (${upperPairs.length} 组)
+            </button>
+            <button class="pill-btn ${activeTab === 'lower' ? 'active' : ''}" style="${activeTab === 'lower' ? 'background:var(--green); color:#fff; border-color:var(--green);' : 'border-color:var(--green); color:var(--green);'}" onclick="renderSingleCutterExplorer('${char}', 'lower')">
+              🟢 作为下字构成的切语 (${lowerPairs.length} 组)
+            </button>
+          </div>
+        `;
+      }
+
+      mount.innerHTML = `
+        <div class="res-card">
+          <div class="res-card-header">
+            <div class="res-card-title-wrap">
+              <div class="char-badge-lg" style="font-size:22px;">
+                ${char}
+              </div>
+              <div>
+                <div class="card-title-text">
+                  反切用字【${char}】切语全谱检索（共检索到 ${filteredPairs.length} 条切语组合）
+                </div>
+                <div class="card-sub-text">
+                  ${subText}
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              ${isUpper ? `<button class="btn-action primary" onclick="quickFill('${char}', 'xilian')">查【${char}】声纽系联</button>` : ''}
+              ${isLower ? `<button class="btn-action success" onclick="quickFill('${char}', 'xilian')">查【${char}】韵类系联</button>` : ''}
+              <button class="btn-action" onclick="quickFill('${char}', 'char')">查【${char}】字头读音</button>
+            </div>
+          </div>
+          <div class="res-card-body">
+            ${tabSwitcherHtml}
+            <div style="font-size:12.5px; color:var(--text-secondary); margin-bottom:14px;">
+              💡 提示：点击下方任意切语卡片，可直接跳转并展开该切语所拼切的全部字头、读音与底层 33 项考据透镜。
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:12px;">
+              ${cardsHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- Search 2: Headword Direct Search (Single / Multi-Character Comparison) ---
+    function searchHeadword(raw, forceCardView = false) {
+      const mount = document.getElementById('resultsMountArea');
+      let tokens = raw.trim().split(/[\s,，、]+/).filter(Boolean);
+      let chars = [];
+      if (tokens.length > 1) {
+        chars = tokens.flatMap(t => Array.from(t));
+      } else if (tokens.length === 1) {
+        const parsed = Array.from(tokens[0]);
+        if (currentMode === 'char' && parsed.length > 1) {
+          chars = parsed;
+        } else {
+          chars = [tokens[0]];
+        }
+      }
+      chars = Array.from(new Set(chars));
+
+      if (chars.length === 0) {
+        mount.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">请输入要检索的字头</div>
+          </div>
+        `;
+        return;
+      }
+
+      // Single Character Lookup
+      if (forceCardView && chars.length === 1) {
+        renderSingleHeadword(chars[0]);
+        return;
+      }
+
+      // Default: streamlined table for all searches (single / multi)
+      renderMultiHeadwordComparison(chars);
+    }
+
+    function renderSingleHeadword(char) {
+      const mount = document.getElementById('resultsMountArea');
+      const resolved = resolveCharRows(char);
+
+      if (!resolved || resolved.rows.length === 0) {
+        mount.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">未在《广韵》中检索到字头【${char}】</div>
+            <p class="empty-state-sub">请确认输入的是繁体/传承字形或规范异体字，或尝试使用切语拼切检索。</p>
+          </div>
+        `;
+        return;
+      }
+
+      const rowIndices = resolved.rows;
+      const actualChar = resolved.targetChar;
+      const isSimpConverted = resolved.isSimp;
+
+      let cardsHtml = rowIndices.map((rIdx, i) => {
+        const r = LAB_DATA.rows[rIdx];
+        const fq = r[3];
+        const u = r[5];
+        const l = r[6];
+        const sheng = r[7];
+        const yun = r[13];
+        const origYun = r[14];
+        const tone = r[11];
+        const deng = r[10];
+        const hu = r[9];
+        const cn = r[29];
+        const denglei = r[30];
+        const uClName = getUpperClusterName(u);
+        const lClName = getLowerClusterName(l, r[18]);
+
+        return `
+          <div class="res-card">
+            <div class="res-card-header">
+              <div class="res-card-title-wrap">
+                <div class="char-badge-lg">${r[1]}</div>
+                <div>
+                  <div class="card-title-text">
+                    【${r[1]}】· 读音 ${i + 1} / ${rowIndices.length}：【${fq}切】
+                    ${isSimpConverted ? `<span class="tag-badge tag-amber" style="font-size:11px; margin-left:6px;">简体【${char}】➔ 传承字【${r[1]}】</span>` : ''}
+                    ${r[2] && r[2] !== r[1] ? `<span class="tag-badge" style="font-size:11px; margin-left:4px;">原本原貌:【${r[2]}】</span>` : ''}
+                  </div>
+                  <div class="card-sub-text">
+                    ${sheng}母 · ${r[8]}组 · ${hu}口 · ${deng}等 · <strong style="color:var(--green);">${yun}韵</strong> · <span class="tag-badge tag-amber" style="font-size:11px; padding:1px 5px;">韵部原貌:【${origYun}${r[32] || ''}】</span> · ${tone}声 ${cn ? `· 重纽${cn}类` : ''}
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn-action primary" onclick="quickFill('${u}', 'xilian')">查上字【${u}】系联</button>
+                <button class="btn-action success" onclick="quickFill('${l}', 'xilian')">查下字【${l}】系联</button>
+              </div>
+            </div>
+            <div class="res-card-body">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                <div style="font-size:13px; color:var(--text-secondary);">
+                  反切切语：<strong style="color:var(--text-primary);">${fq}</strong>
+                  （上字: <strong style="color:var(--accent);">${u}</strong>➔ ${uClName}，下字: <strong style="color:var(--green);">${l}</strong>➔ ${lClName}）
+                  · <span style="color:var(--text-muted);">广韵韵部:</span> <strong style="color:var(--green);">${yun}</strong>
+                  · <span style="color:var(--text-muted);">韵部原貌:</span> <strong style="color:var(--accent);">【${origYun}${r[32] || ''}】</strong>
+                  · 原本原貌: <strong>${r[4]}</strong>
+                </div>
+                <button class="btn-action primary" onclick="toggleInline33Details('char_dt_${rIdx}', '${r[1]}', ${rIdx})">
+                  <span>📖 展开底层 33 列考据透镜 ▾</span>
+                </button>
+              </div>
+              <div id="char_dt_${rIdx}" class="inline-details-box" style="display:none;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      mount.innerHTML = `
+        <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <h2 style="font-size:16px; font-weight:800; color:var(--text-primary);">
+            字头【${char}】${isSimpConverted ? `(对译【${actualChar}】)` : ''} 共检索到 ${rowIndices.length} 条《广韵》读音记录
+          </h2>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-action primary" onclick="renderMultiHeadwordComparison(['${actualChar}'])">📋 切换精简单行表格</button>
+            <button class="btn-action" onclick="copyCharRows('${actualChar}')">📋 复制字头全部读音数据</button>
+          </div>
+        </div>
+        ${cardsHtml}
+      `;
+    }
+
+    function renderMultiHeadwordComparison(chars) {
+      const mount = document.getElementById('resultsMountArea');
+      
+      const charDataList = [];
+      let totalReadingsCount = 0;
+
+      chars.forEach(ch => {
+        const resolved = resolveCharRows(ch);
+        if (resolved && resolved.rows.length > 0) {
+          resolved.rows.forEach((rIdx, subIdx) => {
+            const r = LAB_DATA.rows[rIdx];
+            totalReadingsCount++;
+            charDataList.push({
+              inputChar: ch,
+              headChar: r[1],
+              origChar: r[2],
+              rIdx: rIdx,
+              subIdx: subIdx,
+              totalSub: resolved.rows.length,
+              isSimp: resolved.isSimp,
+              fq: r[3],
+              origFq: r[4],
+              u: r[5],
+              l: r[6],
+              sheng: r[7],
+              zu: r[8],
+              hu: r[9],
+              deng: r[10],
+              tone: r[11],
+              she: r[12],
+              yun: r[13],
+              origYun: r[14],
+              rowColId: r[18],
+              cn: r[29],
+              denglei: r[30],
+              xiaoyunId: r[32]
+            });
+          });
+        } else {
+          charDataList.push({
+            inputChar: ch,
+            headChar: ch,
+            notFound: true
+          });
+        }
+      });
+
+      // Quick comparison badges for 2 characters
+      let contrastSummaryHtml = '';
+      if (chars.length === 2 && charDataList.length >= 2 && !charDataList[0].notFound && !charDataList[1].notFound) {
+        const a = charDataList[0];
+        const b = charDataList[1];
+        const sameSheng = (a.sheng === b.sheng);
+        const sameYun = (a.yun === b.yun);
+        const sameOrigYun = (a.origYun === b.origYun);
+        const sameTone = (a.tone === b.tone);
+        const sameHuDeng = (a.hu === b.hu && a.deng === b.deng);
+        const isCnOpp = (a.cn && b.cn && a.cn !== b.cn);
+
+        contrastSummaryHtml = `
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 16px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <div style="font-size:13.5px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+                <span>⚖️</span><span>【${chars[0]}】与【${chars[1]}】两字音韵宏观比对洞察：</span>
+                ${sameSheng ? `<span class="tag-badge tag-blue">同属【${a.sheng}母】</span>` : `<span class="tag-badge">声纽不同(${a.sheng}母 vs ${b.sheng}母)</span>`}
+                ${sameOrigYun ? `<span class="tag-badge tag-amber">同原书【${a.origYun}】韵</span>` : `<span class="tag-badge tag-red">原书韵不同(【${a.origYun}】vs【${b.origYun}】)</span>`}
+                ${sameYun ? `<span class="tag-badge tag-green">同校后【${a.yun}韵】</span>` : `<span class="tag-badge">校后韵不同(${a.yun}韵 vs ${b.yun}韵)</span>`}
+                ${sameTone ? `<span class="tag-badge tag-amber">同【${a.tone}声】</span>` : `<span class="tag-badge tag-red">声调不同(${a.tone}声 vs ${b.tone}声)</span>`}
+                ${sameHuDeng ? `<span class="tag-badge tag-blue">等呼相同(${a.hu}口${a.deng}等)</span>` : `<span class="tag-badge">等呼各异</span>`}
+                ${isCnOpp ? `<span class="tag-badge tag-purple">重纽A/B对立</span>` : ''}
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                两字在底层共有 ${charDataList.length} 组读音组合，下表已全要素单行紧凑对齐；点击右侧按钮可直接计算两字间的最短因果系联路径。
+              </div>
+            </div>
+            <button class="btn-action primary" onclick="quickFill('${chars[0]} ${chars[1]}', 'xilian')">
+              🔗 查两字系联因果证明 (查系联)
+            </button>
+          </div>
+        `;
+      }
+
+      // Comparison Table Rows (Streamlined, fitting single line with zero horizontal scroll)
+      let tableRowsHtml = charDataList.map((item, idx) => {
+        if (item.notFound) {
+          return `
+            <tr>
+              <td><strong>【${item.inputChar}】</strong></td>
+              <td colspan="8" style="text-align:center; color:var(--text-muted); font-size:12px; padding:14px;">
+                未在《广韵》字头中检索到【${item.inputChar}】（请核对繁体或传承字形）
+              </td>
+            </tr>
+          `;
+        }
+
+        const uCl = getUpperClusterName(item.u);
+        const lCl = getLowerClusterName(item.l, item.rowColId);
+
+        return `
+          <tr>
+            <td>
+              <div style="font-size:15px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:3px; font-family:serif;">
+                <span>【${item.headChar}】</span>
+                ${item.isSimp ? `<span class="tag-badge tag-amber" style="font-size:9.5px; padding:0 3px;">简:${item.inputChar}</span>` : ''}
+              </div>
+              <div style="font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">
+                #${item.xiaoyunId || '—'}
+                ${item.totalSub > 1 ? `<span style="margin-left:2px;">(${item.subIdx + 1}/${item.totalSub})</span>` : ''}
+                ${item.origChar && item.origChar !== item.headChar ? `·原【${item.origChar}】` : ''}
+              </div>
+            </td>
+            <td>
+              <strong style="color:var(--text-primary); font-size:13px; font-family:serif;">【${item.fq}切】</strong>
+              ${item.origFq && item.origFq !== item.fq ? `<div style="font-size:10px; color:var(--text-muted);">原: ${item.origFq}</div>` : ''}
+            </td>
+            <td>
+              <div>上【<strong style="color:var(--accent); font-size:13px; font-family:serif;">${item.u}</strong>】</div>
+              <div style="font-size:11px; color:var(--text-secondary); margin-top:2px; white-space:nowrap;">➔ ${uCl}</div>
+            </td>
+            <td>
+              <div>下【<strong style="color:var(--green); font-size:13px; font-family:serif;">${item.l}</strong>】</div>
+              <div style="font-size:11px; color:var(--text-secondary); margin-top:2px; white-space:nowrap;">➔ ${lCl}</div>
+            </td>
+            <td>
+              <span class="tag-badge tag-blue" style="font-size:11px; padding:1px 5px;">${item.sheng}母</span>
+              <div style="font-size:10.5px; color:var(--text-secondary); margin-top:2px;">${item.zu}组</div>
+            </td>
+            <td>
+              <div style="font-size:11.5px; color:var(--text-primary);">${item.deng}等 · ${item.hu}口</div>
+              <div style="margin-top:2px;"><span class="tag-badge tag-amber" style="font-size:10px; padding:1px 5px;">${item.tone}声</span></div>
+            </td>
+            <td>
+              <div><strong style="color:var(--green); font-size:12.5px;">${item.yun}韵</strong> <span style="font-size:10.5px; color:var(--text-secondary);">(${item.she}摄)</span></div>
+              <div style="margin-top:2px; font-size:11px;"><span style="color:var(--text-muted);">原貌:</span><strong style="color:var(--accent);">【${item.origYun || item.yun}${item.xiaoyunId || ''}】</strong></div>
+            </td>
+            <td>
+              <div>${item.cn ? `<span class="tag-badge tag-purple" style="font-size:10.5px; padding:1px 4px;">重纽${item.cn}类</span>` : '<span style="color:var(--text-muted); font-size:11px;">非重纽</span>'}</div>
+              ${item.denglei ? `<div style="font-size:10px; color:var(--text-muted); margin-top:2px;">${item.denglei}</div>` : ''}
+            </td>
+            <td style="text-align:center;">
+              <div style="display:flex; flex-direction:column; gap:3px; align-items:center;">
+                <button class="btn-action primary" style="padding:2px 6px; font-size:11px; white-space:nowrap;" onclick="toggleInline33Details('cmp_dt_${item.rIdx}_${idx}', '${item.headChar}', ${item.rIdx})">33项透镜 ▾</button>
+                <button class="btn-action success" style="padding:2px 6px; font-size:10.5px; white-space:nowrap;" onclick="quickFill('${item.u}', 'xilian')">查上字</button>
+              </div>
+            </td>
+          </tr>
+          <tr id="cmp_dt_${item.rIdx}_${idx}_wrap" style="display:none;">
+            <td colspan="9" style="padding:0; background:var(--surface);">
+              <div id="cmp_dt_${item.rIdx}_${idx}" class="inline-details-box" style="margin:10px 14px; display:none;"></div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      let headerTitle = `多字音韵要素横向比对矩阵（共比对 ${chars.length} 字 · 检索到 ${totalReadingsCount} 条读音）`;
+      let headerSub = `所查字头：${chars.map(c => `【<strong>${c}</strong>】`).join('、 ')} · 涵盖反切用字、内生声纽族、纯韵类族、等呼与重纽属性 · 韵部原貌已对齐`;
+      
+      let headerActionsHtml = '';
+      if (chars.length === 1) {
+        headerTitle = `字头【${chars[0]}】音韵全要素透视（共检索到 ${totalReadingsCount} 条读音）`;
+        headerSub = `反切用字、内生声纽族、纯韵类族、等呼、摄部、重纽及《广韵》韵部原貌全要素一行通览`;
+        headerActionsHtml = `
+          <button class="btn-action" onclick="searchHeadword('${chars[0]}', true)" title="切换至大幅卡片视图">🗂️ 切换详细卡片</button>
+          <button class="btn-action" onclick="copyCharRows('${chars[0]}')">📋 复制读音数据</button>
+        `;
+      } else if (chars.length === 2) {
+        headerActionsHtml = `
+          <button class="btn-action primary" onclick="quickFill('${chars[0]} ${chars[1]}', 'xilian')">🔗 查两字系联因果证明</button>
+          <button class="btn-action" onclick="copyCharRows('${chars[0]}'); copyCharRows('${chars[1]}');">📋 复制字对数据</button>
+        `;
+      } else {
+        headerActionsHtml = `
+          <button class="btn-action" onclick="copyMultiCharComparisonData(${JSON.stringify(chars)})">📋 复制比对数据</button>
+        `;
+      }
+
+      mount.innerHTML = `
+        <div class="res-card">
+          <div class="res-card-header">
+            <div class="res-card-title-wrap">
+              <div class="char-badge-lg" style="font-size:18px; gap:4px;">
+                ${chars.slice(0, 4).map(c => `<span>${c}</span>`).join('')}
+                ${chars.length > 4 ? `<span>...</span>` : ''}
+              </div>
+              <div>
+                <div class="card-title-text">
+                  ${headerTitle}
+                </div>
+                <div class="card-sub-text">
+                  ${headerSub}
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              ${headerActionsHtml}
+            </div>
+          </div>
+          <div class="res-card-body">
+            ${contrastSummaryHtml}
+            <div style="overflow-x:auto; width:100%;">
+              <table class="ledger-table streamlined-char-table" style="width:100%; margin-bottom:12px;">
+                <thead>
+                  <tr>
+                    <th style="width:85px;">字头/小韵</th>
+                    <th style="width:85px;">反切</th>
+                    <th style="width:125px;">反切上字 / 声纽族</th>
+                    <th style="width:135px;">反切下字 / 韵类族</th>
+                    <th style="width:85px;">声纽/五音</th>
+                    <th style="width:90px;">等呼/声调</th>
+                    <th style="width:135px;">韵部 / 韵部原貌</th>
+                    <th style="width:85px;">重纽/等类</th>
+                    <th style="width:85px; text-align:center;">考据透镜</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tableRowsHtml}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- Search 3: Xilian Unified Entry (Single Char Cluster / Dual Char Path) ---
+    function searchXilian(raw) {
+      const trimmed = (raw || '').trim();
+      if (!trimmed) {
+        showToast('请输入 1 个反切上下字或 2 个待考字');
+        return;
+      }
+
+      let tokens = trimmed.split(/[\s,，、➔⟷\->]+/).filter(Boolean);
+      let chars = [];
+      if (tokens.length >= 2) {
+        chars = tokens.slice(0, 2);
+      } else if (tokens.length === 1) {
+        const parsed = Array.from(tokens[0]);
+        if (parsed.length >= 2) {
+          chars = parsed.slice(0, 2);
+        } else {
+          chars = parsed;
+        }
+      }
+
+      // If 2 characters: trigger dual-character connection path!
+      if (chars.length === 2) {
+        searchProofPath(`${chars[0]} ${chars[1]}`);
+        return;
+      }
+
+      // If 1 character: evaluate upper/lower cutter cluster
+      if (chars.length === 1) {
+        const char = chars[0];
+        const uCid = LAB_DATA.char_to_upper_cluster ? LAB_DATA.char_to_upper_cluster[char] : undefined;
+        const lCid = LAB_DATA.char_to_lower_cluster ? LAB_DATA.char_to_lower_cluster[char] : undefined;
+        const hasUpper = (uCid !== undefined);
+        const hasLower = (lCid !== undefined);
+
+        if (hasUpper && hasLower) {
+          renderDualClusterCutterView(char, uCid, lCid);
+          return;
+        } else if (hasUpper) {
+          searchUpperCluster(char);
+          return;
+        } else if (hasLower) {
+          searchLowerCluster(char);
+          return;
+        } else {
+          // Neither upper nor lower cutter!
+          const mount = document.getElementById('resultsMountArea');
+          const resolved = resolveCharRows(char);
+          mount.innerHTML = `
+            <div class="empty-state" style="padding:36px 20px;">
+              <div class="empty-state-icon" style="font-size:38px; margin-bottom:12px;">⚠️</div>
+              <div class="empty-state-title" style="font-size:18px; font-weight:800; color:var(--text-primary);">
+                【${char}】并非《广韵》反切上字或下字（非切语用字）
+              </div>
+              <p class="empty-state-sub" style="max-width:580px; margin:12px auto 20px; line-height:1.7; font-size:13px; color:var(--text-secondary);">
+                字【${char}】在《广韵》全书 3,800 余小韵中，<strong>未曾作为反切上字或反切下字</strong>用于拼切其他字头，因此在纯反切系联拓扑中无切语连边。<br>
+                ${resolved 
+                  ? `但该字在《广韵》中作为<strong>正文字头</strong>收录（共检索到 ${resolved.rows.length} 个读音）。若需查看其读音、声纽、韵部、等呼与底层 33 项考据数据，请一键切换至【查字】模式：` 
+                  : `该字在《广韵》正文字头中亦未检索到，请核对字形（繁体/传承字）。`}
+              </p>
+              ${resolved ? `
+                <div style="display:flex; justify-content:center; gap:12px;">
+                  <button class="btn-action primary" style="padding:9px 20px; font-size:13px; font-weight:700;" onclick="quickFill('${char}', 'char')">
+                    📖 立即在【查字】模式中查阅【${char}】字头读音
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+          `;
+          return;
+        }
+      }
+
+      showToast('请输入 1 个反切上下字或 2 个待考字');
+    }
+
+    function renderDualClusterCutterView(char, uCid, lCid, selectedTrack = 'upper') {
+      const uCl = LAB_DATA.upper_clusters.find(c => c.cluster_id === uCid);
+      const lCl = LAB_DATA.lower_clusters.find(c => c.cluster_id === lCid || c.col_id === lCid);
+      const uClName = uCl ? (uCl.chenli_name || uCl.name || uCl.representative + '纽') : '上字族';
+      const lClName = lCl ? (lCl.name || lCl.cluster_name || lCl.representative + '类') : '下字族';
+
+      const switcherHtml = `
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 16px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="font-size:13.5px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+              <span>🎭</span><span>【${char}】兼具反切上字与下字双重身份：</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:3px;">
+              作为反切上字统领<strong>【${uClName}】</strong>，作为反切下字归属<strong>【${lClName}】</strong>。点击切换查看全族系联：
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="pill-btn ${selectedTrack === 'upper' ? 'active' : ''}" style="${selectedTrack === 'upper' ? 'background:var(--accent); color:#fff; border-color:var(--accent); font-weight:700;' : 'border-color:var(--accent); color:var(--accent);'}" onclick="renderDualClusterCutterView('${char}', ${uCid}, ${lCid}, 'upper')">
+              🔵 上字声纽族 (${uClName})
+            </button>
+            <button class="pill-btn ${selectedTrack === 'lower' ? 'active' : ''}" style="${selectedTrack === 'lower' ? 'background:var(--green); color:#fff; border-color:var(--green); font-weight:700;' : 'border-color:var(--green); color:var(--green);'}" onclick="renderDualClusterCutterView('${char}', ${uCid}, ${lCid}, 'lower')">
+              🟢 下字韵类族 (${lClName})
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (selectedTrack === 'upper' && uCl) {
+        renderClusterProofList(uCl, 'upper', char, switcherHtml);
+      } else if (lCl) {
+        renderClusterProofList(lCl, 'lower', char, switcherHtml);
+      }
+    }
+
+    // --- Search 3: Upper Xilian Cluster (e.g. 府 -> 帮纽) ---
+    function searchUpperCluster(char) {
+      const mount = document.getElementById('resultsMountArea');
+      let cid = LAB_DATA.char_to_upper_cluster ? LAB_DATA.char_to_upper_cluster[char] : undefined;
+
+      if (cid === undefined && LAB_DATA.char_to_rows && LAB_DATA.char_to_rows[char]) {
+        const u = LAB_DATA.rows[LAB_DATA.char_to_rows[char][0]][5];
+        cid = LAB_DATA.char_to_upper_cluster ? LAB_DATA.char_to_upper_cluster[u] : undefined;
+      }
+
+      if (cid === undefined) {
+        mount.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">未检索到上字【${char}】归属的声纽系联族</div>
+            <p class="empty-state-sub">字【${char}】可能在《广韵》中未用作反切上字，请检查输入或尝试单字检索。</p>
+          </div>
+        `;
+        return;
+      }
+
+      const cl = (LAB_DATA.upper_clusters || []).find(c => c.cluster_id === cid);
+      if (!cl) return;
+
+      renderClusterProofList(cl, 'upper', char);
+    }
+
+    // --- Search 4: Lower Xilian Cluster (e.g. 弭 -> 支韵纸声) ---
+    function searchLowerCluster(char) {
+      const mount = document.getElementById('resultsMountArea');
+      let cid = LAB_DATA.char_to_lower_cluster ? LAB_DATA.char_to_lower_cluster[char] : undefined;
+
+      if (cid === undefined && LAB_DATA.char_to_rows && LAB_DATA.char_to_rows[char]) {
+        const l = LAB_DATA.rows[LAB_DATA.char_to_rows[char][0]][6];
+        cid = LAB_DATA.char_to_lower_cluster ? LAB_DATA.char_to_lower_cluster[l] : undefined;
+      }
+
+      if (cid === undefined) {
+        mount.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">未检索到下字【${char}】归属的韵类系联族</div>
+            <p class="empty-state-sub">字【${char}】可能在《广韵》中未用作反切下字，请检查输入或尝试单字检索。</p>
+          </div>
+        `;
+        return;
+      }
+
+      const cl = (LAB_DATA.lower_clusters || []).find(c => c.cluster_id === cid || c.col_id === cid);
+      if (!cl) return;
+
+      renderClusterProofList(cl, 'lower', char);
+    }
+
+    // Render Clean Step-by-Step Causal Proof List for Cluster
+    function renderClusterProofList(cl, mode, queriedChar, prefixHtml = '') {
+      const mount = document.getElementById('resultsMountArea');
+      const isUpper = (mode === 'upper');
+
+      const effectiveEdges = cl.edges || [];
+      const mutualEdges = effectiveEdges.filter(e => e.type === '互用');
+      const directedEdges = effectiveEdges.filter(e => e.type !== '互用');
+
+      // Members tags
+      const memberTagsHtml = cl.members.map(m => {
+        const isRep = (m === cl.representative);
+        const isHit = (m === queriedChar);
+        return `
+          <button class="pill-btn ${isHit ? 'active' : ''}" style="${isRep ? 'border-color:var(--accent); font-weight:800;' : ''}" 
+                  onclick="quickFill('${m}', '${mode}')">
+            ${m}${isRep ? ' (代表字)' : ''}
+          </button>
+        `;
+      }).join('');
+
+      let stepIndex = 0;
+      let stepsHtml = '';
+
+      // 1. Mutual Cuts
+      if (mutualEdges.length > 0) {
+        stepsHtml += `<div style="font-size:13px; font-weight:800; color:var(--green); margin:14px 0 6px;">一、 互用核心圈（互为反切，不可分割的坚实纽带）：</div>`;
+        mutualEdges.forEach(e => {
+          stepIndex++;
+          const c1 = e.u1 || e.l1;
+          const c2 = e.u2 || e.l2;
+          const isUpper = (mode === 'upper');
+          const cutsDesc = (e.cuts && e.cuts.length > 0) 
+            ? e.cuts.map(c => {
+                const fqStr = c.fq ? `【${c.fq}切】` : (c.upper ? `【${c.upper}${c.cutter}切】` : '');
+                return `字头【${c.head || c.target}】${fqStr}（以【${c.cutter}】为${isUpper ? '上字' : '下字'}）`;
+              }).join('； ')
+            : '互为拼切';
+
+          stepsHtml += `
+            <div class="step-item">
+              <div class="step-left">
+                <span class="step-num">${stepIndex}</span>
+                <div>
+                  <div class="step-char-pair">
+                    <span>【${c1}】</span>
+                    <span style="color:var(--green);">⟷ (互用)</span>
+                    <span>【${c2}】</span>
+                    <span class="tag-badge tag-green">互用强证据</span>
+                  </div>
+                  <div class="step-desc">
+                    <strong>切语证据：</strong>${cutsDesc}
+                  </div>
+                </div>
+              </div>
+              <div class="step-actions">
+                <button class="btn-action" onclick="quickFill('${c1}', 'char')">查【${c1}】</button>
+                <button class="btn-action" onclick="quickFill('${c2}', 'char')">查【${c2}】</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      // 2. Directed Cuts
+      if (directedEdges.length > 0) {
+        stepsHtml += `<div style="font-size:13px; font-weight:800; color:var(--accent); margin:18px 0 6px;">二、 递用单向直拼链（由核心字直接拼切引出）：</div>`;
+        directedEdges.forEach(e => {
+          stepIndex++;
+          const c1 = e.u1 || e.l1;
+          const c2 = e.u2 || e.l2;
+          const isUpper = (mode === 'upper');
+          const cutsDesc = (e.cuts && e.cuts.length > 0) 
+            ? e.cuts.map(c => {
+                const fqStr = c.fq ? `【${c.fq}切】` : (c.upper ? `【${c.upper}${c.cutter}切】` : '');
+                return `字头【${c.head || c.target}】${fqStr}（以【${c.cutter}】为${isUpper ? '上字' : '下字'}）`;
+              }).join('； ')
+            : '单向拼切';
+
+          stepsHtml += `
+            <div class="step-item">
+              <div class="step-left">
+                <span class="step-num">${stepIndex}</span>
+                <div>
+                  <div class="step-char-pair">
+                    <span>【${c1}】</span>
+                    <span style="color:var(--accent);">➔ (递用)</span>
+                    <span>【${c2}】</span>
+                    <span class="tag-badge tag-blue">${e.isCustom ? '考订新桥梁' : '递用单向直拼'}</span>
+                  </div>
+                  <div class="step-desc">
+                    <strong>切语证据：</strong>${cutsDesc}
+                  </div>
+                </div>
+              </div>
+              <div class="step-actions">
+                <button class="btn-action" onclick="quickFill('${c1}', 'char')">查【${c1}】</button>
+                <button class="btn-action" onclick="quickFill('${c2}', 'char')">查【${c2}】</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      // If singleton
+      if (cl.is_singleton || effectiveEdges.length === 0) {
+        stepsHtml = `
+          <div class="empty-state" style="padding:28px 16px; margin-top:10px;">
+            <div class="empty-state-icon">⚠️</div>
+            <div class="empty-state-title">【${cl.representative}】为《广韵》孤纽 / 孤韵字</div>
+            <p class="empty-state-sub">
+              该字在全书反切拓扑中入度为 0 且出度为 0，没有任何切语上字或下字与之发生互用或递用拼切。<br>
+              属于典型孤立音类，无法通过阶段一内生拼切系联闭合。
+            </p>
+          </div>
+        `;
+      }
+
+      const clName = isUpper 
+        ? (cl.chenli_name || cl.name || (cl.representative ? `${cl.representative}纽` : ''))
+        : (cl.name || cl.cluster_name || (cl.representative ? `${cl.representative}类` : ''));
+
+      const clusterTitle = isUpper 
+        ? `【${cl.primary_sheng}母 · ${clName}】反切上字系联全族`
+        : `【${cl.yun}韵 · ${cl.tone}声 · ${clName}】反切下字系联全族`;
+
+      const themeClass = isUpper ? 'theme-blue' : 'theme-green';
+      const themeColor = isUpper ? 'var(--accent)' : 'var(--green)';
+
+      mount.innerHTML = prefixHtml + `
+        <div class="res-card" style="border-top: 3px solid ${themeColor};">
+          <div class="res-card-header">
+            <div class="res-card-title-wrap">
+              <div class="char-badge-lg ${themeClass}">${cl.representative}</div>
+              <div>
+                <div class="card-title-text" style="color:${themeColor};">${clusterTitle}</div>
+                <div class="card-sub-text">
+                  ${isUpper ? `五音：${cl.main_wuyin}` : `${cl.she}摄 · ${cl.deng}等`} · 
+                  全族共 <strong>${cl.members.length}</strong> 字 · 
+                  当前有效连边 <strong>${effectiveEdges.length}</strong> 条
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-action ${isUpper ? 'primary' : 'success'}" onclick="connectNewEdgePrompt('${mode}')">🔗 建立新考订桥梁</button>
+            </div>
+          </div>
+          <div class="res-card-body">
+            <!-- Members list -->
+            <div style="margin-bottom:12px;">
+              <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">全族成员字头列表（点击任意字快速查阅）：</div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">${memberTagsHtml}</div>
+            </div>
+
+            <!-- Proof Step List -->
+            <div class="step-list">
+              ${stepsHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- Search 5: Two-character Proof Path (e.g. 博 邊 or 避 髲 or 惟 追) ---
+    function searchProofPath(raw, selectedIdx1 = null, selectedIdx2 = null, forcedTrack = null) {
+      const mount = document.getElementById('resultsMountArea');
+      const parts = raw.split(/[\s,，➔⟷\->]+/).filter(Boolean);
+      if (parts.length < 2) {
+        mount.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">⚠️</div>
+            <div class="empty-state-title">请输入两个待考字</div>
+            <p class="empty-state-sub">例如输入：【避 髲】、【博 邊】或【惟 追】以计算两字之间的最短反切因果证明路径。</p>
+          </div>
+        `;
+        return;
+      }
+
+      const c1 = parts[0];
+      const c2 = parts[1];
+
+      // 提取两字所有可用的音韵行（支持多音字又读全量匹配）
+      const res1 = resolveCharRows(c1);
+      const res2 = resolveCharRows(c2);
+      const rIndices1 = res1 ? res1.rows : [];
+      const rIndices2 = res2 ? res2.rows : [];
+
+      // 智能默认读音匹配算法：当未显式指定读音时，遍历所有读音组合，优先推荐声韵调匹配最佳的读音
+      let chosenIdx1 = (selectedIdx1 !== null && selectedIdx1 >= 0 && selectedIdx1 < rIndices1.length) ? selectedIdx1 : 0;
+      let chosenIdx2 = (selectedIdx2 !== null && selectedIdx2 >= 0 && selectedIdx2 < rIndices2.length) ? selectedIdx2 : 0;
+
+      if (selectedIdx1 === null && selectedIdx2 === null && (rIndices1.length > 1 || rIndices2.length > 1)) {
+        let bestScore = -1;
+        for (let i = 0; i < rIndices1.length; i++) {
+          const rowA = LAB_DATA.rows[rIndices1[i]];
+          for (let j = 0; j < rIndices2.length; j++) {
+            const rowB = LAB_DATA.rows[rIndices2[j]];
+            let score = 0;
+            if (rowA[18] && rowB[18] && rowA[18] === rowB[18]) score += 30; // 相同内生韵类族
+            if (rowA[13] === rowB[13] && rowA[11] === rowB[11]) score += 20; // 同韵同调
+            else if (rowA[13] === rowB[13]) score += 10; // 同大韵部
+            if (rowA[11] === rowB[11]) score += 8;  // 同声调
+            if (rowA[7] === rowB[7]) score += 6;    // 同声纽
+            if (score > bestScore) {
+              bestScore = score;
+              chosenIdx1 = i;
+              chosenIdx2 = j;
+            }
+          }
+        }
+      }
+
+      const r1 = rIndices1.length > 0 ? LAB_DATA.rows[rIndices1[chosenIdx1]] : null;
+      const r2 = rIndices2.length > 0 ? LAB_DATA.rows[rIndices2[chosenIdx2]] : null;
+
+      // 构建多音字又读切换工具栏 (Reading Switcher Toolbar)
+      let readingSwitcherHtml = '';
+      if (rIndices1.length > 1 || rIndices2.length > 1) {
+        let s1Html = '';
+        if (rIndices1.length > 1) {
+          s1Html = `
+            <div class="reading-switcher-row">
+              <span class="reading-row-label"><span>【${c1}】</span><span style="font-size:11px; font-weight:normal; color:var(--text-muted);">(${rIndices1.length}读音)</span>：</span>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                ${rIndices1.map((rIdx, i) => {
+                  const r = LAB_DATA.rows[rIdx];
+                  const isSel = (i === chosenIdx1);
+                  return `
+                    <button class="reading-pill ${isSel ? 'active' : ''}" onclick="searchProofPath('${c1} ${c2}', ${i}, ${chosenIdx2}, ${forcedTrack ? `'${forcedTrack}'` : 'null'})">
+                      ${isSel ? '<span>✓</span>' : ''}
+                      <span><strong>读音 ${i + 1}</strong>：【${r[3]}切】</span>
+                      <span style="font-size:11px; opacity:${isSel ? '0.95' : '0.75'};">(${r[11]}·${r[13]}韵·${r[7]}母·#${r[32] || '—'})</span>
+                      ${isSel ? '<span class="reading-active-tag">当前激活</span>' : ''}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
+        let s2Html = '';
+        if (rIndices2.length > 1) {
+          s2Html = `
+            <div class="reading-switcher-row">
+              <span class="reading-row-label"><span>【${c2}】</span><span style="font-size:11px; font-weight:normal; color:var(--text-muted);">(${rIndices2.length}读音)</span>：</span>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                ${rIndices2.map((rIdx, j) => {
+                  const r = LAB_DATA.rows[rIdx];
+                  const isSel = (j === chosenIdx2);
+                  return `
+                    <button class="reading-pill ${isSel ? 'active' : ''}" onclick="searchProofPath('${c1} ${c2}', ${chosenIdx1}, ${j}, ${forcedTrack ? `'${forcedTrack}'` : 'null'})">
+                      ${isSel ? '<span>✓</span>' : ''}
+                      <span><strong>读音 ${j + 1}</strong>：【${r[3]}切】</span>
+                      <span style="font-size:11px; opacity:${isSel ? '0.95' : '0.75'};">(${r[11]}·${r[13]}韵·${r[7]}母·#${r[32] || '—'})</span>
+                      ${isSel ? '<span class="reading-active-tag">当前激活</span>' : ''}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        readingSwitcherHtml = `
+          <div class="reading-switcher-panel">
+            <div class="reading-switcher-tip">
+              <span>💡</span><span><strong>检测到多音字又读</strong>：点击下方按钮可实时切换字头读音，动态重算因果系联与要素对照</span>
+            </div>
+            ${s1Html}
+            ${s2Html}
+          </div>
+        `;
+      }
+
+      // --- Fast Pre-computed Gating ---
+      // 1. Upper Initial Cluster
+      const uCid1 = r1 ? (LAB_DATA.char_to_upper_cluster[r1[5]] ?? LAB_DATA.char_to_upper_cluster[c1]) : LAB_DATA.char_to_upper_cluster[c1];
+      const uCid2 = r2 ? (LAB_DATA.char_to_upper_cluster[r2[5]] ?? LAB_DATA.char_to_upper_cluster[c2]) : LAB_DATA.char_to_upper_cluster[c2];
+      const isSameUpper = (uCid1 !== undefined && uCid1 === uCid2);
+
+      // 2. Lower Rime Cluster (use r[18] 内生韵类_ID first, fallback to char_to_lower_cluster)
+      let lCid1 = (r1 && r1[18] !== undefined && r1[18] !== '') ? Number(r1[18]) : (r1 ? LAB_DATA.char_to_lower_cluster[r1[6]] : LAB_DATA.char_to_lower_cluster[c1]);
+      let lCid2 = (r2 && r2[18] !== undefined && r2[18] !== '') ? Number(r2[18]) : (r2 ? LAB_DATA.char_to_lower_cluster[r2[6]] : LAB_DATA.char_to_lower_cluster[c2]);
+      const isSameLower = (lCid1 !== undefined && lCid1 === lCid2);
+
+      const canUpper = isSameUpper;
+      const canLower = isSameLower;
+
+      let mode = forcedTrack;
+      if (!mode) {
+        if (canLower) mode = 'lower';
+        else if (canUpper) mode = 'upper';
+      }
+
+      let cl = null;
+      if (mode === 'lower' && canLower) {
+        cl = LAB_DATA.lower_clusters.find(c => c.cluster_id === lCid1 || c.col_id === lCid1);
+      } else if (mode === 'upper' && canUpper) {
+        cl = LAB_DATA.upper_clusters.find(c => c.cluster_id === uCid1);
+      }
+
+      // Macro rhyme comparison for summary
+      const sameBigYun = (r1 && r2 && r1[13] === r2[13] && r1[11] === r2[11]);
+      const sameInitial = (r1 && r2 && r1[7] === r2[7]);
+      const sameHuDeng = (r1 && r2 && r1[9] === r2[9] && r1[10] === r2[10]);
+
+      // 宽泛重纽字与同位重出字第一性公理化判定要素：
+      // 1. 同等: r1[10] === r2[10]
+      // 2. 同呼: r1[9] === r2[9]
+      // 3. 同调: r1[11] === r2[11]
+      // 4. 上字可以系联或者相同: (r1[5] === r2[5] || canUpper)
+      // 5. 下字处于同一个未调整前原书韵部: r1[14] && r2[14] && (r1[14] === r2[14])
+      // 6. 分属不同小韵: r1[32] && r2[32] && (r1[32] !== r2[32])
+      const sameOrigYun = (r1 && r2 && r1[14] && r2[14] && r1[14] === r2[14]);
+      const sameTone = (r1 && r2 && r1[11] === r2[11]);
+      const sameDeng = (r1 && r2 && r1[10] === r2[10]);
+      const sameHu = (r1 && r2 && r1[9] === r2[9]);
+      const sameUpperConn = (r1 && r2 && (r1[5] === r2[5] || canUpper));
+      const diffXiaoyun = (r1 && r2 && r1[32] && r2[32] && r1[32] !== r2[32]);
+
+      const isBroadChongniu = sameOrigYun && sameTone && sameDeng && sameHu && sameUpperConn && diffXiaoyun && !canLower;
+      const isHomorganicDuplicate = sameOrigYun && sameTone && sameDeng && sameHu && sameUpperConn && diffXiaoyun && canLower;
+
+      const uCl1Name = getUpperClusterName(r1 ? r1[5] : c1);
+      const uCl2Name = getUpperClusterName(r2 ? r2[5] : c2);
+      const lCl1Name = getLowerClusterName(r1 ? r1[6] : c1, r1 ? r1[18] : null);
+      const lCl2Name = getLowerClusterName(r2 ? r2[6] : c2, r2 ? r2[18] : null);
+
+      // Build comparison table rows (Shared between connected proof and disconnected contrast views)
+      let rowsHtml = '';
+      if (r1 && r2) {
+        rowsHtml = `
+          <tr>
+            <td><strong>广韵字头 / 反切</strong></td>
+            <td><strong>【${r1[1]}】</strong>（${r1[3]}切）</td>
+            <td><strong>【${r2[1]}】</strong>（${r2[3]}切）</td>
+            <td>${r1[3] === r2[3] ? '<span class="tag-badge tag-green">反切相同</span>' : '反切用字各异'}</td>
+          </tr>
+          <tr>
+            <td><strong>反切上字及声纽族</strong></td>
+            <td>上字【<span style="color:var(--accent); font-weight:700;">${r1[5]}</span>】➔ ${uCl1Name}</td>
+            <td>上字【<span style="color:var(--accent); font-weight:700;">${r2[5]}</span>】➔ ${uCl2Name}</td>
+            <td>${(uCid1 !== undefined && uCid1 === uCid2) ? '<span class="tag-badge tag-blue">同声类族</span>' : (r1[7] === r2[7] ? '<span class="tag-badge tag-amber">同声纽·系联分立</span>' : '上字不系联')}</td>
+          </tr>
+          <tr>
+            <td><strong>反切下字及韵类族</strong></td>
+            <td>下字【<span style="color:var(--green); font-weight:700;">${r1[6]}</span>】➔ ${lCl1Name}</td>
+            <td>下字【<span style="color:var(--green); font-weight:700;">${r2[6]}</span>】➔ ${lCl2Name}</td>
+            <td>${(lCid1 !== undefined && lCid1 === lCid2) ? '<span class="tag-badge tag-green">同韵类族</span>' : (sameBigYun ? '<span class="tag-badge tag-amber">同韵部·系联分立</span>' : '下字不系联')}</td>
+          </tr>
+          <tr>
+            <td><strong>声纽 / 五音组</strong></td>
+            <td>${r1[7]}母 · ${r1[8]}</td>
+            <td>${r2[7]}母 · ${r2[8]}</td>
+            <td>${r1[7] === r2[7] ? `<span class="tag-badge tag-blue">同属${r1[7]}母</span>` : '声纽不同'}</td>
+          </tr>
+          <tr>
+            <td><strong>廣韻韻部原貌 (調整前)</strong></td>
+            <td><strong>【${r1[14]}${r1[32] || ''}】</strong>韵 (${r1[11]}声 · 相配平: ${r1[15]})</td>
+            <td><strong>【${r2[14]}${r2[32] || ''}】</strong>韵 (${r2[11]}声 · 相配平: ${r2[15]})</td>
+            <td>${r1[14] === r2[14] ? `<span class="tag-badge tag-green">同属【${r1[14]}】韵原貌</span>` : '<span class="tag-badge tag-amber">原书韵目不同</span>'}</td>
+          </tr>
+          <tr>
+            <td><strong>广韵大韵部 / 摄部 (調整後)</strong></td>
+            <td>${r1[13]}韵 (${r1[12]}摄 · 相配平: ${r1[15]})</td>
+            <td>${r2[13]}韵 (${r2[12]}摄 · 相配平: ${r2[15]})</td>
+            <td>${r1[13] === r2[13] ? `<span class="tag-badge tag-green">同属${r1[13]}韵大类</span>` : '韵部不同'}</td>
+          </tr>
+          <tr>
+            <td><strong>开合呼 / 等第</strong></td>
+            <td>${r1[9]}口 · ${r1[10]}等</td>
+            <td>${r2[9]}口 · ${r2[10]}等</td>
+            <td>${sameHuDeng ? '<span class="tag-badge tag-green">等呼完全一致</span>' : '等呼不同'}</td>
+          </tr>
+          <tr>
+            <td><strong>声调</strong></td>
+            <td>${r1[11]}声</td>
+            <td>${r2[11]}声</td>
+            <td>${r1[11] === r2[11] ? '<span class="tag-badge tag-green">同声调</span>' : '声调不同'}</td>
+          </tr>
+          <tr>
+            <td><strong>库中重纽 / 等类</strong></td>
+            <td>${r1[29] ? '重纽' + r1[29] + '类 (' + r1[30] + ')' : '非重纽'} · 小韵: ${r1[32] || '—'}</td>
+            <td>${r2[29] ? '重纽' + r2[29] + '类 (' + r2[30] + ')' : '非重纽'} · 小韵: ${r2[32] || '—'}</td>
+            <td>${(r1[29] !== r2[29] && (r1[29] || r2[29])) ? '<span class="tag-badge tag-purple">重纽A/B属性不同</span>' : (r1[29] ? '同为重纽' + r1[29] + '类' : '均非重纽')}</td>
+          </tr>
+        `;
+      } else {
+        rowsHtml = `
+          <tr>
+            <td colspan="4" style="text-align:center; color:var(--text-muted); padding:20px;">
+              部分字头在《广韵》主字库中未完整匹配，请分别查阅两字地位。
+            </td>
+          </tr>
+        `;
+      }
+
+      // If NOT in same cluster, render comprehensive contrast table
+      if (!cl) {
+        let summaryHtml = '';
+        if (isBroadChongniu) {
+          summaryHtml = `
+            <div style="background:rgba(56,189,248,0.06); border:1.5px solid rgba(56,189,248,0.35); border-radius:10px; padding:12px 16px; margin-bottom:12px;">
+              <div style="font-size:13.5px; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:8px;">
+                <span>🏛️</span><span>学术发现：【${c1}】与【${c2}】命中【宽泛重纽字】（下字断裂型同位对立）！</span>
+                <span class="tag-badge tag-blue">宽泛重纽字</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:5px; line-height:1.6;">
+                • <strong>公理化判据全要素吻合</strong>：同等（${r1[10]}等）、同呼（${r1[9]}口）、同调（${r1[11]}声）、同原书韵部（【${r1[14]}韵】·未调整前206韵原貌）。<br>
+                • <strong>声韵系联拓扑</strong>：上字${r1[5] === r2[5] ? `相同【${r1[5]}】` : `可系联（同属【${uCl1Name}】）`}；下字不可系联（【${lCl1Name}】 vs 【${lCl2Name}】·内生韵类分立）；分属小韵 #${r1[32]} 与 #${r2[32]}。<br>
+                • <strong>下字断裂实证</strong>：两字反切下字在系联网络中各自独立闭合，构成同一宏观音位格点下的微观介音或音位对立。
+              </div>
+              <div style="margin-top:8px;">
+                <button class="pill-btn active" style="background:#38bdf8; color:#070b14; border-color:#38bdf8; font-weight:800; padding:4px 12px; font-size:11.5px; cursor:pointer;" onclick="searchProofPath('${c1} ${c2}', ${chosenIdx1}, ${chosenIdx2}, 'upper')">
+                  ➔ 切换查看上字声纽系联证明 (${uCl1Name})
+                </button>
+              </div>
+            </div>
+          `;
+        } else if (sameBigYun) {
+          summaryHtml = `
+            <div style="font-size:13px; line-height:1.6; color:var(--text-primary);">
+              <div style="display:flex; align-items:center; gap:6px; font-weight:800; color:var(--green); margin-bottom:4px;">
+                <span>✓ 宏观大韵部层面：</span>
+                <span>两字同属《广韵》【${r1[13]}韵 · ${r1[11]}声${r1[9] ? ' · ' + r1[9] + '口' : ''}${r1[10] ? ' · ' + r1[10] + '等' : ''}】</span>
+              </div>
+              <div style="color:var(--text-secondary); font-size:12px;">
+                • <strong>反切系联层面</strong>：两字在反切系联法下<strong>分立于不同系联族</strong>${(lCl1Name && lCl2Name && lCl1Name !== '非下字' && lCl2Name !== '非下字') ? `（【${lCl1Name}】 vs 【${lCl2Name}】）` : ''}，在《广韵》文本中各自闭环、无直接连通路径。<br>
+                • <strong>查验提示</strong>：学者可结合下方对照表客观核验其声纽、切语上下字用字、以及数据库重纽等类记录，进一步考据其音韵分立成因。
+              </div>
+            </div>
+          `;
+        } else if (sameInitial) {
+          const rimeDesc = (r1[13] === r2[13])
+            ? `两字同属【${r1[13]}韵】，但声调不同（【${r1[11]}声】 vs 【${r2[11]}声】），分属不同声调韵卷，故系联法下各自独立。`
+            : `两字分属不同大韵部（【${r1[13]}韵】 vs 【${r2[13]}韵】），故在系联法下分属不同族。`;
+          summaryHtml = `
+            <div style="font-size:13px; line-height:1.6; color:var(--text-primary);">
+              <div style="display:flex; align-items:center; gap:6px; font-weight:800; color:var(--accent); margin-bottom:4px;">
+                <span>✓ 声纽层面：</span>
+                <span>两字同属【${r1[7]}母 · ${r1[8]}组】</span>
+              </div>
+              <div style="color:var(--text-secondary); font-size:12px;">
+                • <strong>韵部/声调层面</strong>：${rimeDesc}
+              </div>
+            </div>
+          `;
+        } else {
+          summaryHtml = `
+            <div style="font-size:12.5px; color:var(--text-secondary);">
+              两字未在同一个系联族中连通。下表客观列出两字在《广韵》底层主库中的全要素音韵地位对照，供查验核实。
+            </div>
+          `;
+        }
+
+        mount.innerHTML = `
+          <div class="res-card">
+            <div class="res-card-header">
+              <div class="res-card-title-wrap">
+                <div class="char-badge-lg" style="font-size:18px; gap:6px;">
+                  <span>${c1}</span>
+                  <span style="font-size:13px; color:var(--text-muted);">vs</span>
+                  <span>${c2}</span>
+                </div>
+                <div>
+                  <div class="card-title-text">【${c1}】与【${c2}】音韵地位对照与系联关系查验</div>
+                  <div class="card-sub-text">${isBroadChongniu ? '两字命中【宽泛重纽字】同位对立（上字可系联，下字互斥断裂） · 下表客观呈现底层全要素对照' : '两字未在同一个系联族中直接连通 · 下表客观呈现底层全要素对照'}</div>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn-action primary" onclick="quickFill('${c1}', 'char')">查【${c1}】</button>
+                <button class="btn-action primary" onclick="quickFill('${c2}', 'char')">查【${c2}】</button>
+              </div>
+            </div>
+            <div class="res-card-body">
+              ${readingSwitcherHtml}
+              ${summaryHtml}
+              <table class="ledger-table" style="margin-top:14px; margin-bottom:16px;">
+                <thead>
+                  <tr>
+                    <th style="width:150px;">音韵考据要素</th>
+                    <th style="width:230px;">【${c1}】</th>
+                    <th style="width:230px;">【${c2}】</th>
+                    <th>要素对照分析</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+              <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed var(--border); padding-top:12px;">
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  ${r1 && r1[5] ? `<button class="btn-action primary" onclick="quickFill('${r1[5]}', 'xilian')">查看【${r1[5]}】声纽全族</button>` : ''}
+                  ${r1 && r1[6] ? `<button class="btn-action success" onclick="quickFill('${r1[6]}', 'xilian')">查看【${r1[6]}】韵类全族</button>` : ''}
+                  ${r2 && r2[5] ? `<button class="btn-action primary" onclick="quickFill('${r2[5]}', 'xilian')">查看【${r2[5]}】声纽全族</button>` : ''}
+                  ${r2 && r2[6] ? `<button class="btn-action success" onclick="quickFill('${r2[6]}', 'xilian')">查看【${r2[6]}】韵类全族</button>` : ''}
+                </div>
+                <button class="btn-action" onclick="connectNewEdgePromptManual('${c1}', '${c2}')">
+                  🔗 考订两字新系联桥梁 (录入台账)
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // --- When connected: Anchor Projected Proof Path ---
+      const isUpper = (mode === 'upper');
+      const clusterName = cl.name || cl.chenli_name;
+      let a1, a2;
+      if (isUpper) {
+        a1 = cl.members.includes(c1) ? c1 : (r1 && cl.members.includes(r1[5]) ? r1[5] : cl.members[0]);
+        a2 = cl.members.includes(c2) ? c2 : (r2 && cl.members.includes(r2[5]) ? r2[5] : cl.members[0]);
+      } else {
+        a1 = cl.members.includes(c1) ? c1 : (r1 && cl.members.includes(r1[6]) ? r1[6] : cl.members[0]);
+        a2 = cl.members.includes(c2) ? c2 : (r2 && cl.members.includes(r2[6]) ? r2[6] : cl.members[0]);
+      }
+
+      // Run BFS on cluster backbone
+      const adj = {};
+      cl.members.forEach(m => adj[m] = []);
+
+      (cl.edges || []).forEach(e => {
+        const u1 = e.u1 || e.l1;
+        const u2 = e.u2 || e.l2;
+        adj[u1].push({ neighbor: u2, edge: e });
+        adj[u2].push({ neighbor: u1, edge: e });
+      });
+
+      const coreSteps = [];
+      if (a1 !== a2) {
+        const queue = [a1];
+        const visited = new Set([a1]);
+        const prev = {};
+        let found = false;
+
+        while (queue.length > 0) {
+          const curr = queue.shift();
+          if (curr === a2) {
+            found = true;
+            break;
+          }
+          for (let obj of adj[curr]) {
+            const nxt = obj.neighbor;
+            if (!visited.has(nxt)) {
+              visited.add(nxt);
+              prev[nxt] = { from: curr, edge: obj.edge };
+              queue.push(nxt);
+            }
+          }
+        }
+
+        if (found) {
+          let trace = a2;
+          while (trace !== a1) {
+            const step = prev[trace];
+            coreSteps.unshift({ from: step.from, to: trace, edge: step.edge });
+            trace = step.from;
+          }
+        }
+      }
+
+      // Reconstruct combined full steps
+      const fullSteps = [];
+      if (c1 !== a1 && r1) {
+        fullSteps.push({
+          isAnchorStart: true,
+          from: c1,
+          to: a1,
+          fq: r1[3],
+          cutterRole: isUpper ? '上字' : '下字'
+        });
+      }
+
+      coreSteps.forEach(cs => {
+        fullSteps.push({
+          isCore: true,
+          from: cs.from,
+          to: cs.to,
+          edge: cs.edge
+        });
+      });
+
+      if (c2 !== a2 && r2) {
+        fullSteps.push({
+          isAnchorEnd: true,
+          from: a2,
+          to: c2,
+          fq: r2[3],
+          cutterRole: isUpper ? '上字' : '下字'
+        });
+      }
+
+      const themeClass = isUpper ? 'theme-blue' : 'theme-green';
+      const themeColor = isUpper ? 'var(--accent)' : 'var(--green)';
+      const themeLight = isUpper ? 'var(--accent-light)' : 'var(--green-light)';
+      const themeBorder = isUpper ? 'var(--accent-border)' : 'var(--green-border)';
+      const themeTag = isUpper ? 'tag-blue' : 'tag-green';
+      const modeLabel = isUpper ? '上字声纽系联 (蓝色)' : '下字韵类系联 (绿色)';
+
+      const stepsHtml = fullSteps.map((s, idx) => {
+        let pairHtml = '';
+        let cutsDesc = '';
+
+        if (s.isAnchorStart) {
+          pairHtml = `
+            <span style="color:${themeColor}; font-weight:800;">【${s.from}】</span>
+            <span class="tag-badge ${themeTag}" style="font-weight:700; margin:0 3px;">【${s.fq}切】</span>
+            <span style="color:${themeColor}; font-weight:700; margin:0 3px;">➔ 字头锚定${s.cutterRole} ➔</span>
+            <span style="color:${themeColor}; font-weight:800;">【${s.to}】</span>
+            <span class="tag-badge ${themeTag}" style="margin-left:6px;">切语挂接</span>
+          `;
+          cutsDesc = `正文字头【${s.from}】切语为【${s.fq}切】，反切${s.cutterRole}为【${s.to}】（字头通过反切${s.cutterRole}锚定骨架系联节点）`;
+        } else if (s.isAnchorEnd) {
+          pairHtml = `
+            <span style="color:${themeColor}; font-weight:800;">【${s.from}】</span>
+            <span style="color:${themeColor}; font-weight:700; margin:0 3px;">➔ 拼切统领字头 ➔</span>
+            <span style="color:${themeColor}; font-weight:800;">【${s.to}】</span>
+            <span class="tag-badge ${themeTag}" style="font-weight:700; margin:0 3px;">【${s.fq}切】</span>
+            <span class="tag-badge ${themeTag}" style="margin-left:6px;">切语统领</span>
+          `;
+          cutsDesc = `反切${s.cutterRole}【${s.from}】拼切统领正文字头【${s.to}】（字头【${s.to}】切语为【${s.fq}切】）`;
+        } else {
+          // Backbone core edge
+          const e = s.edge;
+          const cutFromTo = e.cuts ? e.cuts.find(c => c.cutter === s.from && c.target === s.to) : null;
+          const cutToFrom = e.cuts ? e.cuts.find(c => c.cutter === s.to && c.target === s.from) : null;
+          const isMutual = (cutFromTo && cutToFrom);
+
+          if (isMutual) {
+            const fqFrom = cutToFrom.fq ? `【${cutToFrom.fq}切】` : getCharFQ(s.from);
+            const fqTo = cutFromTo.fq ? `【${cutFromTo.fq}切】` : getCharFQ(s.to);
+            pairHtml = `
+              <span style="color:${themeColor}; font-weight:800;">【${s.from}】</span>
+              ${fqFrom ? `<span class="tag-badge ${themeTag}" style="font-weight:700; margin:0 3px;">${fqFrom}</span>` : ''}
+              <span style="color:${themeColor}; font-weight:700; margin:0 3px;">⟷ 互用 ⟷</span>
+              <span style="color:${themeColor}; font-weight:800;">【${s.to}】</span>
+              ${fqTo ? `<span class="tag-badge ${themeTag}" style="font-weight:700; margin:0 3px;">${fqTo}</span>` : ''}
+              <span class="tag-badge ${themeTag}" style="margin-left:6px;">${isUpper ? '上字' : '下字'}互用</span>
+            `;
+            cutsDesc = `两字互为切拼！字头【${s.from}】切语为${fqFrom}（以【${s.to}】为${isUpper ? '上字' : '下字'}）；字头【${s.to}】切语为${fqTo}（以【${s.from}】为${isUpper ? '上字' : '下字'}）`;
+          } else if (cutToFrom) {
+            const fqFrom = cutToFrom.fq ? `【${cutToFrom.fq}切】` : (cutToFrom.upper ? `【${cutToFrom.upper}${cutToFrom.cutter}切】` : getCharFQ(s.from));
+            pairHtml = `
+              <span style="color:${themeColor}; font-weight:800;">【${s.from}】</span>
+              ${fqFrom ? `<span class="tag-badge ${themeTag}" style="font-weight:700; margin:0 3px;">${fqFrom}</span>` : ''}
+              <span style="color:${themeColor}; font-weight:700; margin:0 3px;">➔ 拼出字头 ➔</span>
+              <span style="color:${themeColor}; font-weight:800;">【${s.to}】</span>
+              <span class="tag-badge ${themeTag}" style="margin-left:6px;">${isUpper ? '上字' : '下字'}递用</span>
+            `;
+            cutsDesc = `正文字头【${s.from}】切语为${fqFrom}（反切${isUpper ? '上字' : '下字'}为【${s.to}】）`;
+          } else if (cutFromTo) {
+            const fqTo = cutFromTo.fq ? `【${cutFromTo.fq}切】` : (cutFromTo.upper ? `【${cutFromTo.upper}${cutFromTo.cutter}切】` : getCharFQ(s.to));
+            pairHtml = `
+              <span style="color:${themeColor}; font-weight:800;">【${s.from}】</span>
+              <span style="color:${themeColor}; font-weight:700; margin:0 3px;">➔ 拼出字头 ➔</span>
+              <span style="color:${themeColor}; font-weight:800;">【${s.to}】</span>
+              ${fqTo ? `<span class="tag-badge ${themeTag}" style="font-weight:700; margin:0 3px;">${fqTo}</span>` : ''}
+              <span class="tag-badge ${themeTag}" style="margin-left:6px;">${isUpper ? '上字' : '下字'}切出</span>
+            `;
+            cutsDesc = `反切${isUpper ? '上字' : '下字'}【${s.from}】拼切出正文字头【${s.to}】（切语为${fqTo}）`;
+          } else {
+            const fqFrom = getCharFQ(s.from);
+            const fqTo = getCharFQ(s.to);
+            const rawCuts = (e.cuts && e.cuts.length > 0)
+              ? e.cuts.map(c => `字头【${c.head || c.target}】${c.fq ? '【' + c.fq + '切】' : ''}（以【${c.cutter}】为${isUpper ? '上字' : '下字'}）`).join('； ')
+              : '直接拼切递用';
+            pairHtml = `
+              <span style="color:${themeColor}; font-weight:800;">【${s.from}】</span>
+              ${fqFrom ? `<span class="tag-badge ${themeTag}" style="font-weight:700; margin:0 3px;">${fqFrom}</span>` : ''}
+              <span style="color:${themeColor}; font-weight:700; margin:0 3px;">➔ 拼出字头 ➔</span>
+              <span style="color:${themeColor}; font-weight:800;">【${s.to}】</span>
+              ${fqTo ? `<span class="tag-badge ${themeTag}" style="font-weight:700; margin:0 3px;">${fqTo}</span>` : ''}
+              <span class="tag-badge ${themeTag}" style="margin-left:6px;">${isUpper ? '上字' : '下字'}${e.type || '递用'}</span>
+            `;
+            cutsDesc = rawCuts;
+          }
+        }
+
+        return `
+          <div class="step-item" style="border-left: 3px solid ${themeColor};">
+            <div class="step-left">
+              <span class="step-num" style="background:${themeLight}; color:${themeColor}; font-weight:800;">${idx + 1}</span>
+              <div>
+                <div class="step-char-pair">
+                  ${pairHtml}
+                </div>
+                <div class="step-desc" style="margin-top:5px;">
+                  <strong>反切证据：</strong>${cutsDesc}
+                </div>
+              </div>
+            </div>
+            <div class="step-actions">
+              <button class="btn-action" onclick="quickFill('${s.from}', 'char')">查【${s.from}】</button>
+              <button class="btn-action" onclick="quickFill('${s.to}', 'char')">查【${s.to}】</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Academic Discovery Banner (Broad Chongniu / Dual-track Duplicate)
+      let academicDiscoveryBannerHtml = '';
+      if (isBroadChongniu) {
+        const uClName = getUpperClusterName(r1 ? r1[5] : c1);
+        const lCl1Name = getLowerClusterName(r1 ? r1[6] : c1, r1 ? r1[18] : null);
+        const lCl2Name = getLowerClusterName(r2 ? r2[6] : c2, r2 ? r2[18] : null);
+        academicDiscoveryBannerHtml = `
+          <div style="background:rgba(56,189,248,0.06); border:1.5px solid rgba(56,189,248,0.35); border-radius:10px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <div style="font-size:13.5px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <span>🏛️</span><span>学术发现：【${c1}】与【${c2}】命中【宽泛重纽字】（下字断裂型同位对立）！</span>
+                <span class="tag-badge tag-blue">宽泛重纽字</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:5px; line-height:1.6;">
+                • <strong>公理化判据全要素吻合</strong>：同等（${r1[10]}等）、同呼（${r1[9]}口）、同调（${r1[11]}声）、同原书韵部（【${r1[14]}韵】·未调整前206韵原貌）。<br>
+                • <strong>声韵系联拓扑</strong>：上字${r1[5] === r2[5] ? `相同【${r1[5]}】` : `可系联（同属【${uClName}】）`}；下字不可系联（【${lCl1Name}】 vs 【${lCl2Name}】·内生韵类分立）；分属小韵 #${r1[32]} 与 #${r2[32]}。<br>
+                • <strong>微观音位分立</strong>：两字在同等、同呼、同调、同原书韵部、上字可系联的同位格点下，下字不可系联，构成纯数据驱动的宽泛重纽对立。
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="pill-btn ${mode === 'upper' ? 'active' : ''}" style="${mode === 'upper' ? 'background:var(--accent); color:#fff; border-color:var(--accent); font-weight:700;' : 'border-color:var(--accent); color:var(--accent);'}" onclick="searchProofPath('${c1} ${c2}', ${chosenIdx1}, ${chosenIdx2}, 'upper')">
+                ✓ 上字声纽证明 (${uClName})
+              </button>
+              <button class="pill-btn" style="border-color:rgba(56,189,248,0.4); color:#38bdf8; font-weight:600;" onclick="searchProofPath('${c1} ${c2}', ${chosenIdx1}, ${chosenIdx2}, 'lower')">
+                🔍 查看下字断裂对照表
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (canUpper && canLower) {
+        const uClName = getUpperClusterName(r1 ? r1[5] : c1);
+        const lClName = getLowerClusterName(r1 ? r1[6] : c1, r1 ? r1[18] : null);
+        const dupBadge = isHomorganicDuplicate ? '<span class="tag-badge tag-purple">双轨全通 · 同位重出字</span>' : '<span class="tag-badge tag-purple">双轨全通</span>';
+        const dupSub = isHomorganicDuplicate
+          ? `• <strong>公理化同位判据吻合</strong>：同等（${r1[10]}等）、同呼（${r1[9]}口）、同调（${r1[11]}声）、同原书韵部（【${r1[14]}韵】），但分属小韵 #${r1[32]} 与 #${r2[32]}，属同音重出字。<br>• <strong>双轨拓扑闭合</strong>：两字不仅同属<strong>【${lClName}】</strong>反切下字韵类，亦同属<strong>【${uClName}】</strong>反切上字声纽族。点击右侧按钮可自由切换查验两轨推导：`
+          : `两字不仅同属<strong>【${lClName}】</strong>反切下字韵类，亦同属<strong>【${uClName}】</strong>反切上字声纽族。点击右侧按钮可自由切换查验两轨推导：`;
+        academicDiscoveryBannerHtml = `
+          <div style="background:rgba(168,85,247,0.06); border:1px solid rgba(168,85,247,0.25); border-radius:10px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <div style="font-size:13.5px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <span>⚡️</span><span>学术发现：【${c1}】与【${c2}】在反切上下字双轨均系联闭合！</span>
+                ${dupBadge}
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:4px; line-height:1.6;">
+                ${dupSub}
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="pill-btn ${mode === 'lower' ? 'active' : ''}" style="${mode === 'lower' ? 'background:var(--green); color:#fff; border-color:var(--green); font-weight:700;' : 'border-color:var(--green); color:var(--green);'}" onclick="searchProofPath('${c1} ${c2}', ${chosenIdx1}, ${chosenIdx2}, 'lower')">
+                ✓ 查看下字韵类证明 (${lClName})
+              </button>
+              <button class="pill-btn ${mode === 'upper' ? 'active' : ''}" style="${mode === 'upper' ? 'background:var(--accent); color:#fff; border-color:var(--accent); font-weight:700;' : 'border-color:var(--accent); color:var(--accent);'}" onclick="searchProofPath('${c1} ${c2}', ${chosenIdx1}, ${chosenIdx2}, 'upper')">
+                ✓ 查看上字声纽证明 (${uClName})
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      mount.innerHTML = `
+        <div class="res-card" style="border-top: 3px solid ${themeColor};">
+          <div class="res-card-header">
+            <div class="res-card-title-wrap">
+              <div class="char-badge-lg ${themeClass}" style="font-size:18px;">
+                <span>${c1}</span>
+                <span style="font-size:13px; opacity:0.7; margin:0 3px;">➔</span>
+                <span>${c2}</span>
+              </div>
+              <div>
+                <div class="card-title-text" style="color:${themeColor};">
+                  ✓ 最短因果推导证明：【${c1}】与【${c2}】（共 ${fullSteps.length} 步跃迁 · ${modeLabel}）
+                </div>
+                <div class="card-sub-text">
+                  归属${isUpper ? '上字声纽' : '下字韵类'}族：<strong style="color:${themeColor};">${clusterName}</strong> · 拓扑证据链闭合
+                </div>
+              </div>
+            </div>
+            <button class="btn-action ${isUpper ? 'primary' : 'success'}" onclick="quickFill('${c1}', 'xilian')">
+              查看【${clusterName}】全族清单
+            </button>
+          </div>
+          <div class="res-card-body">
+            ${academicDiscoveryBannerHtml}
+            ${readingSwitcherHtml}
+
+            <!-- 两字音韵全要素考据对照表 -->
+            <div style="margin-top:10px; margin-bottom:18px;">
+              <div style="font-size:13px; font-weight:800; color:var(--text-primary); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                <span>⚖️</span><span>【${c1}】与【${c2}】音韵全要素考据对照：</span>
+              </div>
+              <table class="ledger-table" style="width:100%;">
+                <thead>
+                  <tr>
+                    <th style="width:150px;">音韵考据要素</th>
+                    <th style="width:230px;">【${c1}】</th>
+                    <th style="width:230px;">【${c2}】</th>
+                    <th>要素对照分析</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 反切系联因果推导证明链 -->
+            <div style="font-size:13px; font-weight:800; color:${themeColor}; margin-top:20px; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+              <span>🔗</span><span>反切系联因果推导证明链（共 ${fullSteps.length} 步跃迁 · ${modeLabel}）：</span>
+            </div>
+            <div style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px;">
+              下述步骤严格依据《广韵》正文字头反切与陈澧系联条例逐级递归推导，每一步跃迁均附带确凿的反切字头证据：
+            </div>
+            <div class="step-list">
+              ${stepsHtml}
+            </div>
+            <div style="margin-top:16px; padding:12px 14px; background:${themeLight}; border:1px solid ${themeBorder}; border-radius:8px; font-size:12.5px; color:${themeColor};">
+              <strong>学术考据结论：</strong>字【${c1}】与字【${c2}】通过上述 ${fullSteps.length} 步直接切拼链完全连通，在陈澧反切系联法下毫无争议地归入同一${isUpper ? '反切上字声纽' : '反切下字韵类'}（${clusterName}）。
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- Inline 33 Columns Details Accordion ---
+    function toggleInline33Details(targetId, char, rowIdx) {
+      const box = document.getElementById(targetId);
+      if (!box) return;
+
+      const wrap = document.getElementById(targetId + '_wrap');
+
+      if (box.style.display !== 'none') {
+        box.style.display = 'none';
+        if (wrap) wrap.style.display = 'none';
+        return;
+      }
+
+      box.style.display = 'block';
+      if (wrap) wrap.style.display = 'table-row';
+
+      // Load row data
+      const r = LAB_DATA.rows[rowIdx];
+      const cols = LAB_DATA.cols;
+
+      box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div style="font-size:12.5px; font-weight:800; color:var(--text-primary);">
+            🔍 【${char}】底层主库全部 33 项考据透镜
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-action" style="padding:2px 8px; font-size:11px;" onclick="copySingleRowData(${rowIdx})">📋 复制33项字段</button>
+            <button class="btn-action" style="padding:2px 8px; font-size:11px;" onclick="document.getElementById('${targetId}').style.display='none'; const w=document.getElementById('${targetId}_wrap'); if(w) w.style.display='none';">▴ 收起</button>
+          </div>
+        </div>
+        <div class="details-grid">
+          <!-- Section 1 -->
+          <div class="details-section">
+            <div class="details-section-title">① 字形与反切版本覈校</div>
+            <div class="details-row"><span class="details-label">覈校后字头:</span><span class="details-val">${r[1]}</span></div>
+            <div class="details-row"><span class="details-label">覈校前原貌:</span><span class="details-val">${r[2]}</span></div>
+            <div class="details-row"><span class="details-label">覈校后反切:</span><span class="details-val" style="color:var(--accent); font-weight:800;">${r[3]}</span></div>
+            <div class="details-row"><span class="details-label">反切原貌:</span><span class="details-val">${r[4]}</span></div>
+            <div class="details-row"><span class="details-label">反切上字:</span><span class="details-val">${r[5]}</span></div>
+            <div class="details-row"><span class="details-label">反切下字:</span><span class="details-val">${r[6]}</span></div>
+          </div>
+
+          <!-- Section 2 -->
+          <div class="details-section">
+            <div class="details-section-title">② 中古音韵特征</div>
+            <div class="details-row"><span class="details-label">声纽:</span><span class="details-val">${r[7]}母</span></div>
+            <div class="details-row"><span class="details-label">五音组:</span><span class="details-val">${r[8]}</span></div>
+            <div class="details-row"><span class="details-label">开合呼:</span><span class="details-val">${r[9]}口</span></div>
+            <div class="details-row"><span class="details-label">等第:</span><span class="details-val">${r[10]}等</span></div>
+            <div class="details-row"><span class="details-label">声调:</span><span class="details-val">${r[11]}声</span></div>
+            <div class="details-row"><span class="details-label">摄部:</span><span class="details-val">${r[12]}摄</span></div>
+            <div class="details-row"><span class="details-label">广韵韵部:</span><span class="details-val">${r[13]}</span></div>
+            <div class="details-row"><span class="details-label">韵部原貌:</span><span class="details-val">${r[14]}</span></div>
+            <div class="details-row"><span class="details-label">相配为平:</span><span class="details-val">${r[15]}</span></div>
+          </div>
+
+          <!-- Section 3 -->
+          <div class="details-section">
+            <div class="details-section-title">③ 内生系联与等阶重纽</div>
+            <div class="details-row"><span class="details-label">内生声类:</span><span class="details-val" style="color:var(--accent);">#${r[36] || '—'} · ${r[37] || '未入类'}</span></div>
+            <div class="details-row"><span class="details-label">内生韵类ID:</span><span class="details-val">#${r[18]}</span></div>
+            <div class="details-row"><span class="details-label">内生等阶ID:</span><span class="details-val">${r[16]}</span></div>
+            <div class="details-row"><span class="details-label">等阶名称:</span><span class="details-val" style="color:var(--purple);">${r[17]}</span></div>
+            <div class="details-row"><span class="details-label">重纽归属:</span><span class="details-val">${r[29] || '非重纽'}</span></div>
+            <div class="details-row"><span class="details-label">等类标签:</span><span class="details-val">${r[30] || '—'}</span></div>
+            <div class="details-row"><span class="details-label">校准状态:</span><span class="details-val" style="color:var(--green);">${r[31] || '—'}</span></div>
+            <div class="details-row"><span class="details-label">小韵序号:</span><span class="details-val">${r[32] || '—'}</span></div>
+          </div>
+
+          <!-- Section 4 -->
+          <div class="details-section">
+            <div class="details-section-title">④ 声符层级与上古音</div>
+            <div class="details-row"><span class="details-label">主声符:</span><span class="details-val">${r[19] || '—'}</span></div>
+            <div class="details-row"><span class="details-label">次级声符:</span><span class="details-val">${r[20] || '—'}</span></div>
+            <div class="details-row"><span class="details-label">声符层级:</span><span class="details-val">${r[21] || '—'}</span></div>
+            <div class="details-row"><span class="details-label">层级深度:</span><span class="details-val">${r[22] || '—'}</span></div>
+            <div class="details-row"><span class="details-label">符声类:</span><span class="details-val">${r[23] || '—'}</span></div>
+            <div class="details-row"><span class="details-label">符韵部:</span><span class="details-val">${r[24] || '—'}</span></div>
+            <div class="details-row"><span class="details-label">谐声域:</span><span class="details-val">${r[26] || '—'}</span></div>
+            <div class="details-row"><span class="details-label">上古音节类型:</span><span class="details-val">${r[27] || '—'}</span></div>
+            <div class="details-row"><span class="details-label">上古拟音 IPA:</span><span class="details-val" style="color:var(--red); font-family:var(--font-mono);">${r[28] || '—'}</span></div>
+          </div>
+
+          <!-- Section 5: SVD Manifold & Algebraic Seriation -->
+          <div class="details-section">
+            <div class="details-section-title">⑤ SVD 连续流形与代数层理</div>
+            <div class="details-row"><span class="details-label">SVD 宏观阶梯:</span><span class="details-val" style="color:var(--accent); font-weight:700;">${(() => {
+              const rowColId = r[18];
+              const cl = (LAB_DATA.lower_clusters || []).find(c => c.cluster_id === rowColId || c.col_id === rowColId || (c.members && c.members.includes(r[6])));
+              return (cl && cl.macro_tier_name) ? cl.macro_tier_name : (r[17] || '—');
+            })()}</span></div>
+            <div class="details-row"><span class="details-label">SVD 谱坐标 (v₂, v₃):</span><span class="details-val" style="font-family:var(--font-mono); color:var(--purple); font-weight:700;">${(() => {
+              const rowColId = r[18];
+              const cl = (LAB_DATA.lower_clusters || []).find(c => c.cluster_id === rowColId || c.col_id === rowColId || (c.members && c.members.includes(r[6])));
+              if (cl && cl.svd_v2 !== undefined && cl.svd_v3 !== undefined) {
+                return `(${cl.svd_v2.toFixed(4)}, ${cl.svd_v3.toFixed(4)})`;
+              }
+              return '—';
+            })()}</span></div>
+            <div class="details-row"><span class="details-label">双聚类列位次:</span><span class="details-val">${(() => {
+              const rowColId = r[18];
+              const cl = (LAB_DATA.lower_clusters || []).find(c => c.cluster_id === rowColId || c.col_id === rowColId || (c.members && c.members.includes(r[6])));
+              return (cl && cl.current_order !== undefined) ? `Col #${cl.current_order + 1} / 307` : (rowColId !== null && rowColId !== undefined ? `Col #${rowColId}` : '—');
+            })()}</span></div>
+            <div class="details-row"><span class="details-label">内生排序ID:</span><span class="details-val">${(() => {
+              const rowColId = r[18];
+              const cl = (LAB_DATA.lower_clusters || []).find(c => c.cluster_id === rowColId || c.col_id === rowColId || (c.members && c.members.includes(r[6])));
+              return cl ? (cl.endogenous_rank_id || 'Rank_Purified') : '—';
+            })()}</span></div>
+            <div class="details-row"><span class="details-label">实证重纽对立:</span><span class="details-val">${(() => {
+              const cnPair = (LAB_DATA.pairs_by_char && LAB_DATA.pairs_by_char[r[1]]) ? LAB_DATA.pairs_by_char[r[1]] : null;
+              return cnPair ? `<span class="tag-badge tag-purple">${cnPair.note}</span>` : '<span style="color:var(--text-muted);">非83对实证重纽</span>';
+            })()}</span></div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- Copy Utilities ---
+    function copySingleRowData(rowIdx) {
+      const r = LAB_DATA.rows[rowIdx];
+      const text = LAB_DATA.cols.map((col, idx) => `${col}: ${r[idx]}`).join('\n');
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`📋 已复制【${r[1]}】全部 33 项字段数据！`);
+      });
+    }
+
+    function copyCharRows(char) {
+      const indices = LAB_DATA.char_to_rows[char] || [];
+      const text = indices.map((rIdx, i) => {
+        const r = LAB_DATA.rows[rIdx];
+        return `=== 读音 ${i + 1} (${r[3]}切) ===\n` + LAB_DATA.cols.map((col, idx) => `${col}: ${r[idx]}`).join('\n');
+      }).join('\n\n');
+
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`📋 已复制【${char}】全部 ${indices.length} 条读音数据！`);
+      });
+    }
+
+    function copyMultiCharComparisonData(chars) {
+      if (!chars || chars.length === 0) return;
+      let allText = [];
+      chars.forEach(ch => {
+        const resolved = resolveCharRows(ch);
+        const indices = (resolved && resolved.rows) ? resolved.rows : [];
+        indices.forEach((rIdx, i) => {
+          const r = LAB_DATA.rows[rIdx];
+          allText.push(`===【${r[1]}】读音 ${i + 1} (${r[3]}切) ===\n` + LAB_DATA.cols.map((col, idx) => `${col}: ${r[idx]}`).join('\n'));
+        });
+      });
+      navigator.clipboard.writeText(allText.join('\n\n')).then(() => {
+        showToast(`📋 已复制【${chars.join('、')}】全部读音比对数据！`);
+      });
+    }
+
+    function showToast(msg, duration = 2400) {
+      const toast = document.getElementById('globalToast');
+      toast.innerText = msg;
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(20px)';
+      }, duration);
+    }
+  </script>
+</body>
+</html>
